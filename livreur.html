@@ -1,0 +1,2822 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Allô Livreur — Livreur</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
+<style>
+:root{
+  --primary:#F97316;--primary-dark:#C2410C;--primary-light:#FFF7ED;
+  --bg:#F8F7F4;--surface:#FFFFFF;--surface2:#F3F2EE;
+  --text:#1A1A18;--text2:#6B6860;--text3:#A8A69F;
+  --border:#E8E6E0;--border2:#D4D0C8;
+  --success:#16A34A;--danger:#DC2626;--info:#2563EB;--warning:#D97706;
+  --radius:12px;--radius-sm:8px;--radius-xs:6px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.04);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.12);
+  --font:'Inter',sans-serif;--font-display:'Poppins',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden;height:100vh;width:100vw}
+
+/* ═══ AUTH SCREEN */
+#auth-screen{position:fixed;inset:0;background:var(--text);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;padding:2rem}
+#auth-screen .logo{font-family:var(--font-display);color:#fff;font-size:2rem;font-weight:800;letter-spacing:-0.5px}
+#auth-screen .logo span{color:var(--primary)}
+#auth-screen .tagline{color:#A8A69F;font-size:.9rem;text-align:center}
+.auth-card{background:#fff;border-radius:20px;padding:2rem;width:100%;max-width:360px}
+.auth-card h2{font-family:var(--font-display);font-size:1.3rem;font-weight:700;margin-bottom:.4rem}
+.auth-card p{font-size:.8rem;color:var(--text2);margin-bottom:1.5rem}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:.8rem;font-weight:500;color:var(--text2);margin-bottom:.4rem}
+.field input{width:100%;padding:.75rem 1rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.95rem;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--primary)}
+.btn{width:100%;padding:.85rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-size:.95rem;font-weight:600;cursor:pointer;transition:background .2s}
+.btn:disabled{opacity:.65;cursor:not-allowed}
+.btn:hover{background:var(--primary-dark)}
+.auth-error{background:#FEF2F2;color:var(--danger);padding:.75rem;border-radius:var(--radius-xs);font-size:.85rem;margin-bottom:1rem;display:none}
+
+/* ═══ PC LAYOUT */
+#pc-layout{display:none;height:100vh;width:100vw;flex-direction:column}
+.pc-topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 1.5rem;gap:1rem;z-index:100;flex-shrink:0}
+.pc-topbar .logo{font-family:var(--font-display);font-size:1.2rem;font-weight:800;color:var(--text);letter-spacing:-0.3px;white-space:nowrap}
+.pc-topbar .logo span{color:var(--primary)}
+.pc-topbar-actions{display:flex;align-items:center;gap:.5rem;margin-left:auto}
+.icon-btn{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:1.1rem;position:relative;transition:background .2s}
+.icon-btn:hover{background:var(--bg)}
+.badge{position:absolute;top:2px;right:2px;width:8px;height:8px;background:var(--primary);border-radius:50%;border:2px solid #fff}
+.avatar-btn{width:38px;height:38px;border-radius:50%;overflow:hidden;cursor:pointer;border:2px solid var(--border);background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:.85rem}
+.avatar-btn img{width:100%;height:100%;object-fit:cover}
+
+/* PC body split */
+.pc-body{display:flex;flex:1;overflow:hidden}
+.pc-sidebar{width:340px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.sidebar-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg)}
+.stab{flex:1;padding:.6rem;font-size:.8rem;font-weight:500;border:none;background:transparent;cursor:pointer;color:var(--text2);transition:all .2s;border-bottom:2px solid transparent;display:flex;flex-direction:column;align-items:center;gap:2px}
+.stab i{font-size:1.1rem}
+.stab.active{color:var(--primary);border-bottom-color:var(--primary);background:var(--surface)}
+.sidebar-panel{flex:1;overflow-y:auto;display:none}
+.sidebar-panel.active{display:block}
+.section-head{padding:.75rem 1rem;font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;background:var(--bg);position:sticky;top:0;z-index:2}
+
+/* PC Map */
+.pc-map-area{flex:1;display:flex;flex-direction:column;position:relative}
+#pc-map{flex:1;z-index:1}
+
+/* PC Chat panel */
+.pc-chat-panel{position:absolute;top:0;right:0;bottom:0;width:340px;background:var(--surface);box-shadow:var(--shadow-lg);z-index:50;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s}
+.pc-chat-panel.open{transform:translateX(0)}
+
+/* Status toggle */
+.status-toggle{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:var(--surface);border-bottom:1px solid var(--border)}
+.status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.status-dot.online{background:var(--success)}
+.status-dot.offline{background:var(--text3)}
+.status-dot.encours{background:var(--warning)}
+.toggle-sw{position:relative;width:42px;height:24px;cursor:pointer;margin-left:auto}
+.toggle-sw input{opacity:0;width:0;height:0;position:absolute}
+.toggle-sw .slider{position:absolute;inset:0;background:#ccc;border-radius:24px;transition:.3s}
+.toggle-sw .slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle-sw input:checked + .slider{background:var(--success)}
+.toggle-sw input:checked + .slider::before{transform:translateX(18px)}
+
+/* Course card */
+.course-card{margin:.5rem .75rem;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.course-card-head{padding:.75rem 1rem;background:var(--bg);display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--border)}
+.course-card-body{padding:.75rem 1rem}
+.course-action-btns{display:flex;gap:.5rem;padding:.75rem 1rem;border-top:1px solid var(--border)}
+.btn-accept{flex:1;padding:.65rem;background:var(--success);color:#fff;border:none;border-radius:var(--radius-xs);font-family:var(--font);font-weight:600;font-size:.88rem;cursor:pointer;transition:background .2s}
+.btn-accept:hover{background:#15803D}
+.btn-reject{flex:1;padding:.65rem;background:transparent;color:var(--danger);border:1.5px solid var(--danger);border-radius:var(--radius-xs);font-family:var(--font);font-weight:600;font-size:.88rem;cursor:pointer;transition:background .2s}
+.btn-reject:hover{background:#FEF2F2}
+.btn-primary{background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:.75rem 1.25rem;font-family:var(--font);font-weight:600;cursor:pointer;font-size:.9rem;width:100%;transition:background .2s}
+.btn-primary:hover{background:var(--primary-dark)}
+
+/* Wallet card */
+.wallet-hero{background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:var(--radius);padding:1.25rem;color:#fff;margin:.75rem}
+.wallet-hero .label{font-size:.78rem;opacity:.8}
+.wallet-hero .amount{font-size:1.8rem;font-weight:800;font-family:var(--font-display);margin:.2rem 0}
+.wallet-btns{display:flex;gap:.5rem;margin-top:.85rem}
+.wallet-btn{flex:1;padding:.6rem;border-radius:var(--radius-xs);font-family:var(--font);font-weight:600;font-size:.82rem;cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;gap:.3rem}
+.wallet-btn.retrait{background:rgba(255,255,255,.18);color:#fff}
+.wallet-btn.retrait:hover{background:rgba(255,255,255,.28)}
+
+/* Notif panel */
+.notif-panel{position:absolute;top:calc(100% + 8px);right:0;width:300px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);border:1px solid var(--border);z-index:200;display:none;max-height:400px;overflow-y:auto}
+.notif-panel.open{display:block}
+.notif-head{padding:.75rem 1rem;border-bottom:1px solid var(--border);font-weight:600;font-size:.9rem;display:flex;align-items:center;justify-content:space-between}
+.notif-item{padding:.75rem 1rem;border-bottom:1px solid var(--border);cursor:pointer}
+.notif-item.unread{background:var(--primary-light)}
+.notif-title{font-size:.85rem;font-weight:600;margin-bottom:2px}
+.notif-body{font-size:.8rem;color:var(--text2);line-height:1.4}
+.notif-time{font-size:.72rem;color:var(--text3);margin-top:4px}
+
+/* Profile dropdown */
+.profile-dropdown{position:absolute;top:calc(100% + 8px);right:0;width:240px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);border:1px solid var(--border);z-index:200;display:none}
+.profile-dropdown.open{display:block}
+.pd-header{padding:1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem}
+.pd-ava{width:44px;height:44px;border-radius:50%;overflow:hidden;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:.9rem}
+.pd-ava img{width:100%;height:100%;object-fit:cover}
+.pd-name{font-weight:600;font-size:.9rem}
+.pd-phone{font-size:.78rem;color:var(--text2)}
+.pd-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;cursor:pointer;color:var(--text2);font-size:.88rem;transition:background .15s}
+.pd-item:hover{background:var(--bg);color:var(--text)}
+.pd-item i{font-size:1rem;width:20px}
+.pd-item.danger{color:var(--danger)}
+.pd-item.danger:hover{background:#FEF2F2}
+
+/* MOBILE LAYOUT */
+#mobile-layout{display:none;height:100vh;width:100vw;flex-direction:column;background:var(--bg)}
+.mob-page{display:none;flex:1;flex-direction:column;overflow:hidden;position:relative}
+.mob-page.active{display:flex}
+.mob-topbar{height:56px;background:var(--surface);display:flex;align-items:center;padding:0 1rem;gap:.75rem;border-bottom:1px solid var(--border);flex-shrink:0}
+.mob-topbar .logo{font-family:var(--font-display);font-size:1.1rem;font-weight:800;letter-spacing:-0.3px}
+.mob-topbar .logo span{color:var(--primary)}
+.mob-topbar-right{margin-left:auto;display:flex;gap:.5rem}
+#mob-map{width:100%;height:100%}
+.mob-fab{position:absolute;bottom:1rem;right:1rem;width:54px;height:54px;border-radius:50%;background:var(--primary);color:#fff;border:none;display:flex;align-items:center;justify-content:center;font-size:1.4rem;box-shadow:var(--shadow-lg);cursor:pointer;z-index:10}
+.mob-page-head{padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0}
+.mob-back-btn{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2)}
+.mob-page-title{font-weight:700;font-size:1rem}
+.mob-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+
+/* Bottom nav */
+.mob-nav{height:64px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:stretch;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom)}
+.mob-nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:.65rem;font-family:var(--font);font-weight:500;transition:color .2s;position:relative}
+.mob-nav-btn i{font-size:1.35rem}
+.mob-nav-btn.active{color:var(--primary)}
+.mob-nav-btn .nav-badge{position:absolute;top:6px;right:calc(50% - 14px);min-width:16px;height:16px;padding:0 4px;background:var(--danger);border-radius:50px;border:2px solid var(--surface);font-size:.6rem;font-weight:700;color:#fff;display:none;align-items:center;justify-content:center}
+
+/* SOS Button */
+.sos-btn{position:absolute;bottom:1rem;left:1rem;background:#DC2626;color:#fff;border:none;border-radius:50px;padding:.6rem 1.1rem;font-family:var(--font);font-weight:800;font-size:.88rem;cursor:pointer;z-index:10;display:flex;align-items:center;gap:.4rem;box-shadow:0 4px 12px rgba(220,38,38,.5);animation:sosPulse 2s infinite}
+@keyframes sosPulse{0%,100%{box-shadow:0 4px 12px rgba(220,38,38,.4)}50%{box-shadow:0 4px 20px rgba(220,38,38,.8)}}
+.sos-btn:active{transform:scale(.95)}
+
+/* Course demande card (mobile) */
+.demande-card{margin:.5rem .75rem;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border-left:4px solid var(--primary)}
+.demande-head{padding:.65rem 1rem;background:var(--primary-light);display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--border)}
+.demande-body{padding:.75rem 1rem;display:flex;flex-direction:column;gap:.5rem}
+.route-row{display:flex;align-items:flex-start;gap:.6rem}
+.route-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.route-dot.start{background:var(--success)}
+.route-dot.end{background:var(--danger)}
+.route-line{width:1px;height:14px;background:var(--border2);margin-left:4px;margin-right:auto}
+
+/* Cours en cours banner */
+.course-banner{background:var(--surface);border-radius:var(--radius);margin:.5rem .75rem;box-shadow:var(--shadow);padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;border-left:4px solid var(--success)}
+.pulse{width:10px;height:10px;border-radius:50%;background:var(--success);animation:pulse 1.5s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.3)}}
+
+/* Tags */
+.tag{display:inline-block;padding:2px 8px;border-radius:50px;font-size:.72rem;font-weight:600}
+.tag.dispo{background:#DCFCE7;color:#15803D}
+.tag.encours{background:#FEF3C7;color:#B45309}
+.tag.hors{background:#F3F4F6;color:#6B7280}
+.tag.en_attente{background:#EFF6FF;color:#1D4ED8}
+.tag.terminee{background:#F0FDF4;color:#15803D}
+.tag.annulee{background:#FEF2F2;color:#DC2626}
+
+/* Stat cards */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;padding:.75rem}
+.stat-card{background:var(--surface);border-radius:var(--radius-sm);padding:.85rem .75rem;text-align:center;box-shadow:var(--shadow)}
+.stat-card .sv{font-family:var(--font-display);font-size:1.4rem;font-weight:800}
+.stat-card .sl{font-size:.7rem;color:var(--text2);margin-top:2px}
+
+/* Transactions */
+.tx-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-bottom:1px solid var(--border)}
+.tx-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.tx-icon.credit{background:#DCFCE7;color:var(--success)}
+.tx-icon.debit{background:#FEF2F2;color:var(--danger)}
+.tx-amount{font-weight:700;font-size:.92rem}
+.tx-amount.credit{color:var(--success)}
+.tx-amount.debit{color:var(--danger)}
+.tx-desc{font-size:.78rem;color:var(--text2)}
+.tx-date{font-size:.72rem;color:var(--text3)}
+
+/* Toast */
+.toast{position:fixed;bottom:5rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:#fff;padding:.65rem 1.25rem;border-radius:50px;font-size:.85rem;font-weight:500;z-index:9998;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{background:var(--success)}
+.toast.er{background:var(--danger)}
+
+/* Empty state */
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text3)}
+.empty-state i{font-size:3rem;display:block;margin-bottom:.75rem}
+.empty-state p{font-size:.88rem}
+
+/* Loading skeleton */
+.skeleton{background:linear-gradient(90deg,var(--surface2) 25%,var(--bg) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-xs)}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-sheet{width:100%;max-width:520px;background:var(--surface);border-radius:20px 20px 0 0;padding-bottom:2rem;max-height:92vh;overflow-y:auto;animation:slideup .3s cubic-bezier(.4,0,.2,1)}
+@keyframes slideup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{display:flex;justify-content:center;padding:.75rem 0;cursor:pointer}
+.modal-handle-pill{width:36px;height:4px;background:var(--border2);border-radius:2px}
+.info-row{display:flex;align-items:center;gap:.75rem;padding:.75rem 0;border-bottom:1px solid var(--border)}
+.info-row:last-child{border-bottom:none}
+.info-ico{width:34px;height:34px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;border:1px solid var(--border)}
+.info-label{font-size:.73rem;color:var(--text2)}
+.info-val{font-size:.86rem;font-weight:600}
+
+/* Profile hero mob */
+.mob-profile-hero{padding:1.5rem 1rem;background:var(--surface);display:flex;flex-direction:column;align-items:center;gap:.75rem;border-bottom:1px solid var(--border)}
+.mob-profile-ava{width:80px;height:80px;border-radius:50%;overflow:hidden;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:1.8rem;border:3px solid var(--border);position:relative}
+.mob-profile-ava img{width:100%;height:100%;object-fit:cover}
+.mob-profile-ava .edit-ava{position:absolute;bottom:0;right:0;width:26px;height:26px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.8rem;border:2px solid #fff}
+.mob-profile-name{font-family:var(--font-display);font-size:1.2rem;font-weight:800}
+.mob-menu-item{display:flex;align-items:center;gap:.75rem;padding:.9rem 1rem;background:var(--surface);border-bottom:1px solid var(--border);cursor:pointer;font-size:.9rem}
+.mob-menu-item:hover{background:var(--bg)}
+.mob-menu-item i{font-size:1.1rem;width:22px;color:var(--text3)}
+.mob-menu-item .chevron{margin-left:auto;font-size:.9rem;color:var(--text3)}
+
+/* WhatsApp Chat */
+#mob-chat-page{position:fixed;inset:0;z-index:300;background:var(--surface);flex-direction:column;overflow:hidden;display:none}
+#mob-chat-page.active{display:flex}
+.wa-bg{background:#e5ddd5}
+.wa-msgs{flex:1;overflow-y:auto;padding:.6rem .75rem;display:flex;flex-direction:column;gap:1px;position:relative;z-index:1;scroll-behavior:smooth}
+.msg-row{display:flex;flex-direction:column;margin-bottom:1px}
+.msg-row.mine{align-items:flex-end}
+.msg-row.other{align-items:flex-start}
+.msg-bubble{max-width:75%;padding:.42rem .65rem .25rem;border-radius:8px;position:relative;word-break:break-word;line-height:1.45;font-size:.88rem;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.msg-bubble.mine{background:#d9fdd3;border-bottom-right-radius:2px}
+.msg-bubble.other{background:#fff;border-bottom-left-radius:2px}
+.msg-footer{display:inline-flex;align-items:center;gap:2px;float:right;margin-left:.75rem;margin-top:2px;height:13px}
+.msg-time-txt{font-size:.61rem;color:rgba(0,0,0,.38);white-space:nowrap;line-height:1}
+.wa-tick{font-size:.78rem;line-height:1;color:#8696a0;display:inline-block}
+.wa-tick.read{color:#53bdeb}
+.date-sep{text-align:center;margin:.6rem 0;clear:both}
+.date-sep span{background:rgba(255,255,255,.88);padding:.18rem .85rem;border-radius:50px;font-size:.7rem;color:#54656f;box-shadow:0 1px 2px rgba(0,0,0,.1);font-weight:500}
+.va-player{display:flex;align-items:center;gap:.45rem;min-width:170px;max-width:240px;padding:.05rem 0}
+.vplay-btn{width:34px;height:34px;border-radius:50%;border:none;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:.9rem}
+.vwavebar{flex:1;height:3px;background:rgba(0,0,0,.15);border-radius:2px;cursor:pointer;position:relative;overflow:hidden}
+.vwavebar-fill{height:100%;background:var(--primary);border-radius:2px;width:0%;pointer-events:none;transition:width .1s linear}
+.vduration{font-size:.67rem;color:rgba(0,0,0,.45);white-space:nowrap;min-width:28px}
+.msg-img{border-radius:6px;max-width:100%;cursor:pointer;display:block;max-height:240px;object-fit:cover}
+.msg-map-wrap{border-radius:8px;overflow:hidden;cursor:pointer;display:block;border:1px solid rgba(0,0,0,.08)}
+.msg-mini-map{width:100%;height:140px;border-radius:6px;overflow:hidden}
+.msg-map-btns{display:flex;gap:.4rem;margin-top:4px}
+.msg-map-btn{flex:1;padding:.35rem .5rem;border-radius:6px;font-size:.72rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:.25rem;text-decoration:none;cursor:pointer}
+.msg-map-btn.gm{background:#EFF6FF;color:#1D4ED8}
+.msg-map-btn.wz{background:#F0FDF4;color:#15803D}
+.msg-transfer{background:linear-gradient(135deg,#056304,#0a9e08);color:#fff;border-radius:10px;padding:.65rem .9rem;min-width:185px}
+.typing-row{display:flex;align-items:flex-end;padding:.15rem 0}
+.typing-bubble{background:#fff;border-radius:18px;border-bottom-left-radius:4px;padding:.42rem .7rem;box-shadow:0 1px 2px rgba(0,0,0,.1);display:flex;align-items:center;gap:4px}
+.tdot{width:7px;height:7px;border-radius:50%;background:#8696a0;animation:tdb .9s infinite}
+.tdot:nth-child(2){animation-delay:.15s}.tdot:nth-child(3){animation-delay:.3s}
+@keyframes tdb{0%,80%,100%{transform:translateY(0);opacity:.45}40%{transform:translateY(-5px);opacity:1}}
+.scroll-down-btn{position:absolute;bottom:10px;right:12px;width:36px;height:36px;border-radius:50%;background:#fff;border:none;box-shadow:0 2px 8px rgba(0,0,0,.22);display:none;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:1rem;z-index:10}
+.scroll-down-btn.show{display:flex}
+.wa-input-bar{background:#f0f2f5;padding:.42rem .5rem;flex-shrink:0}
+.wa-input-row{display:flex;align-items:flex-end;gap:.35rem}
+.wa-textarea{flex:1;border:none;background:#fff;border-radius:22px;padding:.55rem .9rem;font-family:var(--font);font-size:.88rem;outline:none;resize:none;max-height:120px;min-height:40px;line-height:1.4;box-shadow:0 1px 2px rgba(0,0,0,.08);overflow-y:auto;color:var(--text)}
+.wa-send-btn{width:42px;height:42px;border-radius:50%;background:var(--primary);color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 6px rgba(249,115,22,.4);transition:transform .1s}
+.wa-send-btn:active{transform:scale(.88)}
+.wa-action-btn{width:38px;height:38px;border-radius:50%;background:transparent;border:none;color:#54656f;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.05rem;flex-shrink:0}
+.wa-action-btn:hover{color:var(--primary)}
+.wa-header{display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;background:var(--primary);color:#fff;flex-shrink:0;min-height:54px}
+.wa-header-ava{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0;overflow:hidden}
+.wa-header-ava img{width:100%;height:100%;object-fit:cover}
+.wa-header-name{font-weight:600;font-size:.93rem;line-height:1.2}
+.wa-header-status{font-size:.68rem;opacity:.82;margin-top:2px}
+.wa-unread{min-width:18px;height:18px;padding:0 5px;background:#25d366;border-radius:50px;font-size:.62rem;font-weight:700;color:#fff;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.wa-attach-panel{display:none;padding:.5rem 0 .3rem;border-top:1px solid var(--border)}
+.wa-attach-panel.open{display:block}
+.wa-attach-grid{display:flex;gap:1.2rem;justify-content:center}
+.wa-attach-item{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px}
+.wa-attach-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem}
+.wa-attach-lbl{font-size:.64rem;color:var(--text2);text-align:center}
+.photo-preview-bar{display:none;align-items:center;gap:.6rem;padding:.5rem .85rem .5rem .75rem;background:#f0fdf4;border-top:1px solid #bbf7d0;flex-shrink:0}
+.photo-preview-bar.visible{display:flex}
+.photo-preview-thumb{width:56px;height:56px;border-radius:8px;object-fit:cover;border:2px solid var(--border);flex-shrink:0}
+.photo-preview-label{flex:1;font-size:.82rem;color:var(--text2)}
+.photo-preview-cancel{width:32px;height:32px;border-radius:50%;background:#fee2e2;border:none;color:var(--danger);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem}
+.photo-preview-send{width:38px;height:38px;border-radius:50%;background:var(--success);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.recording-bar{display:none;align-items:center;gap:.75rem;padding:.65rem .9rem;background:#fff;border-top:1px solid var(--border);flex-shrink:0}
+.recording-bar.active{display:flex}
+.rec-pulse{width:10px;height:10px;border-radius:50%;background:var(--danger);flex-shrink:0;animation:pulse 1s ease-in-out infinite}
+.rec-timer{font-size:.95rem;font-weight:700;color:var(--danger);min-width:40px}
+.rec-wave{flex:1;display:flex;align-items:center;gap:3px;height:30px;overflow:hidden}
+.rec-wave span{display:inline-block;width:3px;background:var(--primary);border-radius:2px;animation:recwave .5s ease-in-out infinite alternate}
+.rec-wave span:nth-child(2){animation-delay:.08s}.rec-wave span:nth-child(3){animation-delay:.16s}
+.rec-wave span:nth-child(4){animation-delay:.24s}.rec-wave span:nth-child(5){animation-delay:.32s}
+.rec-wave span:nth-child(6){animation-delay:.08s}.rec-wave span:nth-child(7){animation-delay:.24s}
+.rec-wave span:nth-child(8){animation-delay:.40s}
+@keyframes recwave{from{height:4px}to{height:26px}}
+.rec-cancel{width:36px;height:36px;border-radius:50%;background:#fee2e2;border:none;color:var(--danger);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.rec-send{width:40px;height:40px;border-radius:50%;background:var(--success);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+
+/* Lightbox */
+#wa-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;display:none;align-items:center;justify-content:center}
+#wa-lightbox.open{display:flex}
+#wa-lightbox img{max-width:92vw;max-height:90vh;border-radius:6px;object-fit:contain}
+#wa-lb-close{position:absolute;top:14px;right:14px;color:#fff;font-size:1.4rem;background:rgba(0,0,0,.5);border:none;cursor:pointer;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+
+/* Leaflet */
+.leaflet-container{font-family:var(--font)}
+.custom-marker-lv{width:44px;height:44px;border-radius:50%;border:3px solid var(--primary);overflow:hidden;background:var(--primary-light);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-lg)}
+.custom-marker-lv img{width:100%;height:100%;object-fit:cover}
+.custom-marker-client{width:36px;height:36px;border-radius:50%;border:3px solid var(--info);overflow:hidden;background:#EFF6FF;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-lg)}
+
+/* Conversation list */
+.conv-list .conv-item{display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.conv-list .conv-item:hover{background:var(--bg)}
+.conv-item .conv-avatar{width:42px;height:42px;border-radius:50%;overflow:hidden;background:var(--primary-light);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:.85rem;border:2px solid var(--border)}
+.conv-item .conv-avatar img{width:100%;height:100%;object-fit:cover}
+.conv-meta{flex:1;min-width:0}
+.conv-name{font-size:.88rem;font-weight:600}
+.conv-last{font-size:.78rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv-time{font-size:.72rem;color:var(--text3)}
+.mob-conv-item{display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;background:var(--surface);margin:.5rem .75rem;border-radius:var(--radius);box-shadow:var(--shadow);cursor:pointer}
+
+/* Code confirmation */
+.code-input-group{display:flex;gap:.5rem;justify-content:center;margin:1rem 0}
+.code-digit{width:44px;height:52px;border:2px solid var(--border2);border-radius:var(--radius-xs);text-align:center;font-family:var(--font-display);font-size:1.4rem;font-weight:800;outline:none;transition:border-color .2s}
+.code-digit:focus{border-color:var(--primary)}
+
+/* Pos modal */
+.pos-opt{width:100%;display:flex;align-items:center;gap:.75rem;padding:.9rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-family:var(--font);font-size:.9rem;font-weight:500;margin-bottom:.5rem;transition:border-color .2s}
+.pos-opt:hover{border-color:var(--primary)}
+.pos-opt i{font-size:1.2rem;color:var(--primary);width:22px}
+.pos-search-wrap{position:relative;margin-bottom:.5rem;display:none}
+.pos-si{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--text3)}
+#pos-search-input{width:100%;padding:.65rem .9rem .65rem 2.3rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none}
+#pos-results{border:1.5px solid var(--border);border-radius:var(--radius-xs);background:#fff;margin-top:.25rem;max-height:200px;overflow-y:auto;display:none}
+.pos-res-item{padding:.6rem .9rem;font-size:.82rem;cursor:pointer;border-bottom:1px solid var(--border)}
+.pos-res-item:last-child{border-bottom:none}
+.pos-res-item:hover{background:var(--bg)}
+#pos-map{height:220px;border-radius:var(--radius-xs);display:none;margin-bottom:.5rem}
+#pos-info{font-size:.82rem;color:var(--text2);padding:.4rem 0;min-height:1.2rem;margin-bottom:.5rem}
+
+/* Responsive */
+@media (max-width:768px){
+  #pc-layout{display:none !important}
+  #mobile-layout{display:flex !important}
+}
+@media (min-width:769px){
+  #pc-layout{display:flex !important}
+  #mobile-layout{display:none !important}
+}
+</style>
+</head>
+<body>
+
+<!-- ─────────────────── AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="logo">Allô <span>Livreur</span></div>
+  <p class="tagline">Espace Livreur — Bénin 🇧🇯</p>
+  <div class="auth-card">
+    <h2>Connexion Livreur</h2>
+    <p>Accédez à votre espace de travail</p>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="votre@email.com" autocomplete="email"></div>
+    <div class="field"><label>Mot de passe</label><input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="btn" onclick="doLogin()">Se connecter</button>
+    <p style="font-size:.78rem;color:var(--text3);text-align:center;margin-top:1rem">Votre compte est créé par l'administrateur</p>
+  </div>
+</div>
+
+<!-- ─────────────────── PC LAYOUT -->
+<div id="pc-layout">
+  <div class="pc-topbar">
+    <div class="logo">Allô <span>Livreur</span> <span style="font-size:.7rem;background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:50px;font-weight:600;margin-left:.4rem">Livreur</span></div>
+
+    <!-- Status toggle PC -->
+    <div style="display:flex;align-items:center;gap:.6rem;margin-left:1.5rem">
+      <div class="status-dot" id="pc-status-dot"></div>
+      <span id="pc-status-label" style="font-size:.82rem;font-weight:500;color:var(--text2)">Hors ligne</span>
+      <label class="toggle-sw"><input type="checkbox" id="pc-online-toggle" onchange="toggleStatut(this.checked)"><span class="slider"></span></label>
+    </div>
+
+    <div class="pc-topbar-actions">
+      <!-- SOS PC -->
+      <button onclick="envoiSOS()" style="background:#DC2626;color:#fff;border:none;border-radius:50px;padding:.4rem 1rem;font-family:var(--font);font-weight:700;font-size:.8rem;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-urgent"></i> SOS</button>
+      <div style="position:relative">
+        <button class="icon-btn" onclick="toggleNotifs()" title="Notifications" id="pc-notif-btn"><i class="ti ti-bell"></i><span class="badge" id="pc-notif-badge" style="display:none"></span></button>
+        <div class="notif-panel" id="notif-panel">
+          <div class="notif-head">Notifications <button onclick="marquerToutesLues()" style="font-size:.72rem;background:none;border:none;color:var(--primary);cursor:pointer;font-family:var(--font)">Tout marquer lu</button></div>
+          <div id="notif-list"><div class="empty-state" style="padding:1.5rem"><p>Aucune notification</p></div></div>
+        </div>
+      </div>
+      <div style="position:relative">
+        <button class="avatar-btn" id="pc-avatar-btn" onclick="toggleProfileDropdown()">
+          <img id="pc-avatar-img" style="display:none">
+          <span id="pc-avatar-initials">?</span>
+        </button>
+        <div class="profile-dropdown" id="profile-dropdown">
+          <div class="pd-header">
+            <div class="pd-ava"><img id="pd-avatar-img" style="display:none"><span id="pd-initials">?</span></div>
+            <div><div class="pd-name" id="pd-name">—</div><div class="pd-phone" id="pd-phone">—</div></div>
+          </div>
+          <div style="padding:.5rem .75rem;background:var(--primary-light)">
+            <div style="font-size:.72rem;color:var(--primary-dark);font-weight:600">Wallet</div>
+            <div style="font-size:1rem;font-weight:800;color:var(--primary)" id="pd-wallet">0 FCFA</div>
+          </div>
+          <div class="pd-item" onclick="openModal('modal-profil')"><i class="ti ti-user"></i> Mon profil</div>
+          <div class="pd-item" onclick="openModal('modal-wallet')"><i class="ti ti-wallet"></i> Wallet & Retraits</div>
+          <div class="pd-item danger" onclick="doLogout()"><i class="ti ti-logout"></i> Déconnexion</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pc-body">
+    <!-- Sidebar -->
+    <div class="pc-sidebar">
+      <div class="sidebar-tabs">
+        <button class="stab active" onclick="switchSideTab('courses',this)"><i class="ti ti-motorbike"></i>Courses</button>
+        <button class="stab" onclick="switchSideTab('messages',this)"><i class="ti ti-message-2"></i>Messages</button>
+        <button class="stab" onclick="switchSideTab('wallet',this)"><i class="ti ti-wallet"></i>Wallet</button>
+      </div>
+
+      <!-- Panel Courses -->
+      <div class="sidebar-panel active" id="panel-courses">
+        <!-- Course en cours -->
+        <div id="pc-course-en-cours" style="display:none"></div>
+        <!-- Demandes en attente -->
+        <div class="section-head">Demandes en attente <span id="pc-demandes-count" style="background:var(--danger);color:#fff;border-radius:50px;padding:0 6px;font-size:.65rem;font-weight:700;margin-left:.3rem"></span></div>
+        <div id="pc-demandes-list"><div class="empty-state" style="padding:2rem"><i class="ti ti-clock"></i><p>Aucune demande</p></div></div>
+        <!-- Historique -->
+        <div class="section-head">Historique</div>
+        <div id="pc-historique-list"><div class="empty-state" style="padding:2rem"><i class="ti ti-history"></i><p>Aucune course</p></div></div>
+      </div>
+
+      <!-- Panel Messages -->
+      <div class="sidebar-panel" id="panel-messages">
+        <div class="section-head" style="display:flex;align-items:center;justify-content:space-between">
+          <span>Conversations</span>
+          <button onclick="openNouvelleConv()" style="background:var(--primary);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0" title="Nouvelle conversation"><i class="ti ti-pencil"></i></button>
+        </div>
+        <div class="conv-list" id="pc-conv-list"><div class="empty-state" style="padding:2rem"><i class="ti ti-message"></i><p>Aucune conversation</p></div></div>
+      </div>
+
+      <!-- Panel Wallet -->
+      <div class="sidebar-panel" id="panel-wallet">
+        <div class="wallet-hero">
+          <div class="label">Solde disponible</div>
+          <div class="amount" id="pc-wallet-amount">0 FCFA</div>
+          <div style="font-size:.75rem;opacity:.75;margin-top:2px">MTN & Moov Money via FedaPay</div>
+          <div class="wallet-btns">
+            <button class="wallet-btn retrait" onclick="openModal('modal-retrait')"><i class="ti ti-cash"></i> Retirer</button>
+          </div>
+        </div>
+        <div class="section-head">Transactions récentes</div>
+        <div id="pc-tx-list"><div class="empty-state" style="padding:2rem"><p>Aucune transaction</p></div></div>
+      </div>
+    </div>
+
+    <!-- Map area -->
+    <div class="pc-map-area">
+      <div id="pc-map"></div>
+      <!-- PC chat panel -->
+      <div class="pc-chat-panel" id="pc-chat-panel">
+        <div class="wa-header">
+          <button onclick="closePCChat()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-arrow-left"></i></button>
+          <div class="wa-header-ava" id="pc-chat-ava"><img id="pc-chat-ava-img" style="display:none"><span id="pc-chat-ava-init">?</span></div>
+          <div style="flex:1;min-width:0">
+            <div class="wa-header-name" id="pc-chat-name">—</div>
+            <div class="wa-header-status" id="pc-chat-status">hors ligne</div>
+          </div>
+          <button onclick="callContact()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="ti ti-phone"></i></button>
+        </div>
+        <div class="wa-msgs wa-bg" id="pc-chat-messages" style="position:relative">
+          <div style="display:none" id="pc-typing-row" class="typing-row"><div class="typing-bubble"><span class="tdot"></span><span class="tdot"></span><span class="tdot"></span></div></div>
+          <button class="scroll-down-btn" id="pc-scroll-down" onclick="scrollChatBottom('pc')"><i class="ti ti-chevron-down"></i></button>
+        </div>
+        <div class="photo-preview-bar" id="pc-photo-preview-bar">
+          <img class="photo-preview-thumb" id="pc-photo-preview-img" src="">
+          <span class="photo-preview-label">Photo prête à envoyer</span>
+          <button class="photo-preview-cancel" onclick="cancelPhotoPreview('pc')"><i class="ti ti-x"></i></button>
+          <button class="photo-preview-send" onclick="sendPendingPhoto('pc')"><i class="ti ti-send"></i></button>
+        </div>
+        <div class="recording-bar" id="pc-recording-bar">
+          <div class="rec-pulse"></div>
+          <span class="rec-timer" id="pc-rec-timer">0:00</span>
+          <div class="rec-wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <button class="rec-cancel" onclick="cancelRecording('pc')"><i class="ti ti-trash"></i></button>
+          <button class="rec-send" onclick="stopAndSendRecording('pc')"><i class="ti ti-send"></i></button>
+        </div>
+        <div class="wa-attach-panel" id="pc-attach-panel">
+          <div class="wa-attach-grid">
+            <button class="wa-attach-item" onclick="triggerPhotoPC()"><div class="wa-attach-icon" style="background:#7C3AED"><i class="ti ti-photo"></i></div><span class="wa-attach-lbl">Photo</span></button>
+            <button class="wa-attach-item" onclick="openPosModal()"><div class="wa-attach-icon" style="background:#0891B2"><i class="ti ti-map-pin"></i></div><span class="wa-attach-lbl">Position</span></button>
+          </div>
+        </div>
+        <div class="wa-input-bar">
+          <div class="wa-input-row">
+            <button class="wa-action-btn" onclick="toggleAttach('pc')"><i class="ti ti-paperclip"></i></button>
+            <textarea class="wa-textarea" id="pc-msg-input" placeholder="Message…" rows="1" oninput="onMsgInput(this,'pc')" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();envoyerMessagePC()}"></textarea>
+            <button class="wa-send-btn" id="pc-send-btn" onclick="envoyerMessagePC()" style="display:none"><i class="ti ti-send"></i></button>
+            <button class="wa-action-btn" id="pc-voice-btn-wa" onclick="toggleVoiceRecord('pc')" style="display:flex"><i class="ti ti-microphone"></i></button>
+          </div>
+        </div>
+        <input type="file" id="pc-photo-file-input" accept="image/*" style="display:none" onchange="uploadPhotoMsgPC(this)">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────── MOBILE LAYOUT -->
+<div id="mobile-layout">
+  <!-- ═══ PAGE CARTE -->
+  <div class="mob-page active" id="mob-map-page">
+    <div class="mob-topbar">
+      <div class="logo">Allô <span>Livreur</span></div>
+      <div style="display:flex;align-items:center;gap:.4rem;margin-left:.75rem">
+        <div class="status-dot" id="mob-status-dot"></div>
+        <label class="toggle-sw"><input type="checkbox" id="mob-online-toggle" onchange="toggleStatut(this.checked)"><span class="slider"></span></label>
+      </div>
+      <div class="mob-topbar-right">
+        <button class="icon-btn" onclick="mobToggleNotifs()"><i class="ti ti-bell"></i><span class="badge" id="mob-notif-badge" style="display:none"></span></button>
+        <button class="avatar-btn" id="mob-avatar-btn" onclick="switchMobPage('profil')"><img id="mob-avatar-img" style="display:none"><span id="mob-avatar-initials">?</span></button>
+      </div>
+    </div>
+    <div style="flex:1;position:relative">
+      <div id="mob-map"></div>
+      <!-- SOS button -->
+      <button class="sos-btn" onclick="envoiSOS()"><i class="ti ti-urgent"></i> SOS</button>
+    </div>
+    <!-- Course en cours sur carte -->
+    <div id="mob-course-carte" style="position:absolute;bottom:70px;left:.75rem;right:.75rem;z-index:20;display:none"></div>
+  </div>
+
+  <!-- ═══ PAGE COURSES -->
+  <div class="mob-page" id="mob-courses-page">
+    <div class="mob-topbar">
+      <div class="logo">Allô <span>Livreur</span></div>
+      <div class="mob-topbar-right">
+        <span id="mob-demandes-badge" style="display:none;background:var(--danger);color:#fff;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:50px"></span>
+      </div>
+    </div>
+    <div class="mob-scroll">
+      <!-- Demandes en attente -->
+      <div style="padding:.5rem .75rem 0;font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Demandes en attente</div>
+      <div id="mob-demandes-list"><div class="empty-state" style="padding:1.5rem"><i class="ti ti-clock"></i><p>Aucune demande pour l'instant</p></div></div>
+      <div style="padding:.5rem .75rem 0;font-size:.72px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-top:.25rem">Historique des courses</div>
+      <div id="mob-historique-list"><div class="empty-state" style="padding:1.5rem"><i class="ti ti-history"></i><p>Aucune course</p></div></div>
+    </div>
+  </div>
+
+  <!-- ═══ PAGE MESSAGES -->
+  <div class="mob-page" id="mob-messages-page">
+    <div class="mob-topbar">
+      <div class="logo">Messages</div>
+      <button onclick="openNouvelleConv()" style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:.4rem .85rem;border-radius:50px;cursor:pointer;display:flex;align-items:center;gap:.4rem;font-size:.8rem;font-weight:700;font-family:var(--font)"><i class="ti ti-pencil"></i> Nouveau</button>
+    </div>
+    <div class="mob-scroll" style="position:relative">
+      <div id="mob-conv-list"><div class="empty-state" style="padding:3rem 1rem"><i class="ti ti-message"></i><p>Aucune conversation</p></div></div>
+      <button class="mob-fab" onclick="openNouvelleConv()" title="Nouvelle conversation"><i class="ti ti-pencil"></i></button>
+    </div>
+  </div>
+
+  <!-- ═══ PAGE CHAT (fullscreen) -->
+  <div id="mob-chat-page">
+    <div class="wa-header">
+      <button onclick="switchMobPage('messages')" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-arrow-left"></i></button>
+      <div class="wa-header-ava" id="mob-chat-ava"><img id="mob-chat-ava-img" style="display:none"><span id="mob-chat-ava-init">?</span></div>
+      <div style="flex:1;min-width:0">
+        <div class="wa-header-name" id="mob-chat-title">—</div>
+        <div class="wa-header-status" id="mob-chat-status">hors ligne</div>
+      </div>
+      <button onclick="callContact()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="ti ti-phone"></i></button>
+    </div>
+    <div class="wa-msgs wa-bg" id="mob-chat-messages" style="position:relative">
+      <div style="display:none" id="mob-typing-row" class="typing-row"><div class="typing-bubble"><span class="tdot"></span><span class="tdot"></span><span class="tdot"></span></div></div>
+      <button class="scroll-down-btn" id="mob-scroll-down" onclick="scrollChatBottom('mob')"><i class="ti ti-chevron-down"></i></button>
+    </div>
+    <div class="photo-preview-bar" id="mob-photo-preview-bar">
+      <img class="photo-preview-thumb" id="mob-photo-preview-img" src="">
+      <span class="photo-preview-label">Photo prête à envoyer</span>
+      <button class="photo-preview-cancel" onclick="cancelPhotoPreview('mob')"><i class="ti ti-x"></i></button>
+      <button class="photo-preview-send" onclick="sendPendingPhoto('mob')"><i class="ti ti-send"></i></button>
+    </div>
+    <div class="recording-bar" id="mob-recording-bar">
+      <div class="rec-pulse"></div>
+      <span class="rec-timer" id="mob-rec-timer">0:00</span>
+      <div class="rec-wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <button class="rec-cancel" onclick="cancelRecording('mob')"><i class="ti ti-trash"></i></button>
+      <button class="rec-send" onclick="stopAndSendRecording('mob')"><i class="ti ti-send"></i></button>
+    </div>
+    <div class="wa-attach-panel" id="mob-attach-panel">
+      <div class="wa-attach-grid">
+        <button class="wa-attach-item" onclick="triggerPhotoMob()"><div class="wa-attach-icon" style="background:#7C3AED"><i class="ti ti-photo"></i></div><span class="wa-attach-lbl">Photo</span></button>
+        <button class="wa-attach-item" onclick="openPosModal()"><div class="wa-attach-icon" style="background:#0891B2"><i class="ti ti-map-pin"></i></div><span class="wa-attach-lbl">Position</span></button>
+      </div>
+    </div>
+    <div class="wa-input-bar">
+      <div class="wa-input-row">
+        <button class="wa-action-btn" onclick="toggleAttach('mob')"><i class="ti ti-paperclip"></i></button>
+        <textarea class="wa-textarea" id="mob-msg-input" placeholder="Message…" rows="1" oninput="onMsgInput(this,'mob')"></textarea>
+        <button class="wa-send-btn" id="mob-send-btn" onclick="envoyerMessageMob()" style="display:none"><i class="ti ti-send"></i></button>
+        <button class="wa-action-btn" id="mob-voice-btn-wa" onclick="toggleVoiceRecord('mob')" style="display:flex"><i class="ti ti-microphone"></i></button>
+      </div>
+    </div>
+    <input type="file" id="mob-photo-file-input" accept="image/*" style="display:none" onchange="uploadPhotoMsgMob(this)">
+  </div>
+
+  <!-- ═══ PAGE PROFIL -->
+  <div class="mob-page" id="mob-profil-page">
+    <div class="mob-topbar">
+      <div class="logo">Mon Profil</div>
+    </div>
+    <div class="mob-scroll">
+      <div class="mob-profile-hero">
+        <div class="mob-profile-ava">
+          <img id="mob-profile-img" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%">
+          <span id="mob-profile-initials">?</span>
+          <div class="edit-ava" onclick="openAvatarUpload()"><i class="ti ti-camera" style="font-size:.75rem"></i></div>
+        </div>
+        <div class="mob-profile-name" id="mob-profile-name">—</div>
+        <div id="mob-profile-phone" style="font-size:.82rem;color:var(--text2)">—</div>
+        <div id="mob-profile-badge"></div>
+        <div style="display:flex;gap:.75rem;margin-top:.25rem">
+          <div style="text-align:center"><div style="font-family:var(--font-display);font-size:1.2rem;font-weight:800" id="mob-stat-courses">0</div><div style="font-size:.72rem;color:var(--text2)">Courses</div></div>
+          <div style="text-align:center"><div style="font-family:var(--font-display);font-size:1.2rem;font-weight:800" id="mob-stat-note">0</div><div style="font-size:.72rem;color:var(--text2)">Note/5</div></div>
+          <div style="text-align:center"><div style="font-family:var(--font-display);font-size:1.2rem;font-weight:800;color:var(--primary)" id="mob-wallet-amount-sm">0 F</div><div style="font-size:.72rem;color:var(--text2)">Wallet</div></div>
+        </div>
+      </div>
+      <!-- Wallet card -->
+      <div class="wallet-hero" style="margin:.75rem">
+        <div class="label">Solde disponible</div>
+        <div class="amount" id="mob-wallet-amount">0 FCFA</div>
+        <div style="font-size:.75rem;opacity:.75">MTN & Moov Money via FedaPay</div>
+        <div class="wallet-btns">
+          <button class="wallet-btn retrait" onclick="openModal('modal-retrait')"><i class="ti ti-cash"></i> Retirer mes gains</button>
+        </div>
+      </div>
+      <div class="mob-menu-item" onclick="openModal('modal-profil')"><i class="ti ti-user"></i> Modifier mon profil <i class="ti ti-chevron-right chevron"></i></div>
+      <div class="mob-menu-item" onclick="openModal('modal-wallet')"><i class="ti ti-wallet"></i> Transactions <i class="ti ti-chevron-right chevron"></i></div>
+      <div class="mob-menu-item" onclick="openModal('modal-vehicule')"><i class="ti ti-motorbike"></i> Mon véhicule <i class="ti ti-chevron-right chevron"></i></div>
+      <div class="mob-menu-item" style="color:var(--danger)" onclick="doLogout()"><i class="ti ti-logout" style="color:var(--danger)"></i> Déconnexion</div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="mob-nav" id="mob-nav">
+    <button class="mob-nav-btn active" id="nav-carte" onclick="switchMobPage('carte')"><i class="ti ti-map-2"></i>Carte</button>
+    <button class="mob-nav-btn" id="nav-courses" onclick="switchMobPage('courses')"><i class="ti ti-motorbike"></i>Courses<span class="nav-badge" id="mob-courses-nav-badge"></span></button>
+    <button class="mob-nav-btn" id="nav-messages" onclick="switchMobPage('messages')"><i class="ti ti-message-2"></i>Messages<span class="nav-badge" id="mob-msg-nav-badge"></span></button>
+    <button class="mob-nav-btn" id="nav-profil" onclick="switchMobPage('profil')"><i class="ti ti-user"></i>Profil</button>
+  </div>
+</div>
+
+<!-- ═══════════ MODALS ═══════════ -->
+
+<!-- Modal Profil -->
+<div class="modal-overlay" id="modal-new-conv" onclick="closeModal('modal-new-conv')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle" onclick="closeModal('modal-new-conv')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem">
+      <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;margin-bottom:1rem">Nouvelle conversation</div>
+      <div style="position:relative;margin-bottom:.75rem">
+        <i class="ti ti-search" style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--text3);font-size:1rem"></i>
+        <input type="text" id="user-search-input" placeholder="Chercher un client, marchand, admin…"
+          style="width:100%;padding:.65rem 1rem .65rem 2.4rem;border:1.5px solid var(--border2);border-radius:50px;font-family:var(--font);font-size:.88rem;outline:none;box-sizing:border-box"
+          oninput="rechercherUtilisateurs(this.value)">
+      </div>
+      <div style="display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap" id="user-role-tabs">
+        <button onclick="setUserTab('tous',this)" style="padding:.35rem .85rem;border-radius:50px;border:1.5px solid var(--primary);background:var(--primary);color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font)">Tous</button>
+        <button onclick="setUserTab('client',this)" style="padding:.35rem .85rem;border-radius:50px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font)">Clients</button>
+        <button onclick="setUserTab('marchand',this)" style="padding:.35rem .85rem;border-radius:50px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font)">Marchands</button>
+        <button onclick="setUserTab('livreur',this)" style="padding:.35rem .85rem;border-radius:50px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font)">Livreurs</button>
+        <button onclick="setUserTab('admin',this)" style="padding:.35rem .85rem;border-radius:50px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font)">Admin</button>
+      </div>
+      <div id="user-search-results" style="max-height:320px;overflow-y:auto">
+        <div class="empty-state" style="padding:1.5rem"><i class="ti ti-search"></i><p>Tapez un nom pour rechercher</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-profil" onclick="if(event.target===this)closeModal('modal-profil')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle" onclick="closeModal('modal-profil')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem">
+      <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;margin-bottom:1rem">Mon Profil</div>
+      <div class="field"><label>Prénom</label><input type="text" id="prof-prenom" placeholder="Prénom"></div>
+      <div class="field"><label>Nom</label><input type="text" id="prof-nom" placeholder="Nom"></div>
+      <div class="field"><label>Téléphone</label><input type="tel" id="prof-tel" placeholder="+229 XX XX XX XX"></div>
+      <button class="btn-primary" onclick="sauvegarderProfil()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Véhicule -->
+<div class="modal-overlay" id="modal-vehicule" onclick="if(event.target===this)closeModal('modal-vehicule')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle" onclick="closeModal('modal-vehicule')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem">
+      <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;margin-bottom:1rem">Mon Véhicule</div>
+      <div class="field"><label>Type de véhicule</label>
+        <select id="veh-type" style="width:100%;padding:.75rem 1rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.95rem;outline:none;background:#fff">
+          <option value="moto">Moto</option>
+          <option value="tricycle">Tricycle</option>
+          <option value="voiture">Voiture</option>
+          <option value="velo">Vélo</option>
+          <option value="camion">Camion léger</option>
+        </select>
+      </div>
+      <div class="field"><label>Plaque d'immatriculation</label><input type="text" id="veh-plaque" placeholder="AA 123 BN"></div>
+      <div class="field"><label>Tarif de base (FCFA)</label><input type="number" id="veh-tarif-base" placeholder="500" min="100"></div>
+      <div class="field"><label>Tarif par km (FCFA)</label><input type="number" id="veh-tarif-km" placeholder="200" min="50"></div>
+      <button class="btn-primary" onclick="sauvegarderVehicule()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Wallet -->
+<div class="modal-overlay" id="modal-wallet" onclick="if(event.target===this)closeModal('modal-wallet')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle" onclick="closeModal('modal-wallet')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem">
+      <div style="font-family:var(--font-display);font-size:1.05rem;font-weight:800;margin-bottom:.5rem">Wallet</div>
+      <div class="wallet-hero" style="margin:0 0 1rem">
+        <div class="label">Solde disponible</div>
+        <div class="amount" id="modal-wallet-amount">0 FCFA</div>
+        <div style="font-size:.75rem;opacity:.75">MTN & Moov Money via FedaPay</div>
+        <div class="wallet-btns">
+          <button class="wallet-btn retrait" onclick="closeModal('modal-wallet');openModal('modal-retrait')"><i class="ti ti-cash"></i> Retirer</button>
+        </div>
+      </div>
+      <div style="font-weight:700;font-size:.88rem;margin-bottom:.75rem">Transactions récentes</div>
+      <div id="modal-tx-list"><div class="empty-state" style="padding:1rem"><p>Aucune transaction</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Retrait -->
+<div class="modal-overlay" id="modal-retrait" onclick="if(event.target===this)closeModal('modal-retrait')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle" onclick="closeModal('modal-retrait')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem">
+      <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;margin-bottom:.25rem">💸 Retirer mes gains</div>
+      <div style="font-size:.8rem;color:var(--text2);margin-bottom:1rem">Solde : <strong id="retrait-solde">0 FCFA</strong></div>
+      <div class="field">
+        <label>Montant (FCFA)</label>
+        <input type="number" id="retrait-montant" placeholder="Minimum 1 000 FCFA" min="1000">
+      </div>
+      <div class="field">
+        <label>Opérateur Mobile Money</label>
+        <select id="retrait-operateur" style="width:100%;padding:.75rem 1rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.95rem;outline:none;background:#fff">
+          <option value="mtn">MTN Mobile Money</option>
+          <option value="moov">Moov Money</option>
+        </select>
+      </div>
+      <div class="field"><label>Numéro Mobile Money</label><input type="tel" id="retrait-tel" placeholder="+229 XX XX XX XX"></div>
+      <button class="btn-primary" onclick="confirmerRetrait()">Confirmer le retrait</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Code Confirmation -->
+<div class="modal-overlay" id="modal-code" onclick="">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem;text-align:center">
+      <div style="font-size:2.5rem;margin-bottom:.5rem">🔢</div>
+      <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;margin-bottom:.25rem">Code de livraison</div>
+      <div style="font-size:.85rem;color:var(--text2);margin-bottom:1rem">Saisissez le code à 6 chiffres donné par le client pour confirmer la livraison</div>
+      <div class="code-input-group" id="code-inputs">
+        <input class="code-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="codeNext(this,0)" id="cd0">
+        <input class="code-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="codeNext(this,1)" id="cd1">
+        <input class="code-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="codeNext(this,2)" id="cd2">
+        <input class="code-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="codeNext(this,3)" id="cd3">
+        <input class="code-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="codeNext(this,4)" id="cd4">
+        <input class="code-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="codeNext(this,5)" id="cd5">
+      </div>
+      <div id="code-error" style="color:var(--danger);font-size:.82rem;min-height:1.2rem;margin-bottom:.5rem"></div>
+      <button class="btn-primary" onclick="validerCode()">Confirmer la livraison</button>
+      <button onclick="closeModal('modal-code')" style="width:100%;margin-top:.5rem;padding:.75rem;background:transparent;color:var(--text2);border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.9rem;cursor:pointer">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Photo Preuve -->
+<div class="modal-overlay" id="modal-preuve" onclick="if(event.target===this)closeModal('modal-preuve')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle" onclick="closeModal('modal-preuve')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem;text-align:center">
+      <div style="font-size:2.5rem;margin-bottom:.5rem">📸</div>
+      <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;margin-bottom:.25rem">Photo de preuve</div>
+      <div style="font-size:.85rem;color:var(--text2);margin-bottom:1rem">Prenez une photo du colis déposé ou du destinataire avant de valider</div>
+      <img id="preuve-preview" src="" style="display:none;width:100%;border-radius:var(--radius);margin-bottom:1rem;max-height:240px;object-fit:cover">
+      <input type="file" id="preuve-input" accept="image/*" capture="environment" style="display:none" onchange="previewPreuve(this)">
+      <button onclick="document.getElementById('preuve-input').click()" style="width:100%;padding:.75rem;background:var(--bg);color:var(--text);border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.9rem;font-weight:500;cursor:pointer;margin-bottom:.5rem"><i class="ti ti-camera"></i> Prendre une photo</button>
+      <button class="btn-primary" id="preuve-send-btn" onclick="envoyerPreuve()" style="display:none">Envoyer la preuve</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Notifications -->
+<div class="modal-overlay" id="modal-notifs" onclick="if(event.target===this)closeModal('modal-notifs')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle" onclick="closeModal('modal-notifs')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem .5rem;font-family:var(--font-display);font-size:1.05rem;font-weight:800;display:flex;justify-content:space-between;align-items:center">
+      Notifications
+      <button onclick="marquerToutesLues()" style="font-size:.75rem;background:none;border:none;color:var(--primary);cursor:pointer;font-family:var(--font)">Tout marquer lu</button>
+    </div>
+    <div id="modal-notif-list"><div class="empty-state" style="padding:2rem"><p>Aucune notification</p></div></div>
+  </div>
+</div>
+
+<!-- Modal SOS -->
+<div class="modal-overlay" id="modal-sos" onclick="">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem;text-align:center">
+      <div style="font-size:3rem;margin-bottom:.5rem">🆘</div>
+      <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;margin-bottom:.25rem;color:var(--danger)">Alerte SOS</div>
+      <div style="font-size:.85rem;color:var(--text2);margin-bottom:1rem" id="sos-status">Envoi de votre position à l'administrateur…</div>
+      <div style="font-size:.82rem;color:var(--text2);background:var(--bg);padding:.75rem;border-radius:var(--radius-xs);margin-bottom:1rem" id="sos-pos-info">Localisation en cours…</div>
+      <button onclick="closeModal('modal-sos')" style="width:100%;padding:.75rem;background:transparent;color:var(--text2);border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.9rem;cursor:pointer">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Position -->
+<div class="modal-overlay" id="modal-pos" onclick="if(event.target===this)closeModal('modal-pos')">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:93vh;overflow-y:auto">
+    <div class="modal-handle" onclick="closeModal('modal-pos')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.2rem 1.4rem">
+      <div style="font-weight:800;font-size:1rem;margin-bottom:.9rem">📍 Partager une position</div>
+      <button class="pos-opt" id="pos-btn-gps" onclick="posGPS()"><i class="ti ti-current-location"></i><div><div>Ma position actuelle (GPS)</div><small style="font-weight:400;color:var(--text2)">Votre localisation en temps réel</small></div></button>
+      <button class="pos-opt" id="pos-btn-srch" onclick="posSearch()"><i class="ti ti-search"></i><div><div>Rechercher un lieu</div><small style="font-weight:400;color:var(--text2)">Adresse, quartier, ville…</small></div></button>
+      <button class="pos-opt" id="pos-btn-map" onclick="posPickMap()"><i class="ti ti-map-pin"></i><div><div>Choisir sur la carte</div><small style="font-weight:400;color:var(--text2)">Appuyer sur la carte pour placer un repère</small></div></button>
+      <div id="pos-search-wrap" class="pos-search-wrap">
+        <i class="ti ti-search pos-si"></i>
+        <input type="text" id="pos-search-input" placeholder="Rechercher au Bénin…" oninput="posNominatim(this.value)" autocomplete="off">
+        <div id="pos-results"></div>
+      </div>
+      <div id="pos-map"></div>
+      <div id="pos-info">📍 <span id="pos-lbl">—</span></div>
+      <button id="pos-send-btn" onclick="posConfirm()" style="display:none;width:100%;padding:.82rem;background:var(--primary);color:#fff;border:none;border-radius:8px;font-family:var(--font);font-size:.95rem;font-weight:700;cursor:pointer"><i class="ti ti-send"></i> Envoyer cette position</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox photo -->
+<div id="wa-lightbox" onclick="if(event.target===this)closeLightbox()">
+  <button id="wa-lb-close" onclick="closeLightbox()"><i class="ti ti-x"></i></button>
+  <img id="wa-lb-img" src="" alt="">
+</div>
+<input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- JAVASCRIPT                                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<script>
+const SUPABASE_URL = 'https://kathcclodsceifbyygzk.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_9m78hZ7BUe9jYykJ1w3kZw_Q_yig4J3';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const FEDAPAY_PK = 'pk_live_1i7UkFPVn-pUhhO1OnoKQncy';
+
+// ═══ STATE ═══════════════════════════════════════════════
+let currentUser = null;
+let currentProfile = null;
+let currentLivreur = null; // record livreurs
+let currentConvId = null;
+let currentConvOtherId = null;
+let realtimeSubs = [];
+let allCourses = [];
+let courseEnCours = null; // course currently accepted
+let gpsWatchId = null;
+let pcMap = null, mobMap = null;
+let clientMarker = { pc: null, mob: null };
+let myMarker = { pc: null, mob: null };
+
+// ═══ INIT ════════════════════════════════════════════════
+let _appInitialized = false;
+document.addEventListener('DOMContentLoaded', async () => {
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session && !_appInitialized) {
+      _appInitialized = true;
+      currentUser = session.user;
+      await initApp();
+    } else if (event === 'SIGNED_OUT') {
+      _appInitialized = false;
+      currentUser = null;
+      document.getElementById('auth-screen').style.display = 'flex';
+      document.getElementById('pc-layout').style.display = 'none';
+      document.getElementById('mobile-layout').style.display = 'none';
+    }
+  });
+  // Vérifier session existante (ex: refresh page)
+  const { data: { session } } = await sb.auth.getSession();
+  if (session && !_appInitialized) {
+    _appInitialized = true;
+    currentUser = session.user;
+    await initApp();
+  }
+});
+
+async function initApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  await loadProfile();
+  if (currentProfile?.role !== 'livreur') {
+    await sb.auth.signOut();
+    showAuthError('Accès réservé aux livreurs');
+    document.getElementById('auth-screen').style.display = 'flex';
+    return;
+  }
+
+  // ── Vérification blocage 24h (paiements cash non régularisés) ──
+  await verifierStatutCompte();
+
+  await loadLivreurRecord();
+  initMaps();
+  loadCourses();
+  loadConversations();
+  loadNotifications();
+  loadWallet();
+  subscribeRealtime();
+  initAPKBridge();
+  startLvRTCListener();
+  // Restore statut
+  if (currentLivreur?.statut === 'disponible') {
+    document.getElementById('pc-online-toggle').checked = true;
+    document.getElementById('mob-online-toggle').checked = true;
+    updateStatusUI('disponible');
+    startGPS();
+    startHeartbeat();
+  }
+}
+
+async function verifierStatutCompte() {
+  if (!currentProfile) return;
+  const statut = currentProfile.statut_compte;
+  const deadline = currentProfile.date_regularisation_deadline;
+
+  // Si en attente de régularisation, vérifier si délai dépassé
+  if (statut === 'en_attente_regularisation' && deadline) {
+    const now = new Date();
+    const limit = new Date(deadline);
+    if (now > limit) {
+      // Délai dépassé → bloquer le compte
+      await sb.from('profiles').update({ statut_compte: 'bloque', date_blocage: now.toISOString() }).eq('id', currentUser.id);
+      await sb.from('livreurs').update({ statut: 'hors_ligne' }).eq('id', currentUser.id);
+      await sb.auth.signOut();
+      showAuthError('⛔ Compte bloqué : commission non régularisée après 24h. Contactez le support.');
+      document.getElementById('auth-screen').style.display = 'flex';
+      return;
+    } else {
+      // Délai pas encore dépassé — avertir
+      const heuresRestantes = Math.ceil((limit - now) / 3600000);
+      showToast(`⚠️ Régularisez votre solde dans ${heuresRestantes}h pour éviter le blocage`, 'wa');
+    }
+  } else if (statut === 'bloque') {
+    await sb.auth.signOut();
+    showAuthError('⛔ Compte bloqué. Contactez l\'administrateur.');
+    document.getElementById('auth-screen').style.display = 'flex';
+    return;
+  }
+}
+
+// ═══ AUTH ════════════════════════════════════════════════
+async function doLogin() {
+  clearAuthError();
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) return showAuthError('Remplissez tous les champs');
+  const btn = document.querySelector('#auth-screen .btn');
+  btn.disabled = true; btn.textContent = 'Connexion…';
+  try {
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) showAuthError(error.message);
+  } catch(e) { showAuthError('Erreur réseau'); }
+  finally { btn.disabled = false; btn.textContent = 'Se connecter'; }
+}
+function showAuthError(msg) { const e = document.getElementById('auth-error'); e.textContent = msg; e.style.display = 'block'; }
+function clearAuthError() { document.getElementById('auth-error').style.display = 'none'; }
+async function doLogout() {
+  stopGPS();
+  stopHeartbeat();
+  if (currentLivreur) await sb.from('livreurs').update({ statut: 'hors_ligne', last_seen: null }).eq('id', currentLivreur.id);
+  realtimeSubs.forEach(s => sb.removeChannel(s));
+  await sb.auth.signOut();
+}
+
+// ═══ PROFILE & LIVREUR ═══════════════════════════════════
+async function loadProfile() {
+  const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+  if (!data) return;
+  currentProfile = data;
+  updateAvatarUI();
+}
+async function loadLivreurRecord() {
+  const { data } = await sb.from('livreurs').select('*').eq('id', currentUser.id).single();
+  currentLivreur = data || null;
+  if (data) {
+    document.getElementById('mob-stat-note').textContent = (data.note_moyenne||0).toFixed(1);
+    document.getElementById('mob-stat-courses').textContent = data.nombre_courses || 0;
+  }
+}
+function getInitials(p) {
+  if (!p) return '?';
+  return ((p.prenom||'').charAt(0)+(p.nom||'').charAt(0)).toUpperCase() || '?';
+}
+function getAvatarUrl(p) {
+  if (!p?.avatar_url) return null;
+  const { data } = sb.storage.from('avatars').getPublicUrl(p.avatar_url);
+  return data?.publicUrl || null;
+}
+function updateAvatarUI() {
+  const p = currentProfile;
+  const initials = getInitials(p);
+  const url = getAvatarUrl(p);
+  const name = `${p.prenom||''} ${p.nom||''}`.trim();
+  const ids_img = ['pc-avatar-img','pd-avatar-img','mob-avatar-img','mob-profile-img'];
+  const ids_init = ['pc-avatar-initials','pd-initials','mob-avatar-initials','mob-profile-initials'];
+  ids_img.forEach(id => { const el = document.getElementById(id); if(!el) return; if(url){el.src=url;el.style.display='';}else el.style.display='none'; });
+  ids_init.forEach(id => { const el = document.getElementById(id); if(!el) return; if(url)el.style.display='none'; else{el.style.display='';el.textContent=initials;} });
+  ['pd-name','mob-profile-name'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=name||'—'; });
+  ['pd-phone','mob-profile-phone'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=p.telephone||'—'; });
+  if (p.badge_verifie) {
+    const b = document.getElementById('mob-profile-badge');
+    if(b) b.innerHTML='<span style="font-size:.72rem;background:#EFF6FF;color:#1D4ED8;padding:2px 8px;border-radius:50px;font-weight:600"><i class="ti ti-circle-check-filled"></i> Livreur vérifié</span>';
+  }
+  if (document.getElementById('prof-prenom')) document.getElementById('prof-prenom').value = p.prenom||'';
+  if (document.getElementById('prof-nom')) document.getElementById('prof-nom').value = p.nom||'';
+  if (document.getElementById('prof-tel')) document.getElementById('prof-tel').value = p.telephone||'';
+}
+function openAvatarUpload() { document.getElementById('avatar-input').click(); }
+async function uploadAvatar(input) {
+  const file = input.files[0]; if(!file) return;
+  const ext = file.name.split('.').pop();
+  const path = `${currentUser.id}/avatar.${ext}`;
+  showToast('Envoi de la photo…');
+  const { error } = await sb.storage.from('avatars').upload(path, file, { upsert: true });
+  if (error) return showToast('Erreur : ' + error.message, 'er');
+  await sb.from('profiles').update({ avatar_url: path }).eq('id', currentUser.id);
+  currentProfile.avatar_url = path;
+  updateAvatarUI();
+  showToast('Photo mise à jour ✓', 'ok');
+}
+async function sauvegarderProfil() {
+  const prenom = document.getElementById('prof-prenom').value.trim();
+  const nom = document.getElementById('prof-nom').value.trim();
+  const tel = document.getElementById('prof-tel').value.trim();
+  if (!prenom || !nom) return showToast('Prénom et nom requis', 'wa');
+  await sb.from('profiles').update({ prenom, nom, telephone: tel }).eq('id', currentUser.id);
+  currentProfile.prenom = prenom; currentProfile.nom = nom; currentProfile.telephone = tel;
+  updateAvatarUI();
+  closeModal('modal-profil');
+  showToast('Profil mis à jour ✓', 'ok');
+}
+async function sauvegarderVehicule() {
+  if (!currentLivreur) return showToast('Profil livreur introuvable', 'er');
+  const type = document.getElementById('veh-type').value;
+  const plaque = document.getElementById('veh-plaque').value.trim();
+  const tarif_base = parseInt(document.getElementById('veh-tarif-base').value) || 500;
+  const tarif_km = parseInt(document.getElementById('veh-tarif-km').value) || 200;
+  await sb.from('livreurs').update({ type_vehicule: type, numero_immatriculation: plaque, tarif_base, tarif_km }).eq('id', currentLivreur.id);
+  Object.assign(currentLivreur, { type_vehicule: type, numero_immatriculation: plaque, tarif_base, tarif_km });
+  closeModal('modal-vehicule');
+  showToast('Véhicule mis à jour ✓', 'ok');
+}
+
+// ═══ STATUT EN LIGNE ════════════════════════════════════
+async function toggleStatut(online) {
+  if (!currentLivreur) return;
+  const statut = online ? 'disponible' : 'hors_ligne';
+  updateStatusUI(statut);
+  await sb.from('livreurs').update({ statut }).eq('id', currentLivreur.id);
+  currentLivreur.statut = statut;
+  if (online) { startGPS(); startHeartbeat(); }
+  else { stopGPS(); stopHeartbeat(); }
+  showToast(online ? '✅ Vous êtes en ligne' : '⭕ Vous êtes hors ligne', online ? 'ok' : '');
+  // Sync both toggles
+  document.getElementById('pc-online-toggle').checked = online;
+  document.getElementById('mob-online-toggle').checked = online;
+}
+function updateStatusUI(statut) {
+  const online = statut === 'disponible';
+  const encours = statut === 'en_cours';
+  ['pc-status-dot','mob-status-dot'].forEach(id => {
+    const el = document.getElementById(id); if(!el) return;
+    el.className = 'status-dot ' + (online ? 'online' : encours ? 'encours' : 'offline');
+  });
+  const pcLbl = document.getElementById('pc-status-label');
+  if (pcLbl) pcLbl.textContent = online ? 'En ligne' : encours ? 'En course' : 'Hors ligne';
+}
+
+// ═══ GPS ══════════════════════════════════════════════════
+function startGPS() {
+  if (gpsWatchId) return;
+  if (!navigator.geolocation) return;
+  gpsWatchId = navigator.geolocation.watchPosition(async pos => {
+    const lat = pos.coords.latitude, lng = pos.coords.longitude;
+    if (!currentLivreur) return;
+    await sb.from('livreurs').update({ latitude: lat, longitude: lng, derniere_position_at: new Date().toISOString() }).eq('id', currentLivreur.id);
+    // Update my marker on map
+    updateMyMarker(lat, lng);
+    // If in course, share position via realtime channel
+    if (courseEnCours) {
+      sb.channel('course-pos-' + courseEnCours.id).send({ type: 'broadcast', event: 'pos', payload: { uid: currentUser.id, lat, lng, role: 'livreur' } }).catch(()=>{});
+    }
+  }, err => {}, { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 });
+}
+function stopGPS() {
+  if (gpsWatchId) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
+}
+
+// ═══ HEARTBEAT — Présence réelle livreur ═════════════════
+// Envoie last_seen = NOW() toutes les 30s via la fonction
+// Supabase SECURITY DEFINER update_livreur_heartbeat()
+let _heartbeatInterval = null;
+
+function startHeartbeat() {
+  if (_heartbeatInterval) return; // déjà actif
+  // Envoyer immédiatement
+  _sendHeartbeat();
+  // Puis toutes les 30 secondes
+  _heartbeatInterval = setInterval(_sendHeartbeat, 30_000);
+}
+
+function stopHeartbeat() {
+  if (_heartbeatInterval) {
+    clearInterval(_heartbeatInterval);
+    _heartbeatInterval = null;
+  }
+}
+
+async function _sendHeartbeat() {
+  if (!navigator.onLine) return; // pas de réseau, inutile d'essayer
+  try {
+    await sb.rpc('update_livreur_heartbeat');
+  } catch(e) {
+    // Silencieux — le livreur verra juste qu'il est "hors ligne" côté client
+    console.warn('[Heartbeat] Échec:', e.message);
+  }
+}
+
+// Gérer la reconnexion réseau : redémarrer le heartbeat si le livreur
+// était en ligne avant de perdre la connexion
+window.addEventListener('online', () => {
+  if (currentLivreur?.statut === 'disponible' && !_heartbeatInterval) {
+    startHeartbeat();
+    showToast('🌐 Connexion rétablie', 'ok');
+  }
+});
+window.addEventListener('offline', () => {
+  showToast('⚠️ Connexion perdue — vous semblez hors ligne', 'wa');
+});
+function updateMyMarker(lat, lng) {
+  const p = currentProfile;
+  const url = getAvatarUrl(p);
+  const init = getInitials(p);
+  const iconHtml = `<div class="custom-marker-lv">${url?`<img src="${url}">`:`<span style="font-weight:700;color:var(--primary);font-size:.9rem">${init}</span>`}</div>`;
+  const icon = L.divIcon({ html: iconHtml, className: '', iconSize: [44,44], iconAnchor: [22,22] });
+  if (myMarker.pc) { myMarker.pc.setLatLng([lat,lng]); }
+  else if (pcMap) { myMarker.pc = L.marker([lat,lng], { icon }).addTo(pcMap).bindPopup('Votre position'); pcMap.setView([lat,lng],14); }
+  if (myMarker.mob) { myMarker.mob.setLatLng([lat,lng]); }
+  else if (mobMap) { myMarker.mob = L.marker([lat,lng], { icon }).addTo(mobMap).bindPopup('Votre position'); mobMap.setView([lat,lng],14); }
+}
+
+// ═══ MAPS ════════════════════════════════════════════════
+function initMaps() {
+  const tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+  const tileAttrib = 'Tiles © Esri';
+  if (document.getElementById('pc-map') && !pcMap) {
+    pcMap = L.map('pc-map').setView([6.3654, 2.4183], 13);
+    L.tileLayer(tileUrl, { attribution: tileAttrib, maxZoom: 19 }).addTo(pcMap);
+  }
+  if (document.getElementById('mob-map') && !mobMap) {
+    mobMap = L.map('mob-map').setView([6.3654, 2.4183], 13);
+    L.tileLayer(tileUrl, { attribution: tileAttrib, maxZoom: 19 }).addTo(mobMap);
+  }
+  setTimeout(() => { pcMap?.invalidateSize(); mobMap?.invalidateSize(); }, 300);
+}
+
+// ═══ COURSES ═════════════════════════════════════════════
+async function loadCourses() {
+  if (!currentLivreur) return;
+  const { data } = await sb.from('courses')
+    .select('*, client:profiles!courses_client_id_fkey(id,prenom,nom,telephone,avatar_url)')
+    .eq('livreur_id', currentLivreur.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  allCourses = data || [];
+  // Trouver course en cours
+  courseEnCours = allCourses.find(c => ['acceptee','en_cours','en_route','livraison_en_cours'].includes(c.statut)) || null;
+  renderCoursesPC();
+  renderCoursesMob();
+  renderCourseEnCours();
+  // Badge
+  const demandes = allCourses.filter(c => c.statut === 'en_attente');
+  const badge = document.getElementById('mob-courses-nav-badge');
+  const badgeMob = document.getElementById('mob-demandes-badge');
+  const badgePc = document.getElementById('pc-demandes-count');
+  if (badge) { badge.textContent = demandes.length || ''; badge.style.display = demandes.length ? 'flex' : 'none'; }
+  if (badgeMob) { badgeMob.textContent = demandes.length ? `${demandes.length} demande(s)` : ''; badgeMob.style.display = demandes.length ? '' : 'none'; }
+  if (badgePc) badgePc.textContent = demandes.length || '';
+}
+
+function renderCoursesPC() {
+  const demandes = allCourses.filter(c => c.statut === 'en_attente');
+  const historique = allCourses.filter(c => !['en_attente'].includes(c.statut));
+  document.getElementById('pc-demandes-list').innerHTML = demandes.length
+    ? demandes.map(c => courseCardHTML(c, false)).join('')
+    : '<div class="empty-state" style="padding:2rem"><i class="ti ti-clock"></i><p>Aucune demande</p></div>';
+  document.getElementById('pc-historique-list').innerHTML = historique.length
+    ? historique.map(c => courseHistCardHTML(c)).join('')
+    : '<div class="empty-state" style="padding:2rem"><p>Aucune course</p></div>';
+}
+function renderCoursesMob() {
+  const demandes = allCourses.filter(c => c.statut === 'en_attente');
+  const historique = allCourses.filter(c => !['en_attente'].includes(c.statut));
+  document.getElementById('mob-demandes-list').innerHTML = demandes.length
+    ? demandes.map(c => courseCardHTML(c, true)).join('')
+    : '<div class="empty-state" style="padding:1.5rem"><i class="ti ti-clock"></i><p>Aucune demande pour l\'instant</p></div>';
+  document.getElementById('mob-historique-list').innerHTML = historique.length
+    ? historique.map(c => courseHistCardHTML(c)).join('')
+    : '<div class="empty-state" style="padding:1.5rem"><p>Aucune course</p></div>';
+}
+
+function courseCardHTML(c, isMob) {
+  const client = c.client || {};
+  const nom = `${client.prenom||''} ${client.nom||''}`.trim() || 'Client';
+  const url = getAvatarUrl(client);
+  const imgHtml = url ? `<img src="${url}" style="width:100%;height:100%;object-fit:cover">` : getInitials(client);
+  const urgent = c.est_urgente ? '<span style="background:#FEF2F2;color:var(--danger);font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:50px">🔥 URGENT</span>' : '';
+  const dist = c.distance_km ? `${c.distance_km} km` : '—';
+  const prix = fcfa(c.montant_total || 0);
+  return `<div class="${isMob?'demande-card':'course-card'}">
+    <div class="${isMob?'demande-head':'course-card-head'}">
+      <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:.75rem;flex-shrink:0;border:2px solid var(--border)">${imgHtml}</div>
+      <div style="font-weight:600;font-size:.88rem">${nom}</div>
+      ${urgent}
+      <span style="margin-left:auto;font-weight:700;color:var(--primary)">${prix}</span>
+    </div>
+    <div class="demande-body">
+      <div class="route-row"><div class="route-dot start"></div><div style="font-size:.82rem;color:var(--text2)"><span style="font-size:.68rem;font-weight:600;color:var(--success)">DÉPART</span><br>${c.adresse_depart||'—'}</div></div>
+      <div class="route-row" style="margin:.15rem 0 0 4px"><div style="width:1px;height:12px;background:var(--border2)"></div></div>
+      <div class="route-row"><div class="route-dot end"></div><div style="font-size:.82rem;color:var(--text2)"><span style="font-size:.68rem;font-weight:600;color:var(--danger)">ARRIVÉE</span><br>${c.adresse_arrivee||'—'}</div></div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem">
+        <span style="font-size:.75rem;color:var(--text2)"><i class="ti ti-road"></i> ${dist}</span>
+        <span style="font-size:.75rem;color:var(--text2)"><i class="ti ti-clock"></i> ${fmtDate(c.created_at)}</span>
+        ${c.type_course ? `<span class="tag en_attente">${c.type_course}</span>` : ''}
+      </div>
+    </div>
+    <div class="course-action-btns">
+      <button class="btn-accept" onclick="accepterCourse('${c.id}')"><i class="ti ti-check"></i> Accepter</button>
+      <button class="btn-reject" onclick="refuserCourse('${c.id}')"><i class="ti ti-x"></i> Refuser</button>
+    </div>
+  </div>`;
+}
+
+function courseHistCardHTML(c) {
+  const client = c.client || {};
+  const nom = `${client.prenom||''} ${client.nom||''}`.trim() || 'Client';
+  const statusTag = {
+    acceptee:'<span class="tag en_attente">Acceptée</span>',
+    en_route:'<span class="tag encours">En route</span>',
+    livraison_en_cours:'<span class="tag encours">En livraison</span>',
+    terminee:'<span class="tag terminee">Terminée</span>',
+    annulee:'<span class="tag annulee">Annulée</span>',
+    en_attente:'<span class="tag en_attente">En attente</span>'
+  }[c.statut] || `<span class="tag">${c.statut}</span>`;
+  return `<div style="padding:.75rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;cursor:pointer" onclick="voirDetailCourse('${c.id}')">
+    <div style="flex:1;min-width:0">
+      <div style="font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nom} — ${c.adresse_arrivee||'—'}</div>
+      <div style="display:flex;align-items:center;gap:.5rem;margin-top:3px">${statusTag}<span style="font-size:.72rem;color:var(--text3)">${fmtDate(c.created_at)}</span></div>
+    </div>
+    <div style="font-weight:700;color:var(--primary);font-size:.88rem;flex-shrink:0">${fcfa(c.gains_livreur||0)}</div>
+  </div>`;
+}
+
+function renderCourseEnCours() {
+  const c = courseEnCours;
+  const pcEl = document.getElementById('pc-course-en-cours');
+  const mobEl = document.getElementById('mob-course-carte');
+  if (!c) {
+    if(pcEl) pcEl.style.display = 'none';
+    if(mobEl) mobEl.style.display = 'none';
+    return;
+  }
+  const client = c.client || {};
+  const nom = `${client.prenom||''} ${client.nom||''}`.trim() || 'Client';
+  const isAcceptee = c.statut === 'acceptee';
+  const isEnRoute = ['en_cours','en_route','livraison_en_cours'].includes(c.statut);
+  const html = `<div class="course-banner">
+    <div class="pulse"></div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:.78rem;font-weight:700;color:var(--success)">${isAcceptee ? 'Course acceptée — En préparation' : 'Course en route 🛵'}</div>
+      <div style="font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nom} → ${c.adresse_arrivee||'—'}</div>
+    </div>
+    <div style="display:flex;gap:.4rem;flex-shrink:0">
+      <button onclick="ouvrirChat_course('${c.id}')" style="padding:.4rem .75rem;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-message-2"></i></button>
+      ${isAcceptee
+        ? `<button onclick="marquerEnRoute('${c.id}')" style="padding:.4rem .85rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-bike"></i> En Route</button>`
+        : isEnRoute
+          ? `<button onclick="ouvrirModalCode('${c.id}')" style="padding:.4rem .75rem;background:var(--success);color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:600;cursor:pointer">✓ Code</button>`
+          : ''
+      }
+      <button onclick="ouvrirModalAnnulerLv('${c.id}')" style="padding:.4rem .65rem;background:#FEE2E2;color:var(--danger);border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem" title="Annuler la course"><i class="ti ti-x"></i></button>
+    </div>
+  </div>`;
+  if(pcEl) { pcEl.innerHTML = html; pcEl.style.display = ''; }
+  if(mobEl) { mobEl.innerHTML = html; mobEl.style.display = ''; }
+  // Subscribe to client position
+  subscribeCoursePosition(c.id);
+}
+
+async function accepterCourse(courseId) {
+  if (courseEnCours) return showToast('Terminez votre course en cours d\'abord', 'wa');
+  const { error } = await sb.from('courses').update({ statut: 'acceptee' }).eq('id', courseId);
+  if (error) return showToast('Erreur : ' + error.message, 'er');
+  await sb.from('livreurs').update({ statut: 'en_cours' }).eq('id', currentLivreur.id);
+  currentLivreur.statut = 'en_cours';
+  updateStatusUI('en_cours');
+  // Notification au client
+  const course = allCourses.find(c => c.id === courseId);
+  if (course?.client_id) {
+    await sb.from('notifications').insert({ utilisateur_id: course.client_id, titre: '✅ Course acceptée !', corps: 'Votre livreur a accepté votre course. Il vous contactera avant de partir.', type: 'course' });
+  }
+  showToast('Course acceptée ✓', 'ok');
+  loadCourses();
+  switchMobPage('carte');
+}
+
+async function marquerEnRoute(courseId) {
+  const { error } = await sb.from('courses').update({ statut: 'en_cours' }).eq('id', courseId);
+  if (error) return showToast('Erreur : ' + error.message, 'er');
+  // Partager la position actuelle
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(async pos => {
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      await sb.from('livreurs').update({ latitude: lat, longitude: lng, derniere_position_at: new Date().toISOString() }).eq('id', currentLivreur.id);
+    });
+  }
+  // Notifier client
+  const course = allCourses.find(c => c.id === courseId);
+  if (course?.client_id) {
+    await sb.from('notifications').insert({ utilisateur_id: course.client_id, titre: '🛵 Votre livreur est en route !', corps: `Il arrive. Suivez sa position en temps réel dans l'application.`, type: 'course' });
+  }
+  showToast('🛵 En route ! Le client est notifié.', 'ok');
+  loadCourses();
+}
+
+async function refuserCourse(courseId) {
+  const { error } = await sb.from('courses').update({ statut: 'annulee' }).eq('id', courseId);
+  if (error) return showToast('Erreur : ' + error.message, 'er');
+  showToast('Course refusée', 'wa');
+  loadCourses();
+}
+
+// ── Annulation course acceptée/en cours (cash uniquement) ──
+let _annulCourseId = null;
+
+function ouvrirModalAnnulerLv(courseId) {
+  _annulCourseId = courseId;
+  document.getElementById('annul-raison-lv').value = '';
+  document.getElementById('annul-error-lv').textContent = '';
+  openModal('modal-annuler-lv');
+}
+
+async function confirmerAnnulationLv() {
+  const raison = document.getElementById('annul-raison-lv').value;
+  if (!raison) {
+    document.getElementById('annul-error-lv').textContent = 'Veuillez sélectionner une raison.';
+    return;
+  }
+  const courseId = _annulCourseId;
+  const course = allCourses.find(c => c.id === courseId);
+
+  const { error } = await sb.from('courses').update({
+    statut: 'annulee',
+    raison_annulation: raison,
+    annule_par: 'livreur'
+  }).eq('id', courseId);
+  if (error) return showToast('Erreur : ' + error.message, 'er');
+
+  // Remettre le livreur disponible
+  await sb.from('livreurs').update({ statut: 'disponible' }).eq('id', currentLivreur.id);
+  currentLivreur.statut = 'disponible';
+  updateStatusUI('disponible');
+  courseEnCours = null;
+
+  // Notifier le client
+  if (course?.client_id) {
+    await sb.from('notifications').insert({
+      utilisateur_id: course.client_id,
+      titre: '❌ Course annulée par le livreur',
+      corps: `Votre course a été annulée. Raison : ${raison}. Vous pouvez commander à nouveau.`,
+      type: 'course'
+    });
+  }
+
+  closeModal('modal-annuler-lv');
+  showToast('Course annulée', 'wa');
+  loadCourses();
+}
+
+function ouvrirModalCode(courseId) {
+  currentCodeCourseId = courseId;
+  for(let i=0;i<6;i++) { const el=document.getElementById('cd'+i); if(el){el.value='';el.style.borderColor='';} }
+  document.getElementById('code-error').textContent = '';
+  openModal('modal-code');
+  setTimeout(() => document.getElementById('cd0')?.focus(), 300);
+}
+let currentCodeCourseId = null;
+
+function codeNext(el, idx) {
+  el.value = el.value.replace(/[^0-9]/g,'').slice(-1);
+  if (el.value && idx < 5) document.getElementById('cd'+(idx+1))?.focus();
+}
+
+async function validerCode() {
+  const code = [0,1,2,3,4,5].map(i => document.getElementById('cd'+i)?.value||'').join('');
+  if (code.length < 6) return document.getElementById('code-error').textContent = 'Entrez les 6 chiffres';
+  // Vérifier code dans la base
+  const { data: course } = await sb.from('courses').select('code_confirmation').eq('id', currentCodeCourseId).single();
+  if (!course) return document.getElementById('code-error').textContent = 'Course introuvable';
+  if (course.code_confirmation !== code) {
+    document.getElementById('code-error').textContent = 'Code incorrect. Réessayez.';
+    for(let i=0;i<6;i++) { const el=document.getElementById('cd'+i); if(el)el.style.borderColor='var(--danger)'; }
+    return;
+  }
+  // Ouvrir modal preuve photo
+  closeModal('modal-code');
+  openModal('modal-preuve');
+}
+
+let preuvePhotoData = null;
+function previewPreuve(input) {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    preuvePhotoData = e.target.result;
+    const img = document.getElementById('preuve-preview');
+    img.src = e.target.result;
+    img.style.display = '';
+    document.getElementById('preuve-send-btn').style.display = '';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+async function envoyerPreuve() {
+  if (!preuvePhotoData || !currentCodeCourseId) return showToast('Photo requise', 'wa');
+  showToast('Finalisation de la livraison…');
+  try {
+    // Upload photo preuve
+    const path = `${currentUser.id}/preuve_${currentCodeCourseId}_${Date.now()}.jpg`;
+    const blob = await fetch(preuvePhotoData).then(r=>r.blob());
+    await sb.storage.from('messages-media').upload(path, blob, { contentType: 'image/jpeg', upsert: false }).catch(()=>{});
+    const { data: ud } = sb.storage.from('messages-media').getPublicUrl(path);
+    // Terminer la course
+    const { error } = await sb.from('courses').update({
+      statut: 'livree',
+      photo_preuve_livraison: ud?.publicUrl || preuvePhotoData,
+      date_livraison: new Date().toISOString()
+    }).eq('id', currentCodeCourseId);
+    if (error) throw error;
+    // Lire les données de la course (gains + mode paiement)
+    const { data: courseData } = await sb.from('courses')
+      .select('gains_livreur,commission_plateforme,client_id,methode_paiement,montant_total,prix_final')
+      .eq('id', currentCodeCourseId).single();
+    const { data: w } = await sb.from('wallets').select('id,solde').eq('utilisateur_id', currentUser.id).single();
+
+    if (courseData) {
+      const modePaie = courseData.methode_paiement || 'fedapay';
+      const commission = parseFloat(courseData.commission_plateforme || 0);
+
+      if (modePaie === 'especes' || modePaie === 'cash' || modePaie === 'a_la_livraison') {
+        // PAIEMENT CASH : le livreur reçoit le montant total en espèces
+        // → on lui crédite ses gains ET on débite immédiatement la commission
+        if (w) {
+          const gains = parseFloat(courseData.gains_livreur || 0);
+          // Crédit gains (le client a payé cash)
+          if (gains > 0) {
+            await sb.from('wallets').update({ solde: w.solde + gains }).eq('id', w.id);
+            await sb.from('transactions').insert({ wallet_id: w.id, type: 'credit', montant: gains, motif: 'course', description: 'Gains course #'+currentCodeCourseId.slice(-6) });
+          }
+          // Débit commission immédiatement (livreur doit reverser à la plateforme)
+          if (commission > 0) {
+            const { data: wRefresh } = await sb.from('wallets').select('id,solde').eq('utilisateur_id', currentUser.id).single();
+            const soldeApres = (wRefresh?.solde || (w.solde + gains)) - commission;
+            await sb.from('wallets').update({ solde: soldeApres }).eq('id', wRefresh?.id || w.id);
+            await sb.from('transactions').insert({ wallet_id: w.id, type: 'debit', montant: commission, motif: 'commission_cash', description: 'Commission plateforme course #'+currentCodeCourseId.slice(-6)+' (paiement espèces)' });
+            showToast(`⚠️ Commission ${fcfa(commission)} déduite (paiement cash)`, 'wa');
+            // Si le solde est négatif → bloquer le compte après 24h
+            if (soldeApres < 0) {
+              // Programmer un check de blocage (flag dans profiles)
+              await sb.from('profiles').update({ statut_compte: 'en_attente_regularisation', date_regularisation_deadline: new Date(Date.now() + 24*3600*1000).toISOString() }).eq('id', currentUser.id);
+              showToast('⚠️ Solde négatif ! Régularisez dans 24h pour éviter le blocage.', 'wa');
+            }
+          }
+        }
+      } else {
+        // PAIEMENT FEDAPAY : prélèvement automatique déjà fait → créditer uniquement les gains
+        if (courseData.gains_livreur && w) {
+          await sb.from('wallets').update({ solde: w.solde + courseData.gains_livreur }).eq('id', w.id);
+          await sb.from('transactions').insert({ wallet_id: w.id, type: 'credit', montant: courseData.gains_livreur, motif: 'course', description: 'Gains course #'+currentCodeCourseId.slice(-6) });
+        }
+      }
+    }
+    // Notifier client
+    if (courseData?.client_id) {
+      await sb.from('notifications').insert({ utilisateur_id: courseData.client_id, titre: 'Livraison confirmée ✓', corps: 'Votre commande a été livrée avec succès.', type: 'course' });
+    }
+    // Remettre livreur disponible
+    await sb.from('livreurs').update({ statut: 'disponible', nombre_courses: (currentLivreur.nombre_courses||0)+1 }).eq('id', currentLivreur.id);
+    currentLivreur.statut = 'disponible';
+    currentLivreur.nombre_courses = (currentLivreur.nombre_courses||0)+1;
+    updateStatusUI('disponible');
+    courseEnCours = null;
+    closeModal('modal-preuve');
+    showToast('🎉 Livraison confirmée ! Gains crédités.', 'ok');
+    loadCourses();
+    loadWallet();
+  } catch(e) { showToast('Erreur : ' + e.message, 'er'); }
+}
+
+function voirDetailCourse(id) {
+  const c = allCourses.find(x => x.id === id); if(!c) return;
+  const client = c.client||{};
+  const nom = `${client.prenom||''} ${client.nom||''}`.trim() || 'Client';
+  const statLabels = {en_attente:'En attente',acceptee:'Acceptée',en_route:'En route',en_cours:'En cours',livraison_en_cours:'Livraison en cours',livree:'Livrée',annulee:'Annulée'};
+  const statColors = {en_attente:'#6B7280',acceptee:'#2563EB',en_route:'#D97706',en_cours:'#D97706',livraison_en_cours:'#D97706',livree:'#16A34A',annulee:'#DC2626'};
+  const col = statColors[c.statut]||'#6B7280';
+  const clientTel = client.telephone || null;
+  const isActive = ['acceptee','en_route','en_cours','livraison_en_cours'].includes(c.statut);
+  const el = document.getElementById('detail-course-content');
+  if (!el) return showToast(`${nom} → ${c.adresse_arrivee||'—'} · ${fcfa(c.gains_livreur||0)}`);
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:.95rem;font-weight:700">${nom}</div>
+        <div style="font-size:.73rem;color:var(--text2);margin-top:2px">${clientTel ? '📞 ' + clientTel : ''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem">
+        ${clientTel ? `<a href="tel:${clientTel}" style="width:36px;height:36px;border-radius:50%;background:var(--success);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.95rem;text-decoration:none" title="Appeler (GSM)"><i class="ti ti-phone"></i></a>` : ''}
+        ${isActive ? `<button onclick="initierAppelWebRTCLv('${c.id}','${c.client_id}')" style="width:36px;height:36px;border-radius:50%;background:#7C3AED;border:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.95rem;cursor:pointer" title="Appel Web (comme WhatsApp)"><i class="ti ti-brand-whatsapp"></i></button>` : ''}
+        <span style="background:${col}22;color:${col};padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:600">${statLabels[c.statut]||c.statut}</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.6rem;font-size:.85rem">
+      <div style="background:var(--bg);border-radius:var(--radius-xs);padding:.6rem .8rem;border:1px solid var(--border)">
+        <div style="font-size:.65rem;font-weight:700;color:var(--success);margin-bottom:2px">DÉPART</div>
+        <div>${c.adresse_depart||'—'}</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius-xs);padding:.6rem .8rem;border:1px solid var(--border)">
+        <div style="font-size:.65rem;font-weight:700;color:var(--danger);margin-bottom:2px">ARRIVÉE</div>
+        <div style="font-weight:600">${c.adresse_arrivee||'—'}</div>
+      </div>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap">
+        <div><span style="color:var(--text3);font-size:.75rem;display:block">Mes gains</span><b style="color:var(--success)">${fcfa(c.gains_livreur||0)}</b></div>
+        <div><span style="color:var(--text3);font-size:.75rem;display:block">Prix client</span><b style="color:var(--primary)">${fcfa(c.prix_final||c.prix_estime||0)}</b></div>
+        <div><span style="color:var(--text3);font-size:.75rem;display:block">Distance</span>${(c.distance_km||0).toFixed(1)} km</div>
+        <div><span style="color:var(--text3);font-size:.75rem;display:block">Paiement</span>${c.methode_paiement==='cash'?'💵 Cash':'📱 Mobile'}</div>
+      </div>
+
+      ${isActive ? `
+      <!-- NAVIGATION TEMPS RÉEL -->
+      <div id="nav-map-wrap" style="border-radius:var(--radius-xs);overflow:hidden;border:1px solid var(--border);margin-top:.3rem">
+        <div id="nav-eta-bar" style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;background:#1D4ED8;color:#fff;font-size:.78rem">
+          <div id="nav-next-step" style="display:flex;align-items:center;gap:.5rem;flex:1;min-width:0"><i class="ti ti-navigation"></i> <span>Calcul de l'itinéraire…</span></div>
+          <div style="text-align:right;flex-shrink:0;margin-left:.5rem">
+            <div style="font-size:.7rem;opacity:.8">ETA</div>
+            <div style="font-weight:800;font-size:1rem" id="nav-eta-val">—</div>
+            <div style="font-size:.68rem;opacity:.7" id="nav-dist-val"></div>
+          </div>
+        </div>
+        <div id="nav-map-lv" style="height:220px"></div>
+        <div style="display:flex;justify-content:space-between;padding:.4rem .75rem;background:var(--bg);border-top:1px solid var(--border)">
+          <button onclick="recentrerNavMap()" style="background:none;border:none;color:var(--primary);font-size:.75rem;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:.3rem"><i class="ti ti-current-location"></i> Recentrer</button>
+          <button onclick="toggleNavMode()" id="nav-mode-btn" style="background:none;border:none;color:var(--text2);font-size:.75rem;cursor:pointer;font-family:var(--font)">🗺️ Vue libre</button>
+        </div>
+      </div>` : ''}
+
+      ${c.statut === 'en_attente' ? `
+      <div style="display:flex;gap:.5rem;margin-top:.5rem">
+        <button onclick="accepterCourse('${c.id}');closeModal('modal-detail-course')" style="flex:1;padding:.7rem;background:var(--success);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:600;cursor:pointer">✓ Accepter</button>
+        <button onclick="refuserCourse('${c.id}');closeModal('modal-detail-course')" style="flex:1;padding:.7rem;background:var(--danger);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:600;cursor:pointer">✗ Refuser</button>
+      </div>` : ''}
+      ${c.statut === 'acceptee' ? `
+      <button onclick="marquerEnRoute('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem"><i class="ti ti-bike"></i> Marquer En Route</button>` : ''}
+      ${(c.statut === 'en_cours' || c.statut === 'en_route' || c.statut === 'livraison_en_cours') ? `
+      <button onclick="ouvrirModalCode('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:var(--success);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem"><i class="ti ti-shield-check"></i> Valider code de livraison</button>` : ''}
+      ${['acceptee','en_cours','en_route','livraison_en_cours'].includes(c.statut) ? `
+      <button onclick="ouvrirModalAnnulerLv('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.65rem;background:#FEE2E2;color:var(--danger);border:none;border-radius:var(--radius-xs);font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.4rem"><i class="ti ti-ban"></i> Annuler la course</button>` : ''}
+    </div>`;
+
+  openModal('modal-detail-course');
+
+  // Initialiser la carte de navigation OSRM si course active
+  if (isActive) {
+    setTimeout(() => initNavMap(c), 200);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  NAVIGATION OSRM — Vue livreur (style Google Maps)
+// ══════════════════════════════════════════════════════════
+let _navMap = null, _navRouteLine = null, _navMyMarker = null, _navDestMarker = null;
+let _navSteps = [], _navFollowMode = true, _navCourse = null;
+let _navBearing = 0, _navPrevPos = null;
+
+function _bearing2(lat1, lng1, lat2, lng2) {
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const φ1 = lat1 * Math.PI / 180, φ2 = lat2 * Math.PI / 180;
+  const y = Math.sin(dLng) * Math.cos(φ2);
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(dLng);
+  return ((Math.atan2(y, x) * 180 / Math.PI) + 360) % 360;
+}
+
+async function initNavMap(course) {
+  _navCourse = course;
+  const mapDiv = document.getElementById('nav-map-lv');
+  if (!mapDiv) return;
+
+  // Créer la carte si elle n'existe pas
+  if (_navMap) { _navMap.remove(); _navMap = null; }
+  _navMap = L.map('nav-map-lv', { zoomControl: false, attributionControl: false }).setView([6.3654, 2.4183], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(_navMap);
+
+  // Destination marker
+  const destLat = course.lat_arrivee || course.latitude_arrivee;
+  const destLng = course.lng_arrivee || course.longitude_arrivee;
+  const departLat = course.lat_depart || course.latitude_depart;
+  const departLng = course.lng_depart || course.longitude_depart;
+
+  if (destLat && destLng) {
+    _navDestMarker = L.marker([destLat, destLng], {
+      icon: L.divIcon({
+        className: '',
+        html: `<div style="background:#DC2626;color:#fff;border-radius:50% 50% 50% 0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,.3)"><span style="transform:rotate(45deg)">🏁</span></div>`,
+        iconSize: [28, 34], iconAnchor: [14, 34]
+      })
+    }).addTo(_navMap).bindPopup(`<b>Destination :</b><br>${course.adresse_arrivee||''}`);
+  }
+
+  // Position actuelle du livreur
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(async pos => {
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      _navPrevPos = { lat, lng };
+      _placeNavMyMarker(lat, lng);
+      if (destLat && destLng) {
+        await _fetchNavRoute(lat, lng, destLat, destLng);
+        if (_navFollowMode) _navMap.setView([lat, lng], 16);
+      }
+    }, () => {
+      // Fallback sur position stockée du livreur
+      if (currentLivreur?.latitude && currentLivreur?.longitude) {
+        _placeNavMyMarker(currentLivreur.latitude, currentLivreur.longitude);
+        if (destLat && destLng) _fetchNavRoute(currentLivreur.latitude, currentLivreur.longitude, destLat, destLng);
+      }
+    }, { enableHighAccuracy: true, timeout: 8000 });
+  }
+
+  // Mettre à jour la navigation en temps réel via le watchPosition en cours
+  _navUpdateInterval = setInterval(async () => {
+    if (!gpsWatchId || !_navMap) { clearInterval(_navUpdateInterval); return; }
+    navigator.geolocation.getCurrentPosition(async pos => {
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      if (_navPrevPos) _navBearing = _bearing2(_navPrevPos.lat, _navPrevPos.lng, lat, lng);
+      _navPrevPos = { lat, lng };
+      _placeNavMyMarker(lat, lng);
+      if (destLat && destLng) {
+        const now = Date.now();
+        if (!initNavMap._lastOsrm || now - initNavMap._lastOsrm > 12000) {
+          initNavMap._lastOsrm = now;
+          await _fetchNavRoute(lat, lng, destLat, destLng);
+        }
+      }
+      if (_navFollowMode) _navMap.setView([lat, lng], 16, { animate: true });
+    }, () => {}, { enableHighAccuracy: true, maximumAge: 3000, timeout: 5000 });
+  }, 5000);
+}
+let _navUpdateInterval = null;
+
+function _placeNavMyMarker(lat, lng) {
+  const veh = currentLivreur?.type_vehicule || 'moto';
+  const emoji = veh === 'voiture' ? '🚗' : '🛵';
+  const icon = L.divIcon({
+    className: '',
+    html: `<div style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;transform:rotate(${_navBearing}deg);transition:transform .4s ease;font-size:1.5rem;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))">${emoji}</div>`,
+    iconSize: [38, 38], iconAnchor: [19, 19]
+  });
+  if (_navMyMarker) { _navMyMarker.setLatLng([lat, lng]); _navMyMarker.setIcon(icon); }
+  else { _navMyMarker = L.marker([lat, lng], { icon, zIndexOffset: 1000 }).addTo(_navMap); }
+}
+
+async function _fetchNavRoute(fromLat, fromLng, toLat, toLng) {
+  try {
+    const r = await fetch(`https://router.project-osrm.org/route/v1/driving/${fromLng},${fromLat};${toLng},${toLat}?overview=full&geometries=geojson&steps=true`);
+    const d = await r.json();
+    if (d.code !== 'Ok' || !d.routes?.length) return;
+    const route = d.routes[0];
+    const distKm = (route.distance / 1000).toFixed(1);
+    const etaMin = Math.max(1, Math.round(route.duration / 60));
+    // Màj ETA
+    const etaEl = document.getElementById('nav-eta-val');
+    const distEl = document.getElementById('nav-dist-val');
+    if (etaEl) etaEl.textContent = etaMin < 60 ? etaMin + ' min' : Math.floor(etaMin/60) + 'h' + String(etaMin%60).padStart(2,'0');
+    if (distEl) distEl.textContent = distKm + ' km';
+    // Ligne de route
+    const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
+    if (_navRouteLine) { _navRouteLine.setLatLngs(coords); }
+    else { _navRouteLine = L.polyline(coords, { color: '#2563EB', weight: 5, opacity: .9, lineJoin: 'round' }).addTo(_navMap); }
+    // Prochaine instruction
+    _navSteps = route.legs?.[0]?.steps || [];
+    _afficherNavInstruction();
+    // Auto-fit si pas de follow mode
+    if (!_navFollowMode && _navMyMarker && _navDestMarker) {
+      _navMap.fitBounds([_navMyMarker.getLatLng(), _navDestMarker.getLatLng()], { padding: [40, 40] });
+    }
+  } catch(e) {
+    const etaEl = document.getElementById('nav-eta-val');
+    if (etaEl) etaEl.textContent = '—';
+  }
+}
+
+function _afficherNavInstruction() {
+  const el = document.getElementById('nav-next-step');
+  if (!el || !_navSteps.length) return;
+  const step = _navSteps[0];
+  const manType = step.maneuver?.type || '';
+  const manMod  = step.maneuver?.modifier || '';
+  const icons = { turn: { left:'↰', right:'↱', 'slight left':'↖', 'slight right':'↗', 'sharp left':'⬅', 'sharp right':'➡', straight:'⬆' }, arrive: { '':'🏁' }, depart: { '':'⬆' }, roundabout: { '':'🔄' }, merge: { '':'⬆' } };
+  const icon = icons[manType]?.[manMod] ?? icons[manType]?.[''] ?? '⬆';
+  const distM = step.distance < 1000 ? Math.round(step.distance) + ' m' : (step.distance/1000).toFixed(1) + ' km';
+  const name = step.name || step.ref || '';
+  el.innerHTML = `<span style="font-size:1.2rem;flex-shrink:0">${icon}</span><div style="flex:1;min-width:0"><div style="font-size:.78rem;font-weight:700">Dans ${distM}</div><div style="font-size:.7rem;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name||'Continuez'}</div></div>`;
+}
+
+function recentrerNavMap() {
+  if (!_navMap || !_navMyMarker) return;
+  _navFollowMode = true;
+  document.getElementById('nav-mode-btn').textContent = '🗺️ Vue libre';
+  _navMap.setView(_navMyMarker.getLatLng(), 16, { animate: true });
+}
+
+function toggleNavMode() {
+  _navFollowMode = !_navFollowMode;
+  const btn = document.getElementById('nav-mode-btn');
+  if (btn) btn.textContent = _navFollowMode ? '🗺️ Vue libre' : '📍 Suivi auto';
+  if (!_navFollowMode && _navMyMarker && _navDestMarker) {
+    _navMap.fitBounds([_navMyMarker.getLatLng(), _navDestMarker.getLatLng()], { padding: [40, 40] });
+  }
+}
+
+// Nettoyer nav map à la fermeture du modal
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('modal-detail-course')?.addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-detail-course')) {
+      if (_navUpdateInterval) { clearInterval(_navUpdateInterval); _navUpdateInterval = null; }
+    }
+  });
+});
+
+// ══════════════════════════════════════════════════════════
+//  APPEL WEBRTC — Livreur → Client
+// ══════════════════════════════════════════════════════════
+let _lvRtcPeer = null, _lvRtcLocalStream = null, _lvRtcChannel = null, _lvRtcRinging = null;
+
+function _lvPlayRingtone(loop = true) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    let active = true;
+    const play = () => {
+      if (!active) return;
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = 440; gain.gain.setValueAtTime(.12, ctx.currentTime);
+      osc.start(); osc.stop(ctx.currentTime + .4);
+      osc.onended = () => { if (loop && active) setTimeout(play, 900); };
+    };
+    play();
+    return () => { active = false; ctx.close(); };
+  } catch(e) { return () => {}; }
+}
+
+function _lvCreatePeer() {
+  _lvRtcPeer = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+  _lvRtcPeer.onicecandidate = e => {
+    if (e.candidate && _lvRtcChannel) {
+      _lvRtcChannel.send({ type: 'broadcast', event: 'ice', payload: { candidate: e.candidate, from: currentUser.id } }).catch(()=>{});
+    }
+  };
+  _lvRtcPeer.ontrack = e => {
+    const audio = document.getElementById('lv-rtc-remote-audio');
+    if (audio) { audio.srcObject = e.streams[0]; audio.play().catch(()=>{}); }
+    const st = document.getElementById('lv-call-status');
+    if (st) st.textContent = '🟢 Connecté';
+    const rBtn = document.getElementById('lv-call-repondre');
+    if (rBtn) rBtn.style.display = 'none';
+  };
+  _lvRtcPeer.onconnectionstatechange = () => {
+    if (['failed','disconnected','closed'].includes(_lvRtcPeer?.connectionState)) lvRaccrocher(false);
+  };
+  return _lvRtcPeer;
+}
+
+async function initierAppelWebRTCLv(courseId, clientId) {
+  if (!clientId) return showToast('Client non disponible', 'wa');
+  try { _lvRtcLocalStream = await navigator.mediaDevices.getUserMedia({ audio: true, echoCancellation: true }); }
+  catch(e) { return showToast('Microphone non autorisé', 'er'); }
+
+  const chName = 'rtc-call-' + [currentUser.id, clientId].sort().join('-');
+  _lvRtcChannel = sb.channel(chName)
+    .on('broadcast', { event: 'answer' }, async ({ payload }) => {
+      if (payload.to !== currentUser.id) return;
+      if (_lvRtcRinging) { _lvRtcRinging(); _lvRtcRinging = null; }
+      await _lvRtcPeer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+      const st = document.getElementById('lv-call-status'); if (st) st.textContent = '🟢 Connecté';
+      const rBtn = document.getElementById('lv-call-repondre'); if (rBtn) rBtn.style.display = 'none';
+    })
+    .on('broadcast', { event: 'ice' }, async ({ payload }) => {
+      if (payload.from === currentUser.id) return;
+      try { await _lvRtcPeer?.addIceCandidate(new RTCIceCandidate(payload.candidate)); } catch(e){}
+    })
+    .on('broadcast', { event: 'hangup' }, () => lvRaccrocher(false))
+    .subscribe(async status => {
+      if (status !== 'SUBSCRIBED') return;
+      const peer = _lvCreatePeer();
+      _lvRtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _lvRtcLocalStream));
+      const offer = await peer.createOffer();
+      await peer.setLocalDescription(offer);
+      await _lvRtcChannel.send({ type: 'broadcast', event: 'offer', payload: { sdp: offer, from: currentUser.id, to: clientId, courseId } });
+      await sb.from('notifications').insert({ utilisateur_id: clientId, titre: '📞 Appel de votre livreur', corps: `${currentProfile?.prenom||'Votre livreur'} vous appelle via Allô Livreur`, type: 'appel_rtc', meta: { courseId, callerId: currentUser.id } });
+      _lvRtcRinging = _lvPlayRingtone(true);
+      _lvShowCallModal('caller');
+    });
+}
+
+function _lvShowCallModal(role) {
+  const st = document.getElementById('lv-call-status');
+  const rBtn = document.getElementById('lv-call-repondre');
+  if (st) st.textContent = role === 'caller' ? 'Appel en cours…' : '📞 Appel entrant';
+  if (rBtn) rBtn.style.display = role === 'callee' ? 'flex' : 'none';
+  openModal('modal-lv-appel');
+}
+
+function lvRaccrocher(sendSignal = true) {
+  if (sendSignal && _lvRtcChannel) _lvRtcChannel.send({ type: 'broadcast', event: 'hangup', payload: { from: currentUser.id } }).catch(()=>{});
+  if (_lvRtcRinging) { _lvRtcRinging(); _lvRtcRinging = null; }
+  if (_lvRtcLocalStream) { _lvRtcLocalStream.getTracks().forEach(t => t.stop()); _lvRtcLocalStream = null; }
+  if (_lvRtcPeer) { _lvRtcPeer.close(); _lvRtcPeer = null; }
+  if (_lvRtcChannel) { sb.removeChannel(_lvRtcChannel); _lvRtcChannel = null; }
+  closeModal('modal-lv-appel');
+}
+
+// Écouter les appels entrants (client → livreur)
+function startLvRTCListener() {
+  if (!currentUser?.id) return;
+  sb.channel('rtc-incoming-' + currentUser.id)
+    .on('broadcast', { event: 'offer' }, async ({ payload }) => {
+      if (payload.to !== currentUser.id) return;
+      const chName = 'rtc-call-' + [payload.from, currentUser.id].sort().join('-');
+      _lvRtcChannel = sb.channel(chName)
+        .on('broadcast', { event: 'ice' }, async ({ payload: p }) => {
+          if (p.from === currentUser.id) return;
+          try { await _lvRtcPeer?.addIceCandidate(new RTCIceCandidate(p.candidate)); } catch(e){}
+        })
+        .on('broadcast', { event: 'hangup' }, () => lvRaccrocher(false));
+      await new Promise(res => _lvRtcChannel.subscribe(s => s === 'SUBSCRIBED' && res()));
+      _lvCreatePeer();
+      _lvRtcRinging = _lvPlayRingtone(true);
+      _lvShowCallModal('callee');
+      document.getElementById('lv-call-repondre').onclick = async () => {
+        if (_lvRtcRinging) { _lvRtcRinging(); _lvRtcRinging = null; }
+        try { _lvRtcLocalStream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch(e) { return showToast('Micro non autorisé','er'); }
+        _lvRtcLocalStream.getTracks().forEach(t => _lvRtcPeer.addTrack(t, _lvRtcLocalStream));
+        await _lvRtcPeer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+        const answer = await _lvRtcPeer.createAnswer();
+        await _lvRtcPeer.setLocalDescription(answer);
+        await _lvRtcChannel.send({ type: 'broadcast', event: 'answer', payload: { sdp: answer, from: currentUser.id, to: payload.from } });
+        const st = document.getElementById('lv-call-status'); if(st) st.textContent = '🟢 Connecté';
+        const rBtn = document.getElementById('lv-call-repondre'); if(rBtn) rBtn.style.display = 'none';
+      };
+    })
+    .subscribe();
+}
+
+// ═══ COURSE POSITION CHANNEL ════════════════════════════
+function subscribeCoursePosition(courseId) {
+  const ch = sb.channel('course-pos-' + courseId)
+    .on('broadcast', { event: 'pos' }, payload => {
+      const p = payload.payload;
+      if (p?.role === 'client' && p.lat && p.lng) {
+        updateClientMarker(p.lat, p.lng);
+      }
+    })
+    .subscribe();
+  realtimeSubs.push(ch);
+}
+function updateClientMarker(lat, lng) {
+  const icon = L.divIcon({ html: '<div class="custom-marker-client"><i class="ti ti-user" style="font-size:1rem;color:#2563EB"></i></div>', className:'', iconSize:[36,36], iconAnchor:[18,18] });
+  if (clientMarker.pc) clientMarker.pc.setLatLng([lat,lng]);
+  else if (pcMap) clientMarker.pc = L.marker([lat,lng], {icon}).addTo(pcMap).bindPopup('Client');
+  if (clientMarker.mob) clientMarker.mob.setLatLng([lat,lng]);
+  else if (mobMap) clientMarker.mob = L.marker([lat,lng], {icon}).addTo(mobMap).bindPopup('Client');
+}
+
+// ═══ WALLET ══════════════════════════════════════════════
+async function loadWallet() {
+  const { data } = await sb.from('wallets').select('solde').eq('utilisateur_id', currentUser.id).single();
+  const solde = data?.solde || 0;
+  const fmt = fcfa(solde);
+  ['pc-wallet-amount','mob-wallet-amount','modal-wallet-amount','mob-wallet-amount-sm'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.textContent = id.includes('sm') ? Math.round(solde/100)*100+'F' : fmt;
+  });
+  const pdW = document.getElementById('pd-wallet'); if(pdW) pdW.textContent = fmt;
+  loadTransactions();
+}
+async function loadTransactions() {
+  const { data: w } = await sb.from('wallets').select('id').eq('utilisateur_id', currentUser.id).single();
+  if (!w) return;
+  const { data } = await sb.from('transactions').select('*').eq('wallet_id', w.id).order('created_at', {ascending:false}).limit(20);
+  const html = (data||[]).length ? (data||[]).map(t => `<div class="tx-item">
+    <div class="tx-icon ${t.type}"><i class="ti ti-${t.type==='credit'?'arrow-down-right':'arrow-up-right'}"></i></div>
+    <div style="flex:1;min-width:0"><div class="tx-amount ${t.type}">${t.type==='credit'?'+':'-'}${fcfa(t.montant)}</div><div class="tx-desc">${t.description||t.motif||''}</div></div>
+    <div class="tx-date">${fmtDate(t.created_at)}</div>
+  </div>`).join('') : '<div class="empty-state" style="padding:1rem"><p>Aucune transaction</p></div>';
+  ['pc-tx-list','modal-tx-list'].forEach(id => { const el=document.getElementById(id); if(el) el.innerHTML=html; });
+}
+async function confirmerRetrait() {
+  const montant = parseInt(document.getElementById('retrait-montant').value);
+  const tel = document.getElementById('retrait-tel').value.trim();
+  const operateur = document.getElementById('retrait-operateur').value;
+  if (!montant || montant < 1000) return showToast('Minimum 1 000 FCFA');
+  if (!tel) return showToast('Numéro Mobile Money requis');
+  const { data: w } = await sb.from('wallets').select('id,solde').eq('utilisateur_id', currentUser.id).single();
+  if (!w || w.solde < montant) return showToast('Solde insuffisant');
+  await sb.from('wallets').update({ solde: w.solde - montant }).eq('id', w.id);
+  await sb.from('transactions').insert({ wallet_id: w.id, type: 'debit', montant, motif: 'retrait', description: 'Retrait '+operateur.toUpperCase()+' '+tel });
+  await sb.from('retraits').insert({ utilisateur_id: currentUser.id, montant, operateur_mobile_money: operateur, numero_mobile_money: tel, statut: 'en_attente' });
+  closeModal('modal-retrait');
+  showToast('Retrait de '+fcfa(montant)+' en traitement ✓', 'ok');
+  loadWallet();
+  // Update retrait solde field
+  const el=document.getElementById('retrait-solde'); if(el) el.textContent=fcfa((w.solde-montant));
+}
+
+// ═══ SOS ═════════════════════════════════════════════════
+function envoiSOS() {
+  openModal('modal-sos');
+  const statusEl = document.getElementById('sos-status');
+  const posEl = document.getElementById('sos-pos-info');
+  statusEl.textContent = 'Envoi de votre position…';
+  if (!navigator.geolocation) { posEl.textContent = 'GPS non disponible'; return; }
+  navigator.geolocation.getCurrentPosition(async pos => {
+    const lat = pos.coords.latitude, lng = pos.coords.longitude;
+    posEl.textContent = `📍 Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
+    // Insérer alerte SOS dans notifications admin
+    await sb.from('notifications').insert({
+      utilisateur_id: currentUser.id,
+      titre: '🆘 SOS Livreur',
+      corps: `Livreur ${currentProfile?.prenom||''} ${currentProfile?.nom||''} en difficulté — Position: ${lat.toFixed(5)},${lng.toFixed(5)}`,
+      type: 'sos'
+    });
+    // Chercher admins et leur notifier
+    const { data: admins } = await sb.from('profiles').select('id').eq('role','admin').limit(5);
+    if (admins) {
+      for(const admin of admins) {
+        await sb.from('notifications').insert({ utilisateur_id: admin.id, titre: '🆘 SOS Livreur', corps: `${currentProfile?.prenom||''} ${currentProfile?.nom||''} a besoin d'aide — ${lat.toFixed(5)},${lng.toFixed(5)}`, type: 'sos' });
+      }
+    }
+    statusEl.textContent = '✅ Alerte envoyée à l\'administrateur';
+  }, () => { posEl.textContent = 'Impossible d\'obtenir la position GPS'; statusEl.textContent = 'Erreur GPS'; });
+}
+
+// ═══ MESSAGERIE ══════════════════════════════════════════
+async function loadConversations() {
+  if (!currentUser) return;
+  const { data: convs } = await sb.from('conversations')
+    .select('id,participant_1_id,participant_2_id,dernier_message_at,dernier_message_texte')
+    .or(`participant_1_id.eq.${currentUser.id},participant_2_id.eq.${currentUser.id}`)
+    .order('dernier_message_at', { ascending: false, nullsFirst: false })
+    .limit(40);
+  if (!convs) return;
+  // Charger les profils de l'autre participant
+  const otherIds = convs.map(c => c.participant_1_id===currentUser.id ? c.participant_2_id : c.participant_1_id);
+  const uniqueIds = [...new Set(otherIds)];
+  const { data: profiles } = await sb.from('profiles').select('id,prenom,nom,avatar_url,role,badge_verifie,telephone').in('id', uniqueIds);
+  const profileMap = {};
+  (profiles||[]).forEach(p => profileMap[p.id] = p);
+
+  const items = convs.map(c => {
+    const otherId = c.participant_1_id===currentUser.id ? c.participant_2_id : c.participant_1_id;
+    return { conv: c, user: profileMap[otherId]||{id:otherId} };
+  });
+
+  const html = items.length ? items.map(item => convItemHTML(item, false)).join('') : '<div class="empty-state" style="padding:2rem"><i class="ti ti-message"></i><p>Aucune conversation</p></div>';
+  const mobHtml = items.length ? items.map(item => convItemHTML(item, true)).join('') : '<div class="empty-state" style="padding:3rem 1rem"><i class="ti ti-message"></i><p>Aucune conversation</p></div>';
+  const pcEl = document.getElementById('pc-conv-list'); if(pcEl) pcEl.innerHTML = html;
+  const mobEl = document.getElementById('mob-conv-list'); if(mobEl) mobEl.innerHTML = mobHtml;
+}
+
+const ROLE_LABELS = {client:'Client',livreur:'Livreur',marchand:'Marchand',admin:'Admin'};
+const ROLE_COLORS = {client:'#2563EB',livreur:'#F97316',marchand:'#16A34A',admin:'#7C3AED'};
+
+function convItemHTML(item, mob) {
+  const u = item.user, c = item.conv;
+  const nom = ((u.prenom||'')+' '+(u.nom||'')).trim()||'Contact';
+  const url = getAvatarUrl(u);
+  const initials = getInitials(u);
+  const imgHtml = url ? '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\'">' + initials : initials;
+  const time = c?.dernier_message_at ? fmtDate(c.dernier_message_at) : '';
+  const lastMsg = c?.dernier_message_texte||'';
+  const roleLabel = ROLE_LABELS[u.role]||(u.role||'');
+  const roleColor = ROLE_COLORS[u.role]||'#6B7280';
+  const verified = u.badge_verifie ? ' <i class="ti ti-circle-check-filled" style="color:#2563EB;font-size:.8rem"></i>' : '';
+  const oid = u.id;
+  const safenom = nom.replace(/'/g,"\\'");
+  let fn;
+  if (c) {
+    fn = mob ? "switchMobPage('chat');openChat('"+c.id+"','"+safenom+"','"+oid+"')"
+             : "openChat('"+c.id+"','"+safenom+"','"+oid+"')";
+  } else {
+    fn = "ouvrirOuCreerConv('"+oid+"')";
+  }
+  const cls = mob ? 'mob-conv-item' : 'conv-item';
+  return '<div class="'+cls+'" onclick="'+fn+'">'
+    +'<div class="'+(mob?'mob-lv-ava':'conv-avatar')+'">'+imgHtml+'</div>'
+    +'<div style="flex:1;min-width:0">'
+    +'<div style="display:flex;align-items:center;gap:.3rem"><span class="conv-name">'+nom+'</span>'+verified+'</div>'
+    +'<div style="display:flex;align-items:center;gap:.4rem;margin-top:2px">'
+    +(roleLabel?'<span style="font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:3px;background:'+roleColor+'18;color:'+roleColor+'">'+roleLabel+'</span>':'')
+    +'<span class="conv-last" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+lastMsg+'</span>'
+    +'</div></div>'
+    +'<div class="conv-time">'+time+'</div></div>';
+}
+
+async function openChat(convId, nom, otherId) {
+  currentConvId = convId;
+  currentConvOtherId = otherId||null;
+  ['mob-msg-input','pc-msg-input'].forEach(id => { const el=document.getElementById(id); if(el){el.value='';el.style.height='40px';} });
+  document.getElementById('mob-send-btn').style.display='none';
+  document.getElementById('pc-send-btn').style.display='none';
+  document.getElementById('mob-voice-btn-wa').style.display='flex';
+  document.getElementById('pc-voice-btn-wa').style.display='flex';
+  document.getElementById('mob-chat-title').textContent=nom;
+  document.getElementById('mob-chat-status').textContent='hors ligne';
+  const pcName=document.getElementById('pc-chat-name'); if(pcName){pcName.textContent=nom;openPCChat();}
+  setupTypingChannel(convId);
+  await loadMessages(convId);
+  scrollChatBottom('mob'); scrollChatBottom('pc');
+  setTimeout(()=>{setupScrollDetect('mob');setupScrollDetect('pc');},120);
+  if (otherId) updateChatHeader(otherId);
+  markMessagesRead(convId);
+}
+
+async function updateChatHeader(otherId) {
+  const { data: p } = await sb.from('profiles').select('prenom,nom,avatar_url,badge_verifie,telephone').eq('id', otherId).single();
+  if (!p) return;
+  const nom = `${p.prenom||''} ${p.nom||''}`.trim();
+  const url = getAvatarUrl(p);
+  ['mob-chat-title','pc-chat-name'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent = nom; });
+  ['mob-chat-ava-img','pc-chat-ava-img'].forEach(id => { const el=document.getElementById(id); if(!el) return; if(url){el.src=url;el.style.display='';}else el.style.display='none'; });
+  ['mob-chat-ava-init','pc-chat-ava-init'].forEach(id => { const el=document.getElementById(id); if(!el) return; if(url)el.style.display='none';else{el.style.display='';el.textContent=getInitials(p);} });
+  // Statut en ligne via profiles ou livreurs
+  const { data: lv } = await sb.from('livreurs').select('statut').eq('id', otherId).single();
+  const statut = lv ? (lv.statut==='disponible'?'En ligne':'Hors ligne') : '—';
+  ['mob-chat-status','pc-chat-status'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=statut; });
+  if (p.telephone) {
+    const hidden = document.getElementById('chat-contact-tel'); if(hidden) hidden.textContent=p.telephone;
+  }
+}
+
+async function ouvrirChat_course(courseId) {
+  const c = allCourses.find(x => x.id === courseId); if(!c) return;
+  if (c.client?.id) await ouvrirOuCreerConv(c.client.id);
+}
+
+async function ouvrirOuCreerConv(autreProfileId) {
+  if (!autreProfileId || autreProfileId === currentUser.id) return;
+  const { data: existing } = await sb.from('conversations')
+    .select('id,participant_1_id,participant_2_id')
+    .or(`and(participant_1_id.eq.${currentUser.id},participant_2_id.eq.${autreProfileId}),and(participant_1_id.eq.${autreProfileId},participant_2_id.eq.${currentUser.id})`)
+    .single();
+  let convId, nom = '';
+  const { data: otherP } = await sb.from('profiles').select('prenom,nom').eq('id', autreProfileId).single();
+  nom = otherP ? `${otherP.prenom||''} ${otherP.nom||''}`.trim() : 'Contact';
+  if (existing) {
+    convId = existing.id;
+  } else {
+    const { data: newC, error } = await sb.from('conversations').insert({ participant_1_id: currentUser.id, participant_2_id: autreProfileId }).select('id').single();
+    if (error) return showToast('Erreur messagerie : '+error.message, 'er');
+    convId = newC.id;
+  }
+  const isMob = window.innerWidth <= 768;
+  if (isMob) { switchMobPage('chat'); }
+  else { switchSideTab('messages', document.querySelector('.stab:nth-child(2)')||{classList:{add:()=>{}}}); }
+  await openChat(convId, nom, autreProfileId);
+  loadConversations();
+}
+
+// ─── Messages ────────────────────────────────────────────
+const VPLAYERS = {};
+let VPID = 0;
+const _lbSrc = {};
+
+function buildMsgBubble(m, userId) {
+  const mine = m.expediteur_id === userId;
+  const side = mine ? 'mine' : 'other';
+  const t = new Date(m.created_at);
+  const timeStr = t.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const ticks = mine ? (m.lu ? '<span class="wa-tick read">✓✓</span>' : '<span class="wa-tick">✓</span>') : '';
+  const footer = `<span class="msg-footer"><span class="msg-time-txt">${timeStr}</span>${ticks}</span>`;
+  if (m.type === 'photo' && m.contenu) {
+    const msgKey = 'ph_'+(m.id||Math.random().toString(36).slice(2));
+    _lbSrc[msgKey] = m.contenu;
+    return `<div class="msg-row ${side}"><div class="msg-bubble ${side}" style="padding:4px 4px 2px;max-width:78%"><img src="${m.contenu}" class="msg-img" onclick="openLightbox(_lbSrc['${msgKey}'])"><div style="padding:1px 4px 2px">${footer}</div></div></div>`;
+  }
+  if (m.type === 'vocal' && m.contenu) {
+    const pid = 'vp'+(++VPID);
+    const safe = m.contenu.replace(/'/g,"\\'");
+    return `<div class="msg-row ${side}"><div class="msg-bubble ${side}"><div class="va-player"><button class="vplay-btn" id="${pid}-btn" onclick="toggleVP('${pid}','${safe}')"><i class="ti ti-player-play" id="${pid}-ico"></i></button><div class="vwavebar" onclick="seekVP('${pid}',event)"><div class="vwavebar-fill" id="${pid}-fill"></div></div><span class="vduration" id="${pid}-dur">0:00</span></div>${footer}</div></div>`;
+  }
+  if (m.type === 'map' && m.contenu) {
+    try {
+      const c = JSON.parse(m.contenu);
+      const mid = 'mm'+(m.id||Date.now()).toString().replace(/-/g,'').slice(-8);
+      const lbl = c.label||'Position partagée';
+      setTimeout(()=>{
+        const el=document.getElementById(mid); if(!el||el._lfMap) return;
+        const lm=L.map(el,{zoomControl:false,dragging:false,scrollWheelZoom:false,attributionControl:false,touchZoom:false,doubleClickZoom:false});
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(lm);
+        L.marker([c.lat,c.lng]).addTo(lm); lm.setView([c.lat,c.lng],15); el._lfMap=lm;
+      },300);
+      return `<div class="msg-row ${side}"><div class="msg-bubble ${side}" style="padding:5px 5px 4px;max-width:86%"><div style="font-size:.72rem;font-weight:600;opacity:.8;margin-bottom:3px">📍 ${lbl}</div><div id="${mid}" class="msg-mini-map"></div><div class="msg-map-btns"><a href="https://maps.google.com/?q=${c.lat},${c.lng}" target="_blank" class="msg-map-btn gm"><i class="ti ti-map-2"></i> Google Maps</a><a href="https://waze.com/ul?ll=${c.lat},${c.lng}&navigate=yes" target="_blank" class="msg-map-btn wz"><i class="ti ti-navigation"></i> Waze</a></div>${footer}</div></div>`;
+    } catch(e) {}
+  }
+  if (m.type === 'transfert' && m.contenu) {
+    try {
+      const tr = JSON.parse(m.contenu);
+      return `<div class="msg-row ${side}"><div class="msg-bubble ${side}" style="padding:0;overflow:hidden;background:transparent;max-width:82%"><div class="msg-transfer"><div style="font-size:.72rem;opacity:.8;margin-bottom:3px">${mine?'💸 Paiement envoyé':'💰 Paiement reçu'}</div><div style="font-size:1.1rem;font-weight:800">${fcfa(tr.montant)}</div></div><div style="background:${mine?'#d9fdd3':'#fff'};padding:2px 8px 3px;display:flex;justify-content:flex-end">${footer}</div></div></div>`;
+    } catch(e) {}
+  }
+  return `<div class="msg-row ${side}"><div class="msg-bubble ${side}">${(m.contenu||'').replace(/\n/g,'<br>')}${footer}</div></div>`;
+}
+
+function getDateLabel(iso) {
+  const d=new Date(iso),now=new Date(),diff=Math.floor((now-d)/86400000);
+  if(diff===0) return "Aujourd'hui"; if(diff===1) return "Hier";
+  return d.toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
+}
+
+async function loadMessages(convId) {
+  const { data } = await sb.from('messages').select('*').eq('conversation_id', convId).order('created_at').limit(100);
+  const msgs = data||[];
+  let lastDate = null, html = '';
+  msgs.forEach(m => {
+    const dateLabel = getDateLabel(m.created_at);
+    if (dateLabel !== lastDate) { html += `<div class="date-sep"><span>${dateLabel}</span></div>`; lastDate = dateLabel; }
+    html += buildMsgBubble(m, currentUser.id);
+  });
+  ['mob-chat-messages','pc-chat-messages'].forEach(id => {
+    const el=document.getElementById(id); if(!el) return;
+    const wasBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+    // Preserve typing row
+    el.innerHTML = html;
+    if (wasBottom) el.scrollTo({top:el.scrollHeight});
+  });
+  // Init audio players
+  setTimeout(() => initAudioPlayers(), 200);
+}
+
+function initAudioPlayers() {
+  document.querySelectorAll('[id^="vp"][id$="-btn"]').forEach(btn => {
+    const pid = btn.id.replace('-btn','');
+    // Already init handled in toggleVP
+  });
+}
+
+async function markMessagesRead(convId) {
+  await sb.from('messages').update({ lu: true, lu_at: new Date().toISOString() })
+    .eq('conversation_id', convId).neq('expediteur_id', currentUser.id).eq('lu', false);
+}
+
+async function envoyerMessageMob() {
+  if (!currentConvId) return;
+  const input = document.getElementById('mob-msg-input');
+  const text = input.value.trim(); if (!text) return;
+  input.value = ''; input.style.height = '40px';
+  document.getElementById('mob-send-btn').style.display='none';
+  document.getElementById('mob-voice-btn-wa').style.display='flex';
+  const { error } = await sb.from('messages').insert({ conversation_id: currentConvId, expediteur_id: currentUser.id, type: 'texte', contenu: text });
+  if (!error) {
+    await sb.from('conversations').update({ dernier_message_at: new Date().toISOString(), dernier_message_texte: text }).eq('id', currentConvId);
+    loadMessages(currentConvId);
+  }
+}
+async function envoyerMessagePC() {
+  if (!currentConvId) return;
+  const input = document.getElementById('pc-msg-input');
+  const text = input.value.trim(); if (!text) return;
+  input.value = '';
+  const { error } = await sb.from('messages').insert({ conversation_id: currentConvId, expediteur_id: currentUser.id, type: 'texte', contenu: text });
+  if (!error) {
+    await sb.from('conversations').update({ dernier_message_at: new Date().toISOString(), dernier_message_texte: text }).eq('id', currentConvId);
+    loadMessages(currentConvId);
+  }
+}
+
+// ─── Photo ───────────────────────────────────────────────
+const _pendingPhotoBase64 = { mob: null, pc: null };
+function triggerPhotoMob() { document.getElementById('mob-photo-file-input')?.click(); document.getElementById('mob-attach-panel')?.classList.remove('open'); }
+function triggerPhotoPC() { document.getElementById('pc-photo-file-input')?.click(); document.getElementById('pc-attach-panel')?.classList.remove('open'); }
+function uploadPhotoMsgMob(input) { _showPhotoPreview(input, 'mob'); }
+function uploadPhotoMsgPC(input) { _showPhotoPreview(input, 'pc'); }
+function _compressImage(dataUrl, maxPx, quality, cb) {
+  const img = new Image();
+  img.onload = () => {
+    let w=img.width,h=img.height;
+    if(w>maxPx||h>maxPx){if(w>=h){h=Math.round(h*maxPx/w);w=maxPx;}else{w=Math.round(w*maxPx/h);h=maxPx;}}
+    const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);cb(c.toDataURL('image/jpeg',quality));
+  };
+  img.src = dataUrl;
+}
+function _showPhotoPreview(input, side) {
+  if (!input.files[0]) return;
+  if (!currentConvId) return showToast('Ouvrez une conversation d\'abord', 'wa');
+  const file = input.files[0];
+  if (file.size > 20*1024*1024) return showToast('Photo trop lourde (max 20 Mo)', 'wa');
+  const reader = new FileReader();
+  reader.onload = e => {
+    _compressImage(e.target.result, 900, 0.72, compressed => {
+      _pendingPhotoBase64[side] = compressed;
+      const bar=document.getElementById(side+'-photo-preview-bar');
+      const img=document.getElementById(side+'-photo-preview-img');
+      if(bar&&img){img.src=compressed;bar.classList.add('visible');}
+    });
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+function cancelPhotoPreview(side) {
+  _pendingPhotoBase64[side]=null;
+  const bar=document.getElementById(side+'-photo-preview-bar');
+  if(bar) bar.classList.remove('visible');
+}
+async function sendPendingPhoto(side) {
+  const b64 = _pendingPhotoBase64[side];
+  if (!b64||!currentConvId) return showToast('Aucune photo à envoyer', 'wa');
+  cancelPhotoPreview(side);
+  showToast('Envoi de la photo…');
+  let contenu = b64;
+  try {
+    const path=`${currentUser.id}/m_${Date.now()}.jpg`;
+    const blob=await fetch(b64).then(r=>r.blob());
+    const { error:upErr } = await sb.storage.from('messages-media').upload(path, blob, { contentType:'image/jpeg', cacheControl:'31536000' });
+    if (!upErr) { const { data:ud }=sb.storage.from('messages-media').getPublicUrl(path); contenu=ud.publicUrl; }
+  } catch(e) {}
+  const { error } = await sb.from('messages').insert({ conversation_id: currentConvId, expediteur_id: currentUser.id, type: 'photo', contenu });
+  if (error) return showToast('❌ Erreur photo : '+error.message, 'er');
+  await sb.from('conversations').update({ dernier_message_at: new Date().toISOString(), dernier_message_texte: '📷 Photo' }).eq('id', currentConvId);
+  loadMessages(currentConvId);
+  showToast('Photo envoyée ✓', 'ok');
+}
+
+// ─── Audio vocal ─────────────────────────────────────────
+const _voiceState = {
+  mob:{recorder:null,chunks:[],recording:false,timer:null,startTime:null,mimeType:'audio/webm'},
+  pc:{recorder:null,chunks:[],recording:false,timer:null,startTime:null,mimeType:'audio/webm'}
+};
+async function toggleVoiceRecord(side) {
+  side = side||'mob';
+  const vs = _voiceState[side];
+  if (!currentConvId) return showToast('Ouvrez une conversation d\'abord', 'wa');
+  if (!vs.recording) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({audio:true,echoCancellation:true,noiseSuppression:true});
+      const mimeType = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4'].find(t=>MediaRecorder.isTypeSupported(t))||'audio/webm';
+      vs.mimeType = mimeType;
+      vs.recorder = new MediaRecorder(stream, {mimeType});
+      vs.chunks = [];
+      vs.recorder.ondataavailable = e => { if(e.data.size>0) vs.chunks.push(e.data); };
+      vs.recorder.onstop = () => _uploadVoice(side);
+      vs.recorder.start(100);
+      vs.recording = true; vs.startTime = Date.now();
+      const recBar=document.getElementById(side+'-recording-bar');
+      const chatPage=side==='mob'?document.getElementById('mob-chat-page'):document.getElementById('pc-chat-panel');
+      const inputRow=chatPage?.querySelector('.wa-input-row');
+      if(recBar) recBar.classList.add('active');
+      if(inputRow) inputRow.style.display='none';
+      vs.timer = setInterval(()=>{
+        const elapsed=Math.floor((Date.now()-vs.startTime)/1000);
+        const el=document.getElementById(side+'-rec-timer');
+        if(el) el.textContent=Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');
+        if(elapsed>=180) stopAndSendRecording(side);
+      },1000);
+    } catch(e) { showToast('Microphone non disponible', 'er'); }
+  }
+}
+function _showInputRow(side) {
+  const recBar=document.getElementById(side+'-recording-bar');
+  const chatPage=side==='mob'?document.getElementById('mob-chat-page'):document.getElementById('pc-chat-panel');
+  const inputRow=chatPage?.querySelector('.wa-input-row');
+  if(recBar) recBar.classList.remove('active');
+  if(inputRow) inputRow.style.display='';
+  const timerEl=document.getElementById(side+'-rec-timer'); if(timerEl) timerEl.textContent='0:00';
+}
+function cancelRecording(side) {
+  side=side||'mob'; const vs=_voiceState[side];
+  if(vs.recorder){vs.recorder.stream?.getTracks().forEach(t=>t.stop());vs.recorder=null;vs.chunks=[];vs.recording=false;}
+  clearInterval(vs.timer); vs.timer=null; _showInputRow(side); showToast('Enregistrement annulé');
+}
+function stopAndSendRecording(side) {
+  side=side||'mob'; const vs=_voiceState[side];
+  if(!vs.recorder||!vs.recording) return;
+  clearInterval(vs.timer); vs.timer=null; vs.recording=false;
+  try{vs.recorder.stop();}catch(e){}
+  vs.recorder.stream?.getTracks().forEach(t=>t.stop());
+  _showInputRow(side);
+}
+async function _uploadVoice(side) {
+  const vs=_voiceState[side]; if(!vs.chunks.length||!currentConvId) return;
+  showToast('⬆️ Envoi du message vocal…');
+  try {
+    const blob=new Blob(vs.chunks,{type:vs.mimeType}); vs.chunks=[];
+    const ext=vs.mimeType.includes('ogg')?'ogg':vs.mimeType.includes('mp4')?'mp4':'webm';
+    const path=`${currentUser.id}/v_${Date.now()}.${ext}`;
+    let contenu;
+    try {
+      const{error:upErr}=await sb.storage.from('messages-media').upload(path,blob,{contentType:vs.mimeType,cacheControl:'31536000',upsert:false});
+      if(upErr) throw upErr;
+      const{data:ud}=sb.storage.from('messages-media').getPublicUrl(path); contenu=ud.publicUrl;
+    } catch {
+      contenu=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(blob);});
+    }
+    const{error:vErr}=await sb.from('messages').insert({conversation_id:currentConvId,expediteur_id:currentUser.id,type:'vocal',contenu});
+    if(vErr){showToast('❌ Erreur vocal : '+vErr.message,'er');return;}
+    await sb.from('conversations').update({dernier_message_at:new Date().toISOString(),dernier_message_texte:'🎤 Vocal'}).eq('id',currentConvId);
+    loadMessages(currentConvId); showToast('Message vocal envoyé ✓','ok');
+  } catch(e){showToast('Erreur vocal : '+e.message,'er');}
+}
+function toggleVP(pid, src) {
+  let p=VPLAYERS[pid];
+  if(!p){
+    p={audio:new Audio(src),playing:false};
+    p.audio.addEventListener('timeupdate',()=>{
+      const pct=p.audio.duration?p.audio.currentTime/p.audio.duration*100:0;
+      const fill=document.getElementById(pid+'-fill'),dur=document.getElementById(pid+'-dur');
+      if(fill) fill.style.width=pct+'%';
+      if(dur){const s=Math.floor(p.audio.currentTime);dur.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+    });
+    p.audio.addEventListener('ended',()=>{p.playing=false;const ico=document.getElementById(pid+'-ico');if(ico)ico.className='ti ti-player-play';const fill=document.getElementById(pid+'-fill');if(fill)fill.style.width='0%';});
+    VPLAYERS[pid]=p;
+  }
+  const ico=document.getElementById(pid+'-ico');
+  if(p.playing){p.audio.pause();p.playing=false;if(ico)ico.className='ti ti-player-play';}
+  else{
+    Object.keys(VPLAYERS).forEach(k=>{if(k!==pid&&VPLAYERS[k].playing){VPLAYERS[k].audio.pause();VPLAYERS[k].playing=false;const i=document.getElementById(k+'-ico');if(i)i.className='ti ti-player-play';}});
+    p.audio.play().catch(()=>showToast('Erreur lecture audio','er')); p.playing=true; if(ico)ico.className='ti ti-player-pause';
+  }
+}
+function seekVP(pid, evt) {
+  const p=VPLAYERS[pid]; if(!p||!p.audio.duration) return;
+  p.audio.currentTime=(evt.offsetX/evt.currentTarget.offsetWidth)*p.audio.duration;
+}
+
+// ─── Typing ──────────────────────────────────────────────
+let _typingCh=null,_typingHideT=null;
+function setupTypingChannel(convId) {
+  if(_typingCh){try{_typingCh.unsubscribe();}catch(e){}_typingCh=null;}
+  _typingCh=sb.channel('typing:'+convId).on('broadcast',{event:'typing'},payload=>{
+    if(payload.payload?.uid!==currentUser.id){showTyping(true);clearTimeout(_typingHideT);_typingHideT=setTimeout(()=>showTyping(false),3500);}
+  }).subscribe();
+}
+function showTyping(show) {
+  ['mob-typing-row','pc-typing-row'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=show?'block':'none';});
+}
+let _lastTypingBc=0;
+function broadcastTyping() {
+  if(!_typingCh||!currentConvId) return;
+  const now=Date.now();if(now-_lastTypingBc<2000)return;_lastTypingBc=now;
+  _typingCh.send({type:'broadcast',event:'typing',payload:{uid:currentUser.id}});
+}
+function callContact() {
+  if (!currentConvId) return showToast('Ouvrez une conversation d\'abord');
+  const tel = document.getElementById('chat-contact-tel')?.textContent;
+  if (tel && tel !== '—') { window.open('tel:'+tel); return; }
+  sb.from('messages').insert({ conversation_id: currentConvId, expediteur_id: currentUser.id, type: 'texte', contenu: '📞 Appel entrant — veuillez me rappeler' });
+  showToast('📞 Demande d\'appel envoyée', 'ok');
+}
+// hidden span to hold tel
+document.addEventListener('DOMContentLoaded',()=>{const sp=document.createElement('span');sp.id='chat-contact-tel';sp.style.display='none';sp.textContent='—';document.body.appendChild(sp);});
+
+// ─── Position sharing in chat ────────────────────────────
+let posMap=null, posSelectedLatLng=null;
+function openPosModal() {
+  document.getElementById('mob-attach-panel')?.classList.remove('open');
+  document.getElementById('pc-attach-panel')?.classList.remove('open');
+  posSelectedLatLng=null;
+  document.getElementById('pos-search-wrap').style.display='none';
+  document.getElementById('pos-map').style.display='none';
+  document.getElementById('pos-send-btn').style.display='none';
+  document.getElementById('pos-lbl').textContent='—';
+  document.getElementById('pos-results').style.display='none';
+  document.getElementById('pos-results').innerHTML='';
+  if(posMap){posMap.remove();posMap=null;}
+  openModal('modal-pos');
+}
+function posGPS() {
+  if(!navigator.geolocation) return showToast('GPS non disponible','er');
+  document.getElementById('pos-btn-gps').textContent='Localisation…';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const lat=pos.coords.latitude,lng=pos.coords.longitude;
+    posSelectedLatLng={lat,lng,label:'Ma position actuelle'};
+    document.getElementById('pos-lbl').textContent=`${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    document.getElementById('pos-send-btn').style.display='';
+    document.getElementById('pos-btn-gps').textContent='Ma position actuelle (GPS)';
+  },()=>{showToast('GPS indisponible','er');document.getElementById('pos-btn-gps').textContent='Ma position actuelle (GPS)';});
+}
+function posSearch() {
+  document.getElementById('pos-search-wrap').style.display='block';
+  document.getElementById('pos-search-input').value='';
+  document.getElementById('pos-results').style.display='none';
+  setTimeout(()=>document.getElementById('pos-search-input').focus(),200);
+}
+function posPickMap() {
+  const mapDiv=document.getElementById('pos-map');
+  mapDiv.style.display='block';
+  setTimeout(()=>{
+    if(!posMap){
+      posMap=L.map('pos-map').setView([6.3654,2.4183],13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(posMap);
+      posMap.on('click',e=>{
+        posSelectedLatLng={lat:e.latlng.lat,lng:e.latlng.lng,label:'Position sur la carte'};
+        document.getElementById('pos-lbl').textContent=`${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
+        document.getElementById('pos-send-btn').style.display='';
+        document.querySelectorAll('.pos-tmp-marker').forEach(m=>m.remove());
+        L.marker([e.latlng.lat,e.latlng.lng],{className:'pos-tmp-marker'}).addTo(posMap);
+      });
+    }
+    posMap.invalidateSize();
+  },150);
+}
+let _nomTimer=null;
+function posNominatim(val) {
+  clearTimeout(_nomTimer);
+  if(val.length<3){document.getElementById('pos-results').style.display='none';return;}
+  _nomTimer=setTimeout(async()=>{
+    const url=`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val+' Bénin')}&format=json&limit=5&countrycodes=bj`;
+    try{
+      const res=await fetch(url,{headers:{'Accept-Language':'fr'}});
+      const data=await res.json();
+      const resultsDiv=document.getElementById('pos-results');
+      if(!data.length){resultsDiv.style.display='none';return;}
+      resultsDiv.innerHTML=data.map(r=>`<div class="pos-res-item" onclick="posSelectResult(${r.lat},${r.lon},'${r.display_name.replace(/'/g,"\\'")}')"><i class="ti ti-map-pin" style="color:var(--primary);margin-right:.4rem"></i>${r.display_name}</div>`).join('');
+      resultsDiv.style.display='block';
+    }catch(e){}
+  },400);
+}
+function posSelectResult(lat,lng,label) {
+  posSelectedLatLng={lat:parseFloat(lat),lng:parseFloat(lng),label};
+  document.getElementById('pos-lbl').textContent=label;
+  document.getElementById('pos-send-btn').style.display='';
+  document.getElementById('pos-results').style.display='none';
+}
+async function posConfirm() {
+  if (!posSelectedLatLng||!currentConvId) return;
+  closeModal('modal-pos');
+  const contenu=JSON.stringify(posSelectedLatLng);
+  const {error}=await sb.from('messages').insert({conversation_id:currentConvId,expediteur_id:currentUser.id,type:'map',contenu});
+  if(error) return showToast('Erreur position : '+error.message,'er');
+  await sb.from('conversations').update({dernier_message_at:new Date().toISOString(),dernier_message_texte:'📍 Position partagée'}).eq('id',currentConvId);
+  loadMessages(currentConvId); showToast('Position partagée ✓','ok');
+}
+
+// ─── PC Chat ─────────────────────────────────────────────
+function openPCChat() { document.getElementById('pc-chat-panel')?.classList.add('open'); setTimeout(()=>pcMap?.invalidateSize(),320); }
+function closePCChat() { document.getElementById('pc-chat-panel')?.classList.remove('open'); currentConvId=null; currentConvOtherId=null; setTimeout(()=>pcMap?.invalidateSize(),320); }
+
+// ═══ NOTIFICATIONS ═══════════════════════════════════════
+async function loadNotifications() {
+  const { data } = await sb.from('notifications').select('*').eq('utilisateur_id', currentUser.id).order('created_at', {ascending:false}).limit(20);
+  const items = data||[];
+  const unread = items.filter(n=>!n.est_lue).length;
+  ['pc-notif-badge','mob-notif-badge'].forEach(id=>{const el=document.getElementById(id);if(!el)return;el.style.display=unread?'block':'none';});
+  const html = items.length ? items.map(n=>`<div class="notif-item ${n.est_lue?'':'unread'}" onclick="marquerLue('${n.id}')"><div class="notif-title">${n.titre||''}</div><div class="notif-body">${n.corps||''}</div><div class="notif-time">${fmtDate(n.created_at)}</div></div>`).join('') : '<div class="empty-state" style="padding:2rem"><p>Aucune notification</p></div>';
+  document.getElementById('notif-list').innerHTML=html;
+  document.getElementById('modal-notif-list').innerHTML=html;
+}
+async function marquerLue(id) {
+  await sb.from('notifications').update({est_lue:true}).eq('id',id);
+  loadNotifications();
+}
+async function marquerToutesLues() {
+  await sb.from('notifications').update({est_lue:true}).eq('utilisateur_id',currentUser.id);
+  loadNotifications();
+}
+function toggleNotifs() {
+  document.getElementById('notif-panel').classList.toggle('open');
+  document.getElementById('profile-dropdown')?.classList.remove('open');
+  loadNotifications();
+}
+function mobToggleNotifs() { loadNotifications(); openModal('modal-notifs'); }
+
+// ═══ REALTIME ════════════════════════════════════════════
+function subscribeRealtime() {
+  const coursesSub = sb.channel('courses-livreur-'+currentLivreur?.id)
+    .on('postgres_changes',{event:'*',schema:'public',table:'courses',filter:`livreur_id=eq.${currentLivreur?.id}`},()=>{
+      loadCourses();
+      // Son de notification
+      playNotifTone();
+    }).subscribe();
+  const notifSub = sb.channel('notifs-livreur')
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:`utilisateur_id=eq.${currentUser.id}`},()=>{
+      loadNotifications(); playNotifTone();
+    }).subscribe();
+  const msgSub = sb.channel('messages-livreur-'+currentUser.id)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},async payload=>{
+      const msg=payload.new;
+      if(msg.expediteur_id!==currentUser.id){
+        if(currentConvId===msg.conversation_id){loadMessages(currentConvId);markMessagesRead(currentConvId);}
+        else{
+          const{data:sender}=await sb.from('profiles').select('prenom,nom').eq('id',msg.expediteur_id).single();
+          const nom=sender?((sender.prenom||'')+' '+(sender.nom||'')).trim():'Contact';
+          const apercu=msg.type==='photo'?'📷 Photo':msg.type==='vocal'?'🎤 Message vocal':msg.type==='map'?'📍 Position':( msg.contenu||'').substring(0,60);
+          notifyAPK(nom,apercu,msg.conversation_id);
+          const badge=document.getElementById('mob-msg-nav-badge');
+          if(badge){badge.textContent='';badge.style.display='flex';}
+        }
+      } else if(currentConvId===msg.conversation_id){ loadMessages(currentConvId); }
+      loadConversations();
+    }).subscribe();
+  const walletSub = sb.channel('wallet-livreur')
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'wallets',filter:`utilisateur_id=eq.${currentUser.id}`},()=>loadWallet())
+    .subscribe();
+  realtimeSubs=[coursesSub,notifSub,msgSub,walletSub];
+}
+
+// ═══ APK BRIDGE ══════════════════════════════════════════
+function notifyAPK(titre, corps, convId) {
+  playNotifTone();
+  if(window.Android?.showNotification){try{window.Android.showNotification(titre,corps,convId||'');return;}catch(e){}}
+  if(window.flutter_inappwebview){try{window.flutter_inappwebview.callHandler('notification',{titre,corps,convId});return;}catch(e){}}
+  if(window.Capacitor?.Plugins?.LocalNotifications){try{window.Capacitor.Plugins.LocalNotifications.schedule({notifications:[{title:titre,body:corps,id:Date.now(),extra:{convId}}]});return;}catch(e){}}
+  if(window.webkit?.messageHandlers?.notify){try{window.webkit.messageHandlers.notify.postMessage({titre,corps,convId});return;}catch(e){}}
+  if('Notification' in window && Notification.permission==='granted'){try{new Notification(titre,{body:corps,icon:'/icon.png',tag:convId,renotify:true,vibrate:[200,100,200]});}catch(e){}}
+}
+function playNotifTone() {
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    [[587,.0,.12],[880,.12,.32]].forEach(([freq,start,end])=>{
+      const osc=ctx.createOscillator(),g=ctx.createGain();
+      osc.connect(g);g.connect(ctx.destination);
+      osc.frequency.value=freq;g.gain.setValueAtTime(.28,ctx.currentTime+start);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+end);
+      osc.start(ctx.currentTime+start);osc.stop(ctx.currentTime+end);
+    });
+  }catch(e){}
+}
+function initAPKBridge() {
+  if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
+  if(window.Android?.keepAlive){try{window.Android.keepAlive();}catch(e){}}
+  if(window.Android?.requestNotificationPermission){try{window.Android.requestNotificationPermission();}catch(e){}}
+  if('serviceWorker' in navigator){
+    const swSrc=`self.addEventListener('push',e=>{const d=e.data?e.data.json():{};self.registration.showNotification(d.title||'Allô Livreur',{body:d.body||'Nouveau message',icon:'/icon.png',badge:'/icon.png',vibrate:[200,100,200],tag:d.tag||'msg',renotify:true,data:d});});self.addEventListener('notificationclick',e=>{e.notification.close();clients.matchAll({type:'window'}).then(cs=>{if(cs.length)cs[0].focus();else clients.openWindow('/');});});self.addEventListener('message',e=>{if(e.data==='ping')e.source.postMessage('pong');});`;
+    const blob=new Blob([swSrc],{type:'application/javascript'});
+    const swUrl=URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl).then(reg=>{setInterval(()=>reg.active?.postMessage('ping'),25000);}).catch(()=>{});
+  }
+}
+
+// ═══ UI HELPERS ══════════════════════════════════════════
+function switchSideTab(name, btn) {
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));
+  if(btn?.classList) btn.classList.add('active');
+  document.querySelectorAll('.sidebar-panel').forEach(p=>p.classList.remove('active'));
+  const tabMap={courses:'panel-courses',messages:'panel-messages',wallet:'panel-wallet'};
+  const panelId=tabMap[name]||('panel-'+name);
+  document.getElementById(panelId)?.classList.add('active');
+  if(name==='messages') loadConversations();
+  if(name==='wallet') loadWallet();
+}
+let currentMobPage='carte';
+function switchMobPage(page) {
+  const pageMap={carte:'mob-map-page',courses:'mob-courses-page',messages:'mob-messages-page',chat:'mob-chat-page',profil:'mob-profil-page'};
+  // Fermer la page chat fixe si on navigue ailleurs
+  if (page !== 'chat') {
+    document.getElementById('mob-chat-page')?.classList.remove('active');
+  }
+  document.querySelectorAll('.mob-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(pageMap[page])?.classList.add('active');
+  document.querySelectorAll('.mob-nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('nav-'+page)?.classList.add('active');
+  currentMobPage=page;
+  if(page==='carte') setTimeout(()=>{mobMap?.invalidateSize();},100);
+  if(page==='messages') loadConversations();
+  if(page==='profil') loadWallet();
+  if(page==='courses') loadCourses();
+  // Fullscreen chat
+  const mLayout=document.getElementById('mobile-layout');
+  const nav=document.getElementById('mob-nav');
+  if(page==='chat'){nav.style.display='none';}
+  else{nav.style.display='';}
+}
+function openModal(id) { document.getElementById(id)?.classList.add('open'); if(id==='modal-retrait') loadRetrait(); if(id==='modal-wallet') loadTransactions(); if(id==='modal-vehicule') loadVehiculeForm(); }
+function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+function loadRetrait() {
+  Promise.resolve(sb.from('wallets').select('solde').eq('utilisateur_id',currentUser.id).single()).then(({data})=>{
+    const el=document.getElementById('retrait-solde'); if(el) el.textContent=fcfa(data?.solde||0);
+    const tel=document.getElementById('retrait-tel'); if(tel&&currentProfile?.telephone) tel.value=currentProfile.telephone;
+  }).catch(()=>{});
+}
+function loadVehiculeForm() {
+  if(!currentLivreur) return;
+  const fields={'veh-type':'type_vehicule','veh-plaque':'numero_immatriculation','veh-tarif-base':'tarif_base','veh-tarif-km':'tarif_km'};
+  Object.entries(fields).forEach(([elId,key])=>{const el=document.getElementById(elId);if(el)el.value=currentLivreur[key]||'';});
+}
+function toggleProfileDropdown() { document.getElementById('profile-dropdown').classList.toggle('open'); document.getElementById('notif-panel').classList.remove('open'); }
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#pc-avatar-btn')&&!e.target.closest('#profile-dropdown')) document.getElementById('profile-dropdown')?.classList.remove('open');
+  if(!e.target.closest('.icon-btn')&&!e.target.closest('#notif-panel')) document.getElementById('notif-panel')?.classList.remove('open');
+});
+function onMsgInput(el, side) {
+  el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px';
+  const hasText=el.value.trim().length>0;
+  const sendId=side==='mob'?'mob-send-btn':'pc-send-btn';
+  const voiceId=side==='mob'?'mob-voice-btn-wa':'pc-voice-btn-wa';
+  const sendEl=document.getElementById(sendId), voiceEl=document.getElementById(voiceId);
+  if(sendEl) sendEl.style.display=hasText?'flex':'none';
+  if(voiceEl) voiceEl.style.display=hasText?'none':'flex';
+  broadcastTyping();
+}
+function toggleAttach(side) { const id=side==='mob'?'mob-attach-panel':'pc-attach-panel'; document.getElementById(id)?.classList.toggle('open'); }
+function scrollChatBottom(side) { const id=side==='mob'?'mob-chat-messages':'pc-chat-messages'; const el=document.getElementById(id); if(el) el.scrollTo({top:el.scrollHeight,behavior:'smooth'}); }
+function setupScrollDetect(side) {
+  const msgId=side==='mob'?'mob-chat-messages':'pc-chat-messages', btnId=side==='mob'?'mob-scroll-down':'pc-scroll-down';
+  const el=document.getElementById(msgId), btn=document.getElementById(btnId);
+  if(!el||!btn) return;
+  el.addEventListener('scroll',()=>btn.classList.toggle('show',el.scrollHeight-el.scrollTop-el.clientHeight>120),{passive:true});
+}
+function openLightbox(src) { const lb=document.getElementById('wa-lightbox'),img=document.getElementById('wa-lb-img'); if(!lb||!img)return; img.src=src;lb.classList.add('open'); }
+function closeLightbox() { document.getElementById('wa-lightbox')?.classList.remove('open'); }
+
+// ═══ TOAST ═══════════════════════════════════════════════
+function showToast(msg, type='') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(type?' '+type:'');
+  t.classList.add('show'); clearTimeout(t._tid);
+  t._tid=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ═══ FORMATTERS ══════════════════════════════════════════
+function fcfa(n) {
+  if(n==null||isNaN(n)) return '- FCFA';
+  return new Intl.NumberFormat('fr-BJ',{style:'currency',currency:'XOF',maximumFractionDigits:0}).format(Math.round(n));
+}
+function fmtDate(iso) {
+  if(!iso) return '';
+  const d=new Date(iso),now=new Date(),diff=now-d;
+  if(diff<60000) return "À l'instant";
+  if(diff<3600000) return Math.floor(diff/60000)+' min';
+  if(d.toDateString()===now.toDateString()) return d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+}
+
+// ═══ NOUVELLE CONVERSATION — Recherche contacts ═══════════
+let userTabFilter = null;
+function openNouvelleConv() {
+  const inp = document.getElementById('user-search-input');
+  if (inp) inp.value = '';
+  const res = document.getElementById('user-search-results');
+  if (res) res.innerHTML = '<div class="empty-state" style="padding:1.5rem"><i class="ti ti-search"></i><p>Tapez un nom pour rechercher</p></div>';
+  // Reset tabs
+  userTabFilter = null;
+  document.querySelectorAll('#user-role-tabs button').forEach((b,i) => {
+    if(i===0){b.style.background='var(--primary)';b.style.color='#fff';b.style.borderColor='var(--primary)';}
+    else{b.style.background='transparent';b.style.color='var(--text2)';b.style.borderColor='var(--border2)';}
+  });
+  openModal('modal-new-conv');
+}
+function setUserTab(role, btn) {
+  userTabFilter = role === 'tous' ? null : role;
+  document.querySelectorAll('#user-role-tabs button').forEach(b => {
+    b.style.background = 'transparent'; b.style.color = 'var(--text2)'; b.style.borderColor = 'var(--border2)';
+  });
+  btn.style.background = 'var(--primary)'; btn.style.color = '#fff'; btn.style.borderColor = 'var(--primary)';
+  rechercherUtilisateurs(document.getElementById('user-search-input').value);
+}
+async function rechercherUtilisateurs(q) {
+  const el = document.getElementById('user-search-results');
+  if (!q || q.length < 2) { el.innerHTML = '<div class="empty-state" style="padding:1.5rem"><i class="ti ti-search"></i><p>Tapez au moins 2 caractères</p></div>'; return; }
+  el.innerHTML = '<div class="empty-state" style="padding:1rem"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i></div>';
+  let query = sb.from('profiles').select('id,nom,prenom,avatar_url,role,badge_verifie').neq('id', currentUser.id)
+    .or(`nom.ilike.%${q}%,prenom.ilike.%${q}%`).limit(25);
+  if (userTabFilter) query = query.eq('role', userTabFilter);
+  const { data } = await query;
+  if (!data?.length) { el.innerHTML = '<div class="empty-state" style="padding:1rem"><i class="ti ti-user-off"></i><p>Aucun résultat</p></div>'; return; }
+  el.innerHTML = data.map(u => {
+    const nom = ((u.prenom||'') + ' ' + (u.nom||'')).trim() || 'Utilisateur';
+    const roleLabel = ROLE_LABELS[u.role]||u.role||'';
+    const roleColor = ROLE_COLORS[u.role]||'#6B7280';
+    const initials = getInitials(u);
+    const verified = u.badge_verifie ? ' <i class="ti ti-circle-check-filled" style="color:#2563EB;font-size:.85rem"></i>' : '';
+    const safeId = u.id.replace(/'/g,"\\'");
+    return `<div onclick="ouvrirOuCreerConvFromSearch('${safeId}')"
+      style="display:flex;align-items:center;gap:.75rem;padding:.75rem 0;border-bottom:1px solid var(--border);cursor:pointer">
+      <div style="width:42px;height:42px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:.85rem;flex-shrink:0;border:2px solid var(--border)">${initials}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:.3rem;font-weight:600;font-size:.88rem">${nom}${verified}</div>
+        <div style="margin-top:3px"><span style="font-size:.65rem;font-weight:700;padding:1px 7px;border-radius:4px;background:${roleColor}18;color:${roleColor}">${roleLabel}</span></div>
+      </div>
+      <i class="ti ti-message-2" style="color:var(--primary);font-size:1.1rem"></i>
+    </div>`;
+  }).join('');
+}
+async function ouvrirOuCreerConvFromSearch(autreProfileId) {
+  closeModal('modal-new-conv');
+  const isMob = window.innerWidth <= 768;
+  if (isMob) switchMobPage('messages');
+  await ouvrirOuCreerConv(autreProfileId);
+}
+</script>
+
+<!-- ══════════════ SUPABASE REQUIS ══════════════
+  ALTER TABLE messages ADD COLUMN IF NOT EXISTS lu BOOLEAN DEFAULT FALSE;
+  ALTER TABLE messages ADD COLUMN IF NOT EXISTS lu_at TIMESTAMPTZ;
+  Storage bucket 'messages-media' (public)
+  Storage bucket 'avatars' (public)
+  Realtime activé: messages, conversations, courses, livreurs, notifications, wallets
+═══════════════════════════════════════════════ -->
+
+<!-- ═══ MODAL DÉTAIL COURSE ════════════════════ -->
+<!-- ─── AUDIO WEBRTC ─── -->
+<audio id="lv-rtc-remote-audio" autoplay playsinline style="display:none"></audio>
+
+<!-- ─── MODAL APPEL WEBRTC LIVREUR ─── -->
+<div class="modal-overlay" id="modal-lv-appel" onclick="">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:55vh">
+    <div style="padding:2rem 1.5rem;display:flex;flex-direction:column;align-items:center;gap:1.2rem">
+      <div style="width:68px;height:68px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:2rem;border:3px solid var(--primary);animation:pulse 1.5s infinite">📞</div>
+      <div style="text-align:center">
+        <div style="font-family:var(--font-display);font-weight:800;font-size:1.2rem">Client</div>
+        <div style="font-size:.85rem;color:var(--text2);margin-top:.3rem" id="lv-call-status">Appel en cours…</div>
+      </div>
+      <div style="display:flex;gap:1.5rem;margin-top:.5rem">
+        <button id="lv-call-repondre" style="display:none;flex-direction:column;align-items:center;gap:.4rem;background:none;border:none;cursor:pointer">
+          <div style="width:54px;height:54px;border-radius:50%;background:#16A34A;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.4rem;box-shadow:0 4px 14px rgba(22,163,74,.4)"><i class="ti ti-phone-call"></i></div>
+          <span style="font-size:.72rem;font-weight:600;color:var(--text2)">Répondre</span>
+        </button>
+        <button onclick="lvRaccrocher(true)" style="display:flex;flex-direction:column;align-items:center;gap:.4rem;background:none;border:none;cursor:pointer">
+          <div style="width:54px;height:54px;border-radius:50%;background:#DC2626;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.4rem;box-shadow:0 4px 14px rgba(220,38,38,.4)"><i class="ti ti-phone-off"></i></div>
+          <span style="font-size:.72rem;font-weight:600;color:var(--text2)">Raccrocher</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-detail-course" onclick="if(event.target===this)closeModal('modal-detail-course')">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:420px">
+    <div class="modal-handle" onclick="closeModal('modal-detail-course')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:1rem 1.25rem 1.5rem">
+      <div style="font-weight:700;font-size:1rem;margin-bottom:.75rem">Détail de la course</div>
+      <div id="detail-course-content"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-annuler-lv" onclick="if(event.target===this)closeModal('modal-annuler-lv')">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:400px">
+    <div class="modal-handle" onclick="closeModal('modal-annuler-lv')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:1.2rem 1.25rem 1.5rem">
+      <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.9rem">
+        <div style="width:38px;height:38px;border-radius:50%;background:#FEE2E2;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">🚫</div>
+        <div>
+          <div style="font-weight:800;font-size:1rem;font-family:var(--font-display)">Annuler la course</div>
+          <div style="font-size:.75rem;color:var(--text2)">Cette action est irréversible</div>
+        </div>
+      </div>
+      <div style="background:#FEF9C3;border-radius:var(--radius-xs);padding:.55rem .75rem;font-size:.78rem;color:#92400E;margin-bottom:1rem">
+        ⚠️ En annulant, le client sera notifié et devra commander à nouveau. Votre statut repassera à <strong>Disponible</strong>.
+      </div>
+      <label style="font-size:.78rem;font-weight:700;color:var(--text2);display:block;margin-bottom:.4rem">Raison de l'annulation *</label>
+      <select id="annul-raison-lv" style="width:100%;padding:.65rem .75rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.85rem;background:var(--bg);color:var(--text);cursor:pointer;margin-bottom:.3rem">
+        <option value="">— Sélectionner une raison —</option>
+        <option value="Problème mécanique / panne">🔧 Problème mécanique / panne</option>
+        <option value="Adresse introuvable">📍 Adresse introuvable</option>
+        <option value="Client injoignable">📵 Client injoignable</option>
+        <option value="Urgence personnelle">🚨 Urgence personnelle</option>
+        <option value="Problème avec la commande">📦 Problème avec la commande</option>
+        <option value="Autre raison">💬 Autre raison</option>
+      </select>
+      <div id="annul-error-lv" style="font-size:.75rem;color:var(--danger);min-height:1rem;margin-bottom:.6rem"></div>
+      <button onclick="confirmerAnnulationLv()" style="width:100%;padding:.78rem;background:var(--danger);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-size:.9rem;font-weight:700;cursor:pointer;margin-bottom:.5rem">
+        Confirmer l'annulation
+      </button>
+      <button onclick="closeModal('modal-annuler-lv')" style="width:100%;padding:.65rem;background:transparent;color:var(--text2);border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.85rem;cursor:pointer">
+        Retour
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

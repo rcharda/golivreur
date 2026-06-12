@@ -1149,7 +1149,10 @@ input:valid {
       <div class="course-banner" id="course-banner">
         <div class="pulse"></div>
         <span id="course-banner-text">Course en cours…</span>
-        <button class="btn-sm btn-primary" onclick="voirCourseEnCours()">Suivre</button>
+        <div style="display:flex;gap:.4rem;flex-shrink:0">
+          <button class="btn-sm btn-primary" onclick="voirCourseEnCours()">Suivre</button>
+          <button id="course-banner-annuler" style="display:none;padding:.28rem .6rem;background:#FEE2E2;color:var(--danger);border:none;border-radius:var(--radius-xs);font-size:.75rem;font-weight:700;cursor:pointer" onclick="ouvrirModalAnnulerClient(this.dataset.courseId)">✕ Annuler</button>
+        </div>
       </div>
 
       <!-- Commande panel -->
@@ -3352,8 +3355,16 @@ async function loadCourses() {
     banner.classList.add('active');
     const statLabels = {acceptee:'Acceptée ✅', en_cours:'En route 🛵', en_route:'En route 🛵', livraison_en_cours:'Livraison en cours 📦'};
     document.getElementById('course-banner-text').textContent = `${statLabels[enCours.statut]||enCours.statut} · ${enCours.adresse_arrivee}`;
+    const isCash = ['cash','especes','a_la_livraison'].includes(enCours.methode_paiement);
+    const annulerBtn = document.getElementById('course-banner-annuler');
+    if (annulerBtn) {
+      annulerBtn.dataset.courseId = enCours.id;
+      annulerBtn.style.display = isCash ? '' : 'none';
+    }
   } else {
     banner.classList.remove('active');
+    const annulerBtn = document.getElementById('course-banner-annuler');
+    if (annulerBtn) annulerBtn.style.display = 'none';
   }
 }
 
@@ -3522,6 +3533,10 @@ async function ouvrirDetailCourse(courseId) {
     ${['acceptee','en_cours','livraison_en_cours'].includes(c.statut) ? `
     <button onclick="closeModal('modal-detail-course');voirCourseEnCours()" style="width:100%;padding:.78rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-weight:700;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-bottom:.4rem">
       <i class="ti ti-map-pin"></i> Suivre ma course en temps réel
+    </button>` : ''}
+    ${['acceptee','en_cours','en_route','livraison_en_cours'].includes(c.statut) && ['cash','especes','a_la_livraison'].includes(c.methode_paiement) ? `
+    <button onclick="closeModal('modal-detail-course');ouvrirModalAnnulerClient('${c.id}')" style="width:100%;padding:.72rem;background:#FEE2E2;color:var(--danger);border:none;border-radius:var(--radius-sm);font-family:var(--font);font-weight:700;font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-bottom:.4rem">
+      <i class="ti ti-ban"></i> Annuler la course
     </button>` : ''}
     <button onclick="closeModal('modal-detail-course')" style="width:100%;padding:.65rem;background:transparent;color:var(--text2);border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.85rem;cursor:pointer">Fermer</button>
   `;
@@ -3774,6 +3789,57 @@ function updateSuiviStep(statut) {
 // ══════════════════════════════════════════════════════════
 //  voirCourseEnCours — ENTRÉE PRINCIPALE
 // ══════════════════════════════════════════════════════════
+// ── Annulation course côté client (cash uniquement) ──────
+let _annulClientCourseId = null;
+
+function ouvrirModalAnnulerClient(courseId) {
+  _annulClientCourseId = courseId;
+  document.getElementById('annul-raison-client').value = '';
+  document.getElementById('annul-error-client').textContent = '';
+  openModal('modal-annuler-client');
+}
+
+async function confirmerAnnulationClient() {
+  const raison = document.getElementById('annul-raison-client').value;
+  if (!raison) {
+    document.getElementById('annul-error-client').textContent = 'Veuillez sélectionner une raison.';
+    return;
+  }
+  const courseId = _annulClientCourseId;
+
+  // Récupérer les infos de la course (livreur à notifier)
+  const { data: course, error: fetchErr } = await sb.from('courses')
+    .select('livreur_id, methode_paiement, statut')
+    .eq('id', courseId).single();
+  if (fetchErr || !course) return showToast('Erreur lors de la récupération de la course', 'er');
+
+  const { error } = await sb.from('courses').update({
+    statut: 'annulee',
+    raison_annulation: raison,
+    annule_par: 'client'
+  }).eq('id', courseId);
+  if (error) return showToast('Erreur : ' + error.message, 'er');
+
+  // Remettre le livreur disponible si la course était acceptée/en cours
+  if (course.livreur_id && ['acceptee','en_cours','en_route','livraison_en_cours'].includes(course.statut)) {
+    await sb.from('livreurs').update({ statut: 'disponible' }).eq('id', course.livreur_id);
+    // Notifier le livreur
+    const { data: lv } = await sb.from('livreurs').select('user_id').eq('id', course.livreur_id).single();
+    if (lv?.user_id) {
+      await sb.from('notifications').insert({
+        utilisateur_id: lv.user_id,
+        titre: '❌ Course annulée par le client',
+        corps: `Le client a annulé la course. Raison : ${raison}. Vous êtes à nouveau disponible.`,
+        type: 'course'
+      });
+    }
+  }
+
+  closeModal('modal-annuler-client');
+  showToast('Course annulée', 'wa');
+  loadCourses();
+}
+
 async function voirCourseEnCours() {
   // Étape 1 : récupérer la course active (sans join pour éviter échec FK silencieux)
   const { data: courses, error: cErr } = await sb.from('courses')
@@ -6183,6 +6249,42 @@ async function testSupabasePerms() {
     <button onclick="event.stopPropagation();hideAd()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:.8rem;padding:0;line-height:1;width:18px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:50%">✕</button>
   </div>
   <div class="ads-inner"></div>
+</div>
+
+<!-- ═══ MODAL ANNULATION COURSE CLIENT ════════════════════ -->
+<div class="modal-overlay" id="modal-annuler-client" onclick="if(event.target===this)closeModal('modal-annuler-client')">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:420px">
+    <div class="modal-handle" onclick="closeModal('modal-annuler-client')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:1.2rem 1.25rem 1.5rem">
+      <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.9rem">
+        <div style="width:38px;height:38px;border-radius:50%;background:#FEE2E2;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">🚫</div>
+        <div>
+          <div style="font-weight:800;font-size:1rem;font-family:var(--font-display)">Annuler ma course</div>
+          <div style="font-size:.75rem;color:var(--text2)">Cette action est irréversible</div>
+        </div>
+      </div>
+      <div style="background:#FEF9C3;border-radius:var(--radius-xs);padding:.55rem .75rem;font-size:.78rem;color:#92400E;margin-bottom:1rem">
+        ⚠️ Le livreur sera notifié et repassera disponible. Vous pourrez commander à nouveau.
+      </div>
+      <label style="font-size:.78rem;font-weight:700;color:var(--text2);display:block;margin-bottom:.4rem">Raison de l'annulation *</label>
+      <select id="annul-raison-client" style="width:100%;padding:.65rem .75rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.85rem;background:var(--bg);color:var(--text);cursor:pointer;margin-bottom:.3rem">
+        <option value="">— Sélectionner une raison —</option>
+        <option value="J'ai commandé par erreur">🙈 J'ai commandé par erreur</option>
+        <option value="Je n'ai plus besoin de la livraison">❌ Je n'ai plus besoin de la livraison</option>
+        <option value="Le livreur tarde trop">⏱️ Le livreur tarde trop</option>
+        <option value="Je n'arrive pas à joindre le livreur">📵 Je n'arrive pas à joindre le livreur</option>
+        <option value="Changement de destination">📍 Changement de destination</option>
+        <option value="Autre raison">💬 Autre raison</option>
+      </select>
+      <div id="annul-error-client" style="font-size:.75rem;color:var(--danger);min-height:1rem;margin-bottom:.6rem"></div>
+      <button onclick="confirmerAnnulationClient()" style="width:100%;padding:.78rem;background:var(--danger);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-size:.9rem;font-weight:700;cursor:pointer;margin-bottom:.5rem">
+        Confirmer l'annulation
+      </button>
+      <button onclick="closeModal('modal-annuler-client')" style="width:100%;padding:.65rem;background:transparent;color:var(--text2);border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.85rem;cursor:pointer">
+        Retour
+      </button>
+    </div>
+  </div>
 </div>
 
 </body>

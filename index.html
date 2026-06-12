@@ -1025,6 +1025,21 @@ input:valid {
       <div id="reg-email-error" class="field-error"></div>
       <div class="field"><label>Mot de passe</label><input type="password" id="reg-password" placeholder="Minimum 8 caractères" required minlength="8" maxlength="100"></div>
       <div id="reg-password-error" class="field-error"></div>
+      <!-- Photo de profil optionnelle -->
+      <div class="field" style="margin-bottom:.85rem">
+        <label>Photo de profil <span style="font-weight:400;text-transform:none;font-size:.75rem;color:var(--text3)">(optionnelle)</span></label>
+        <div id="reg-photo-wrap" style="display:flex;align-items:center;gap:.75rem;margin-top:.3rem">
+          <div id="reg-photo-preview" style="width:56px;height:56px;border-radius:50%;background:var(--surface2);border:2px dashed var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;cursor:pointer;transition:border-color .2s" onclick="document.getElementById('reg-photo-input').click()">
+            <img id="reg-photo-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
+            <i class="ti ti-camera" style="font-size:1.4rem;color:var(--text3)"></i>
+          </div>
+          <div style="flex:1;min-width:0">
+            <button type="button" onclick="document.getElementById('reg-photo-input').click()" style="display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-pill);background:var(--bg);color:var(--text2);font-family:var(--font);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .18s" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'"><i class="ti ti-upload"></i> Choisir une photo</button>
+            <div style="font-size:.72rem;color:var(--text3);margin-top:.25rem" id="reg-photo-name">JPG, PNG · max 5 Mo</div>
+          </div>
+          <input type="file" id="reg-photo-input" accept="image/*" style="display:none" onchange="previewRegPhoto(this)">
+        </div>
+      </div>
       <button class="btn" onclick="doRegister()">Créer mon compte</button>
     </div>
     <p class="auth-toggle" id="auth-toggle-text">
@@ -2340,6 +2355,49 @@ async function doLogin() {
   }
 }
 
+// Preview photo lors inscription
+function previewRegPhoto(input) {
+  if (!input.files?.[0]) return;
+  const file = input.files[0];
+  if (file.size > 5 * 1024 * 1024) { showAuthError('Photo trop lourde (max 5 Mo)'); input.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('reg-photo-img');
+    const ico = document.querySelector('#reg-photo-preview .ti-camera');
+    img.src = e.target.result;
+    img.style.display = '';
+    if (ico) ico.style.display = 'none';
+    document.getElementById('reg-photo-name').textContent = file.name;
+  };
+  reader.readAsDataURL(file);
+}
+
+// Compresser et uploader avatar
+async function _uploadAvatarForUser(uid, file) {
+  if (!file) return null;
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  // Compression canvas
+  const compressed = await new Promise(res => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height, mx = 800;
+        if (w > mx || h > mx) { if (w >= h) { h = Math.round(h * mx / w); w = mx; } else { w = Math.round(w * mx / h); h = mx; } }
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        c.toBlob(b => res(b), 'image/jpeg', 0.8);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  const path = `${uid}/avatar.jpg`;
+  const { error } = await sb.storage.from('avatars').upload(path, compressed, { contentType: 'image/jpeg', upsert: true });
+  if (error) { console.warn('Avatar upload:', error.message); return null; }
+  return path;
+}
+
 async function doRegister() {
   clearAuthError();
   const prenom = document.getElementById('reg-prenom').value.trim();
@@ -2350,6 +2408,8 @@ async function doRegister() {
   if (!prenom || !nom || !tel || !email || !password) return showAuthError('Veuillez remplir tous les champs');
   if (password.length < 6) return showAuthError('Mot de passe trop court (minimum 6 caractères)');
   if (!email.includes('@')) return showAuthError('Adresse email invalide');
+
+  const photoFile = document.getElementById('reg-photo-input')?.files?.[0] || null;
 
   const btn  = document.querySelector('#register-form .btn');
   const orig = btn.textContent;
@@ -2363,7 +2423,6 @@ async function doRegister() {
     if (error) {
       const msg = (error.message || '').toLowerCase();
       if (msg.includes('already registered') || msg.includes('already been registered') || msg.includes('user already')) {
-        // Pré-remplir le formulaire de connexion avec cet email
         const loginEmail = document.getElementById('login-email');
         if (loginEmail) loginEmail.value = email;
         showAuthError('Cet email est déjà enregistré. Connectez-vous à la place →');
@@ -2374,23 +2433,27 @@ async function doRegister() {
       return;
     }
 
-    // Cas 2 : email non confirmé (Supabase "Confirm email" activé)
+    const uid = data?.user?.id;
+    if (!uid) { showAuthError('Erreur lors de la création du compte.'); return; }
+
+    // Upload photo si présente
+    btn.textContent = photoFile ? 'Upload photo…' : 'Création…';
+    const avatarPath = photoFile ? await _uploadAvatarForUser(uid, photoFile) : null;
+
+    const profileData = { id: uid, role: 'client', nom, prenom, telephone: tel, email };
+    if (avatarPath) profileData.avatar_url = avatarPath;
+
+    // Cas 2 : email non confirmé
     if (data?.user && !data?.session) {
-      await sb.from('profiles').upsert(
-        { id: data.user.id, role: 'client', nom, prenom, telephone: tel, email },
-        { onConflict: 'id', ignoreDuplicates: true }
-      );
+      await sb.from('profiles').upsert(profileData, { onConflict: 'id', ignoreDuplicates: true });
       showToast('Compte créé ! Vérifiez votre email pour confirmer.');
       setTimeout(() => toggleAuth(true), 1500);
       return;
     }
 
-    // Cas 3 : connexion directe (email confirm désactivé)
+    // Cas 3 : connexion directe
     if (data?.user) {
-      const { error: pe } = await sb.from('profiles').upsert(
-        { id: data.user.id, role: 'client', nom, prenom, telephone: tel, email },
-        { onConflict: 'id', ignoreDuplicates: true }
-      );
+      const { error: pe } = await sb.from('profiles').upsert(profileData, { onConflict: 'id', ignoreDuplicates: true });
       if (pe && !pe.message?.includes('duplicate')) {
         showAuthError('Compte créé mais erreur profil : ' + pe.message);
       } else {
@@ -3823,16 +3886,13 @@ async function confirmerAnnulationClient() {
   // Remettre le livreur disponible si la course était acceptée/en cours
   if (course.livreur_id && ['acceptee','en_cours','en_route','livraison_en_cours'].includes(course.statut)) {
     await sb.from('livreurs').update({ statut: 'disponible' }).eq('id', course.livreur_id);
-    // Notifier le livreur
-    const { data: lv } = await sb.from('livreurs').select('user_id').eq('id', course.livreur_id).single();
-    if (lv?.user_id) {
-      await sb.from('notifications').insert({
-        utilisateur_id: lv.user_id,
-        titre: '❌ Course annulée par le client',
-        corps: `Le client a annulé la course. Raison : ${raison}. Vous êtes à nouveau disponible.`,
-        type: 'course'
-      });
-    }
+    // livreur.id = profile.id — notifier directement
+    await sb.from('notifications').insert({
+      utilisateur_id: course.livreur_id,
+      titre: '❌ Course annulée par le client',
+      corps: `Le client a annulé la course. Raison : ${raison}. Vous êtes à nouveau disponible.`,
+      type: 'course'
+    });
   }
 
   closeModal('modal-annuler-client');

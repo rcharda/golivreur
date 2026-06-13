@@ -2085,28 +2085,85 @@ input:valid {
   </div>
 </div>
 
-<!-- ─── MODAL APPEL WEBRTC ─── -->
+<!-- ─── MODAL APPEL WEBRTC — WhatsApp style ─── -->
 <audio id="rtc-remote-audio" autoplay playsinline style="display:none"></audio>
+<style>
+#modal-appel .modal-sheet {
+  background: linear-gradient(160deg, #0D1B2A 0%, #1A3A5C 100%);
+  color: #fff;
+}
+#modal-appel .call-avatar {
+  width: 88px; height: 88px; border-radius: 50%;
+  background: rgba(255,255,255,.12);
+  border: 3px solid rgba(255,255,255,.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.6rem;
+  box-shadow: 0 0 0 0 rgba(255,255,255,.35);
+  animation: call-pulse 1.8s ease-out infinite;
+}
+@keyframes call-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255,255,255,.35); }
+  70%  { box-shadow: 0 0 0 22px rgba(255,255,255,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+}
+#modal-appel .call-action {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .4rem; background: none; border: none; cursor: pointer;
+}
+#modal-appel .call-action div {
+  width: 58px; height: 58px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 1.4rem; transition: transform .15s;
+}
+#modal-appel .call-action:active div { transform: scale(.88); }
+#modal-appel .call-action span {
+  font-size: .68rem; font-weight: 600; color: rgba(255,255,255,.7);
+}
+</style>
 <div class="modal-overlay" id="modal-appel" onclick="">
-  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:60vh">
-    <div style="padding:2rem 1.5rem;display:flex;flex-direction:column;align-items:center;gap:1.2rem">
-      <div style="width:72px;height:72px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:2.2rem;border:3px solid var(--primary);animation:pulse 1.5s infinite">📞</div>
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:72vh;border-radius:28px 28px 0 0">
+    <div style="padding:2.2rem 1.5rem 2rem;display:flex;flex-direction:column;align-items:center;gap:1rem">
+
+      <!-- Avatar animé -->
+      <div class="call-avatar">📞</div>
+
+      <!-- Nom + statut -->
       <div style="text-align:center">
-        <div style="font-family:var(--font-display);font-weight:800;font-size:1.3rem" id="call-contact-name">—</div>
-        <div style="font-size:.85rem;color:var(--text2);margin-top:.3rem" id="call-status-txt">Appel en cours…</div>
+        <div style="font-family:var(--font-display);font-weight:800;font-size:1.35rem;color:#fff;margin-bottom:.2rem" id="call-contact-name">—</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.6)" id="call-status-txt">📡 Appel en cours…</div>
+        <div style="font-size:1rem;font-weight:700;color:rgba(255,255,255,.85);margin-top:.35rem;font-variant-numeric:tabular-nums;min-height:1.4rem" id="call-timer"></div>
       </div>
-      <div style="display:flex;gap:1.5rem;margin-top:.5rem">
-        <!-- Répondre (visible si appel entrant) -->
-        <button id="call-btn-repondre" style="display:none;flex-direction:column;align-items:center;gap:.4rem;background:none;border:none;cursor:pointer">
-          <div style="width:56px;height:56px;border-radius:50%;background:#16A34A;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;box-shadow:0 4px 14px rgba(22,163,74,.4)"><i class="ti ti-phone-call"></i></div>
-          <span style="font-size:.72rem;font-weight:600;color:var(--text2)">Répondre</span>
+
+      <!-- Boutons d'action secondaires : mute + haut-parleur -->
+      <div style="display:flex;gap:1.5rem;margin-top:.2rem">
+        <button id="call-btn-mute" class="call-action" onclick="toggleMute()" style="display:none">
+          <div style="background:rgba(255,255,255,.18)"><i class="ti ti-microphone"></i></div>
+          <span>Sourdine</span>
+        </button>
+        <button id="call-btn-speaker" class="call-action" onclick="toggleSpeaker()" style="display:none">
+          <div style="background:rgba(255,255,255,.18)"><i class="ti ti-volume"></i></div>
+          <span>HP</span>
+        </button>
+      </div>
+
+      <!-- Boutons principaux : répondre + raccrocher -->
+      <div style="display:flex;gap:2.5rem;margin-top:.6rem;align-items:center">
+        <!-- Répondre (appel entrant) -->
+        <button id="call-btn-repondre" class="call-action" style="display:none">
+          <div style="background:#16A34A;box-shadow:0 4px 18px rgba(22,163,74,.5);animation:call-pulse 1.2s ease-out infinite">
+            <i class="ti ti-phone-call"></i>
+          </div>
+          <span>Répondre</span>
         </button>
         <!-- Raccrocher -->
-        <button onclick="raccrocherAppel(true)" style="display:flex;flex-direction:column;align-items:center;gap:.4rem;background:none;border:none;cursor:pointer">
-          <div style="width:56px;height:56px;border-radius:50%;background:#DC2626;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;box-shadow:0 4px 14px rgba(220,38,38,.4)"><i class="ti ti-phone-off"></i></div>
-          <span style="font-size:.72rem;font-weight:600;color:var(--text2)">Raccrocher</span>
+        <button class="call-action" onclick="raccrocherAppel(true)">
+          <div style="background:#DC2626;box-shadow:0 4px 18px rgba(220,38,38,.5)">
+            <i class="ti ti-phone-off"></i>
+          </div>
+          <span>Raccrocher</span>
         </button>
       </div>
+
     </div>
   </div>
 </div>
@@ -4329,10 +4386,12 @@ function subscribeRealtime() {
       const msg = payload.new;
       if (msg.expediteur_id !== currentUser.id) {
         if (currentConvId === msg.conversation_id) {
+          // Message dans la conv ouverte → son discret "pop"
+          playMsgTone();
           loadMessages(currentConvId);
           markMessagesRead(currentConvId);
         } else {
-          // Notification APK
+          // Conv différente → son + notif complète + badge
           const { data: sender } = await sb.from('profiles').select('prenom,nom').eq('id', msg.expediteur_id).single();
           const nom = sender ? ((sender.prenom||'') + ' ' + (sender.nom||'')).trim() : 'Contact';
           const apercu = msg.type === 'photo' ? '📷 Photo'
@@ -4341,9 +4400,10 @@ function subscribeRealtime() {
             : msg.type === 'transfert' ? '💸 Transfert reçu'
             : (msg.contenu || '').substring(0, 60);
           notifyAPK(nom, apercu, msg.conversation_id);
-          // Badge nav
           const badge = document.getElementById('mob-msg-nav-badge');
-          if (badge) { badge.textContent = ''; badge.style.display = 'block'; }
+          if (badge) { badge.style.display = 'block'; }
+          // Toast avec lien rapide vers conv
+          showToast('💬 ' + nom + ' : ' + apercu.substring(0, 40), 'ok');
         }
       } else if (currentConvId === msg.conversation_id) {
         loadMessages(currentConvId);
@@ -5399,17 +5459,11 @@ async function _uploadVoice(side) {
 
 // Compatibilité anciens appels
 async function uploadVoiceMsg() { /* géré via _uploadVoice */ }
+
+// callContact() — maintenant 100% WebRTC depuis la conv active
 function callContact() {
-  if (!currentConvId) return showToast('Ouvrez une conversation d\'abord');
-  const tel = document.getElementById('chat-contact-tel')?.textContent;
-  if (tel && tel !== '—') { window.open('tel:' + tel); return; }
-  showToast('📞 Demande d\'appel envoyée au livreur', 'ok');
-  sb.from('messages').insert({
-    conversation_id: currentConvId,
-    expediteur_id: currentUser.id,
-    type: 'texte',
-    contenu: '📞 Appel entrant — veuillez me rappeler'
-  });
+  if (!currentConvOtherId) return showToast('Ouvrez une conversation d\'abord', 'wa');
+  initierAppelWebRTC_conv(currentConvOtherId);
 }
 
 // ── Afficher le code de livraison dans son modal ───────
@@ -5440,44 +5494,98 @@ async function copierCodeLivraison() {
   }
 }
 
-// ── Appel direct livreur depuis le modal suivi ─────────
 // ══════════════════════════════════════════════════════════
 //  APPEL WEB TEMPS RÉEL — WebRTC via Supabase Realtime
-//  (fonctionne comme WhatsApp / Messenger dans le navigateur)
+//  Sonnerie téléphonique vraie + mute + timer + haut-parleur
 // ══════════════════════════════════════════════════════════
 let _rtcPeer = null, _rtcLocalStream = null, _rtcRemoteStream = null;
 let _rtcCallChannel = null, _rtcRole = null, _rtcTargetId = null;
-let _rtcRinging = null;
+let _rtcRinging = null, _rtcCallTimer = null, _rtcSeconds = 0;
+let _rtcMuted = false, _rtcSpeaker = false;
 
-// ── Sons : tonalité d'appel ─────────────────────────────
+// ── Son "pop" discret pour message reçu dans conv ouverte ─
+function playMsgTone() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.2);
+    setTimeout(() => ctx.close(), 300);
+  } catch(e) {}
+}
+
+// ── SONNERIE TÉLÉPHONIQUE VRAIE — DRIIING DRIIING ──────
+// Imite une sonnerie analogique européenne : 0.4s ring, 0.2s silence, 0.4s ring, 2s silence
 function _playRingtone(loop = true) {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     let active = true;
-    const play = () => {
+    if (navigator.vibrate) navigator.vibrate([400, 200, 400, 2000]);
+
+    const playRing = (startTime) => {
       if (!active) return;
-      const osc = ctx.createOscillator(); const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.value = 440; gain.gain.setValueAtTime(.15, ctx.currentTime);
-      osc.start(); osc.stop(ctx.currentTime + .4);
-      osc.onended = () => { if (loop && active) setTimeout(play, 900); };
+      // Bande 1 : 400ms (deux oscs pour timbre riche)
+      [425, 480].forEach(freq => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.connect(g); g.connect(ctx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.value = freq;
+        g.gain.setValueAtTime(0, startTime);
+        g.gain.linearRampToValueAtTime(0.12, startTime + 0.02);
+        g.gain.setValueAtTime(0.12, startTime + 0.38);
+        g.gain.linearRampToValueAtTime(0, startTime + 0.4);
+        osc.start(startTime);
+        osc.stop(startTime + 0.4);
+      });
+      // Bande 2 : 200ms silence, puis 400ms encore
+      const t2 = startTime + 0.6;
+      [425, 480].forEach(freq => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.connect(g); g.connect(ctx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.value = freq;
+        g.gain.setValueAtTime(0, t2);
+        g.gain.linearRampToValueAtTime(0.12, t2 + 0.02);
+        g.gain.setValueAtTime(0.12, t2 + 0.38);
+        g.gain.linearRampToValueAtTime(0, t2 + 0.4);
+        osc.start(t2);
+        osc.stop(t2 + 0.4);
+      });
+      // Vibration aussi
+      if (loop && active) {
+        setTimeout(() => {
+          if (active && navigator.vibrate) navigator.vibrate([400, 200, 400, 2000]);
+          playRing(ctx.currentTime);
+        }, 3000); // période : 3s (0.4 + 0.2 + 0.4 + 2)
+      }
     };
-    play();
-    return () => { active = false; ctx.close(); };
+    playRing(ctx.currentTime);
+    return () => { active = false; try { ctx.close(); } catch(e) {} };
   } catch(e) { return () => {}; }
 }
 
-// ── Créer PeerConnection ────────────────────────────────
+// ── Créer PeerConnection avec STUN/TURN ────────────────
 function _createPeer() {
   _rtcPeer = new RTCPeerConnection({
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' }
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun.cloudflare.com:3478' }
     ]
   });
   _rtcPeer.onicecandidate = e => {
     if (e.candidate && _rtcCallChannel) {
-      _rtcCallChannel.send({ type: 'broadcast', event: 'ice', payload: { candidate: e.candidate, from: currentUser.id } }).catch(()=>{});
+      _rtcCallChannel.send({ type: 'broadcast', event: 'ice',
+        payload: { candidate: e.candidate, from: currentUser.id } }).catch(()=>{});
     }
   };
   _rtcPeer.ontrack = e => {
@@ -5494,33 +5602,70 @@ function _createPeer() {
   return _rtcPeer;
 }
 
-// ── Initier un appel (côté appelant) ───────────────────
+// ── Démarrer timer d'appel ─────────────────────────────
+function _startCallTimer() {
+  _rtcSeconds = 0;
+  clearInterval(_rtcCallTimer);
+  _rtcCallTimer = setInterval(() => {
+    _rtcSeconds++;
+    const m = String(Math.floor(_rtcSeconds / 60)).padStart(2, '0');
+    const s = String(_rtcSeconds % 60).padStart(2, '0');
+    const el = document.getElementById('call-timer');
+    if (el) el.textContent = m + ':' + s;
+  }, 1000);
+}
+
+// ── Canal d'appel commun ───────────────────────────────
+function _buildCallChannel(chName, targetId) {
+  return sb.channel(chName)
+    .on('broadcast', { event: 'ice' }, async ({ payload }) => {
+      if (payload.from === currentUser.id) return;
+      try { await _rtcPeer?.addIceCandidate(new RTCIceCandidate(payload.candidate)); } catch(e){}
+    })
+    .on('broadcast', { event: 'hangup' }, () => raccrocherAppel(false));
+}
+
+// ── Initier un appel depuis la course (livreur/client) ─
 async function initierAppelWebRTC(roleAppelant) {
-  // Déterminer la cible
   const courseId = activeCourse?.id;
   const targetId = roleAppelant === 'client'
-    ? activeCourse?.livreur_id || activeCourse?.livreur?.id
+    ? (activeCourse?.livreur_id || activeCourse?.livreur?.id)
     : activeCourse?.client_id;
-  if (!courseId || !targetId) return showToast('Aucune course active pour appeler', 'wa');
+  if (!targetId) return showToast('Aucune course active pour appeler', 'wa');
+  const nomContact = roleAppelant === 'client'
+    ? (activeCourse?.livreur?.profiles?.prenom || 'Livreur')
+    : (activeCourse?.client?.prenom || 'Client');
+  await _lancerAppel(targetId, nomContact, courseId);
+}
 
+// ── Initier un appel depuis une conversation ───────────
+async function initierAppelWebRTC_conv(targetId) {
+  if (!targetId) return showToast('Destinataire introuvable', 'wa');
+  // Charger le nom depuis Supabase
+  const { data: p } = await sb.from('profiles').select('prenom,nom').eq('id', targetId).single();
+  const nomContact = p ? ((p.prenom||'') + ' ' + (p.nom||'')).trim() : 'Contact';
+  await _lancerAppel(targetId, nomContact, null);
+}
+
+// ── Cœur : lancer l'appel WebRTC ──────────────────────
+async function _lancerAppel(targetId, nomContact, courseId) {
+  if (_rtcPeer) return showToast('Appel déjà en cours', 'wa');
   _rtcRole = 'caller'; _rtcTargetId = targetId;
 
-  // Micro
-  try { _rtcLocalStream = await navigator.mediaDevices.getUserMedia({ audio: true, echoCancellation: true, noiseSuppression: true }); }
-  catch(e) { return showToast('Microphone non autorisé', 'er'); }
+  try {
+    _rtcLocalStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+    });
+  } catch(e) { return showToast('🎤 Microphone non autorisé', 'er'); }
 
-  // Canal Supabase pour signalement WebRTC
   const chName = 'rtc-call-' + [currentUser.id, targetId].sort().join('-');
-  _rtcCallChannel = sb.channel(chName)
+  _rtcCallChannel = _buildCallChannel(chName, targetId)
     .on('broadcast', { event: 'answer' }, async ({ payload }) => {
       if (payload.to !== currentUser.id) return;
       if (_rtcRinging) { _rtcRinging(); _rtcRinging = null; }
       await _rtcPeer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+      _startCallTimer();
       _updateCallUI('connected');
-    })
-    .on('broadcast', { event: 'ice' }, async ({ payload }) => {
-      if (payload.from === currentUser.id) return;
-      try { await _rtcPeer?.addIceCandidate(new RTCIceCandidate(payload.candidate)); } catch(e){}
     })
     .on('broadcast', { event: 'hangup' }, () => raccrocherAppel(false))
     .subscribe(async status => {
@@ -5529,11 +5674,27 @@ async function initierAppelWebRTC(roleAppelant) {
       _rtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _rtcLocalStream));
       const offer = await peer.createOffer();
       await peer.setLocalDescription(offer);
-      // Envoyer l'offre + notifier via Supabase notification
-      await _rtcCallChannel.send({ type: 'broadcast', event: 'offer', payload: { sdp: offer, from: currentUser.id, to: targetId, courseId } });
-      await sb.from('notifications').insert({ utilisateur_id: targetId, titre: '📞 Appel entrant', corps: `${currentProfile?.prenom || 'Quelqu\'un'} vous appelle via Allô Livreur`, type: 'appel_rtc', meta: { courseId, callerId: currentUser.id } });
-      _rtcRinging = _playRingtone(true);
-      _showCallModal('caller', activeCourse?.livreur?.profiles?.prenom || 'Livreur');
+
+      // Envoyer offer via canal dédié + broadcast sur canal perso de la cible
+      await _rtcCallChannel.send({
+        type: 'broadcast', event: 'offer',
+        payload: { sdp: offer, from: currentUser.id, to: targetId, courseId, callerName: currentProfile?.prenom || 'Contact' }
+      });
+      // Notifier via le canal personnel de la cible (pour l'écouter même sans conv ouverte)
+      await sb.channel('rtc-incoming-' + targetId).send({
+        type: 'broadcast', event: 'offer',
+        payload: { sdp: offer, from: currentUser.id, to: targetId, courseId, callerName: currentProfile?.prenom || 'Contact' }
+      });
+      // Notification Supabase (backup si pas connecté au canal)
+      await sb.from('notifications').insert({
+        utilisateur_id: targetId,
+        titre: '📞 Appel entrant de ' + (currentProfile?.prenom || 'Contact'),
+        corps: 'Appuyez pour répondre via Allô Livreur',
+        type: 'appel_rtc',
+        meta: { courseId, callerId: currentUser.id }
+      });
+      _rtcRinging = _playRingtone(true); // son côté appelant (patientez…)
+      _showCallModal('caller', nomContact);
     });
 }
 
@@ -5542,15 +5703,22 @@ async function repondreAppel(payload) {
   _rtcRole = 'callee'; _rtcTargetId = payload.from;
   if (_rtcRinging) { _rtcRinging(); _rtcRinging = null; }
 
-  try { _rtcLocalStream = await navigator.mediaDevices.getUserMedia({ audio: true, echoCancellation: true, noiseSuppression: true }); }
-  catch(e) { return showToast('Microphone non autorisé', 'er'); }
+  try {
+    _rtcLocalStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+    });
+  } catch(e) { return showToast('🎤 Microphone non autorisé', 'er'); }
 
   const peer = _rtcPeer || _createPeer();
   _rtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _rtcLocalStream));
   await peer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
   const answer = await peer.createAnswer();
   await peer.setLocalDescription(answer);
-  await _rtcCallChannel.send({ type: 'broadcast', event: 'answer', payload: { sdp: answer, from: currentUser.id, to: payload.from } });
+  await _rtcCallChannel.send({
+    type: 'broadcast', event: 'answer',
+    payload: { sdp: answer, from: currentUser.id, to: payload.from }
+  });
+  _startCallTimer();
   _updateCallUI('connected');
 }
 
@@ -5560,61 +5728,95 @@ function raccrocherAppel(sendSignal = true) {
     _rtcCallChannel.send({ type: 'broadcast', event: 'hangup', payload: { from: currentUser.id } }).catch(()=>{});
   }
   if (_rtcRinging) { _rtcRinging(); _rtcRinging = null; }
+  clearInterval(_rtcCallTimer); _rtcCallTimer = null;
   if (_rtcLocalStream) { _rtcLocalStream.getTracks().forEach(t => t.stop()); _rtcLocalStream = null; }
   if (_rtcPeer) { _rtcPeer.close(); _rtcPeer = null; }
   if (_rtcCallChannel) { sb.removeChannel(_rtcCallChannel); _rtcCallChannel = null; }
-  const modal = document.getElementById('modal-appel');
-  if (modal) modal.classList.remove('open');
+  if (navigator.vibrate) navigator.vibrate(0); // stop vibration
+  document.getElementById('modal-appel')?.classList.remove('open');
+}
+
+// ── Toggle mute ────────────────────────────────────────
+function toggleMute() {
+  _rtcMuted = !_rtcMuted;
+  _rtcLocalStream?.getAudioTracks().forEach(t => t.enabled = !_rtcMuted);
+  const btn = document.getElementById('call-btn-mute');
+  if (btn) {
+    btn.querySelector('div').style.background = _rtcMuted ? '#DC2626' : 'rgba(255,255,255,.18)';
+    btn.querySelector('span').textContent = _rtcMuted ? 'Muet' : 'Sourdine';
+    btn.querySelector('i').className = _rtcMuted ? 'ti ti-microphone-off' : 'ti ti-microphone';
+  }
+}
+
+// ── Toggle haut-parleur ────────────────────────────────
+function toggleSpeaker() {
+  _rtcSpeaker = !_rtcSpeaker;
+  const audio = document.getElementById('rtc-remote-audio');
+  if (audio && audio.setSinkId) {
+    audio.setSinkId(_rtcSpeaker ? 'default' : '').catch(()=>{});
+  }
+  const btn = document.getElementById('call-btn-speaker');
+  if (btn) {
+    btn.querySelector('div').style.background = _rtcSpeaker ? '#2563EB' : 'rgba(255,255,255,.18)';
+    btn.querySelector('span').textContent = _rtcSpeaker ? 'HP ON' : 'HP';
+  }
 }
 
 // ── UI du modal d'appel ────────────────────────────────
 function _showCallModal(role, nomContact) {
   const el = document.getElementById('call-contact-name');
   const st = document.getElementById('call-status-txt');
+  const timer = document.getElementById('call-timer');
   const rBtn = document.getElementById('call-btn-repondre');
+  const muteBtn = document.getElementById('call-btn-mute');
+  const spkBtn = document.getElementById('call-btn-speaker');
   if (el) el.textContent = nomContact;
-  if (st) st.textContent = role === 'caller' ? 'Appel en cours…' : '📞 Appel entrant';
+  if (st) st.textContent = role === 'caller' ? '📡 Appel en cours…' : '📞 Appel entrant';
+  if (timer) timer.textContent = '';
   if (rBtn) rBtn.style.display = role === 'callee' ? 'flex' : 'none';
+  if (muteBtn) { muteBtn.style.display = role === 'caller' ? 'none' : 'flex'; }
+  if (spkBtn) spkBtn.style.display = 'flex';
+  // Reset mute state
+  _rtcMuted = false;
+  _rtcLocalStream?.getAudioTracks().forEach(t => t.enabled = true);
   openModal('modal-appel');
 }
+
 function _updateCallUI(state) {
   const st = document.getElementById('call-status-txt');
   const rBtn = document.getElementById('call-btn-repondre');
+  const muteBtn = document.getElementById('call-btn-mute');
   if (state === 'connected') {
-    if (st) st.textContent = '🟢 Connecté';
+    if (st) st.textContent = '🟢 En communication';
     if (rBtn) rBtn.style.display = 'none';
+    if (muteBtn) muteBtn.style.display = 'flex';
   }
 }
 
-// ── Écouter les appels entrants (démarrer après login) ─
+// ── Écouter les appels entrants ─────────────────────────
 function startRTCListener() {
   if (!currentUser?.id) return;
   sb.channel('rtc-incoming-' + currentUser.id)
     .on('broadcast', { event: 'offer' }, async ({ payload }) => {
       if (payload.to !== currentUser.id) return;
-      // Préparer le canal avant de répondre
+      if (_rtcPeer) return; // déjà en appel
+
       const chName = 'rtc-call-' + [payload.from, currentUser.id].sort().join('-');
-      _rtcCallChannel = sb.channel(chName)
-        .on('broadcast', { event: 'ice' }, async ({ payload: p }) => {
-          if (p.from === currentUser.id) return;
-          try { await _rtcPeer?.addIceCandidate(new RTCIceCandidate(p.candidate)); } catch(e){}
-        })
-        .on('broadcast', { event: 'hangup' }, () => raccrocherAppel(false));
+      _rtcCallChannel = _buildCallChannel(chName, payload.from)
+        .on('broadcast', { event: 'answer' }, () => {}) // géré côté appelant
+        ;
       await new Promise(res => _rtcCallChannel.subscribe(s => s === 'SUBSCRIBED' && res()));
       _createPeer();
       _rtcRinging = _playRingtone(true);
-      // Identifier l'appelant depuis la course active
-      const nomAppelant = activeCourse?.livreur?.profiles?.prenom || activeCourse?.client?.prenom || 'Contact';
+      const nomAppelant = payload.callerName || 'Contact';
       _showCallModal('callee', nomAppelant);
-      // Stocker payload pour répondre ensuite
       document.getElementById('call-btn-repondre').onclick = () => repondreAppel(payload);
     })
     .subscribe();
 }
 
-// ── Garder l'ancienne fonction pour compatibilité ──────
+// ── Compatibilité course suivi ─────────────────────────
 async function callLivreurSuivi() { initierAppelWebRTC('client'); }
-
 // ── voirProduit avec modal
 let selProduit=null,prodQty=1;
 function voirProduitModal(id){

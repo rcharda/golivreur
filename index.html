@@ -516,11 +516,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 }
 .mob-search-bar .sic{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);font-size:1rem;color:var(--text3)}
 .mob-course-sheet{
-  position:absolute;bottom:0;left:0;right:0;
+  position:fixed;bottom:0;left:0;right:0;
   background:var(--surface);border-radius:24px 24px 0 0;
-  box-shadow:var(--shadow-lg);z-index:400;
+  box-shadow:var(--shadow-lg);z-index:900;
   transition:transform .3s cubic-bezier(.4,0,.2,1);transform:translateY(100%);
-  max-height:calc(100% - 60px);
+  max-height:calc(100dvh - 60px);
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
 }
@@ -2838,7 +2838,7 @@ function livreurCardMobHTML(lv) {
   const imgHtml = url ? `<img src="${url}" style="width:100%;height:100%;object-fit:cover">` : getInitials(p);
   const injoignable = livreurEstInjoignable(lv);
   const canSelect = lv.statut === 'disponible' && !injoignable;
-  const clickFn = canSelect ? `selectLivreur_byId('${lv.id}');switchMobPage('carte')` : `showToast('📵 Ce livreur semble hors connexion. Essayez un autre.','wa')`;
+  const clickFn = canSelect ? `selectLivreur_byId('${lv.id}');switchMobPage('carte');setTimeout(()=>showMobSheet(),80)` : `showToast('📵 Ce livreur semble hors connexion. Essayez un autre.','wa')`;
   return `<div class="mob-lv-card">
     <div class="mob-lv-ava" style="${(lv.statut!=='disponible'||injoignable)?'opacity:.55':''}" onclick="${clickFn}">${imgHtml}</div>
     <div style="flex:1;min-width:0" onclick="${clickFn}" style="${!canSelect?'cursor:not-allowed':''}">

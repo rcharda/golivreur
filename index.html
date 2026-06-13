@@ -464,10 +464,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 /* ══════════════════════════════════
    MOBILE LAYOUT
 ══════════════════════════════════ */
-#mobile-layout{display:none;height:100vh;width:100vw;flex-direction:column;background:var(--bg);overflow:hidden}
+#mobile-layout{display:none;height:100vh;height:100dvh;width:100vw;flex-direction:column;background:var(--bg);overflow:hidden}
 
 /* Mobile pages */
-.mob-page{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0}
+.mob-page{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;max-height:calc(100dvh - var(--topbar-h) - var(--nav-h))}
 .mob-page.active{display:flex}
 
 /* Mobile topbar — Navy with logo */
@@ -475,6 +475,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
   height:var(--topbar-h);background:var(--navy);
   display:flex;align-items:center;padding:0 1rem;gap:.75rem;
   flex-shrink:0;
+  z-index:50;
   box-shadow:0 2px 10px rgba(0,0,0,.15);
 }
 .mob-topbar .logo{
@@ -485,15 +486,28 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 .mob-topbar-right{margin-left:auto;display:flex;gap:.4rem}
 
 /* Mobile map page */
-#mob-map-page .map-wrap{flex:1;position:relative}
-#mob-map{width:100%;height:100%}
+#mob-map-page{flex:1;min-height:0;overflow:hidden}
+#mob-map-page .map-wrap{
+  flex:1;
+  position:relative;
+  min-height:0;
+  height:100%;
+  overflow:visible;
+}
+#mob-map{
+  position:absolute;
+  inset:0;
+  width:100% !important;
+  height:100% !important;
+  z-index:1;
+}
 .mob-fab{
   position:absolute;bottom:1.25rem;right:1rem;width:56px;height:56px;
   border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));
   color:#fff;border:none;display:flex;align-items:center;justify-content:center;
-  font-size:1.5rem;box-shadow:var(--shadow-primary);cursor:pointer;z-index:10;
+  font-size:1.5rem;box-shadow:var(--shadow-primary);cursor:pointer;z-index:400;
 }
-.mob-search-bar{position:absolute;top:.75rem;left:.75rem;right:.75rem;z-index:10}
+.mob-search-bar{position:absolute;top:.75rem;left:.75rem;right:.75rem;z-index:400}
 .mob-search-bar input{
   width:100%;padding:.7rem 1rem .7rem 2.6rem;
   border-radius:var(--radius-pill);border:none;
@@ -504,8 +518,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 .mob-course-sheet{
   position:absolute;bottom:0;left:0;right:0;
   background:var(--surface);border-radius:24px 24px 0 0;
-  box-shadow:var(--shadow-lg);z-index:20;
+  box-shadow:var(--shadow-lg);z-index:400;
   transition:transform .3s cubic-bezier(.4,0,.2,1);transform:translateY(100%);
+  max-height:calc(100% - 60px);
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
 }
 .mob-course-sheet.open{transform:translateY(0)}
 .sheet-handle{width:40px;height:4px;background:var(--border2);border-radius:2px;margin:.75rem auto}
@@ -525,7 +542,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 .mob-page-title{font-weight:700;font-size:1rem;color:#fff}
 
 /* Mobile scroll content */
-.mob-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0}
+.mob-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;padding-bottom:env(safe-area-inset-bottom)}
 
 /* Mobile livreur card — elevated cards */
 .mob-lv-card{
@@ -552,6 +569,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
   display:flex;align-items:stretch;flex-shrink:0;
   padding-bottom:env(safe-area-inset-bottom);
   box-shadow:0 -4px 20px rgba(0,0,0,.06);
+  position:relative;
+  z-index:50;
 }
 .mob-nav-btn{
   flex:1;display:flex;flex-direction:column;align-items:center;
@@ -993,6 +1012,59 @@ input:valid {
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 ::-webkit-scrollbar-thumb:hover{background:var(--primary)}
 
+/* ─── Mobile map fix — Leaflet container must fill its parent ─── */
+@media (max-width:768px){
+  #mobile-layout{
+    height:100vh;
+    height:100dvh;
+    display:flex;
+    flex-direction:column;
+  }
+  #mob-map-page{
+    flex:1;
+    min-height:0;
+    overflow:hidden;
+    display:none;
+    flex-direction:column;
+  }
+  #mob-map-page.active{display:flex}
+  #mob-map-page .map-wrap{
+    flex:1;
+    min-height:0;
+    position:relative;
+    overflow:visible;
+  }
+  #mob-map{
+    position:absolute;
+    inset:0;
+    width:100% !important;
+    height:100% !important;
+    z-index:1;
+  }
+  .leaflet-container{
+    width:100% !important;
+    height:100% !important;
+  }
+  /* Ensure bottom nav always visible */
+  .mob-nav{
+    flex-shrink:0 !important;
+    height:calc(var(--nav-h) + env(safe-area-inset-bottom)) !important;
+    min-height:var(--nav-h);
+  }
+  /* Prevent chat fullscreen from affecting nav z-index */
+  #mobile-layout.chat-fullscreen .mob-nav{display:none !important}
+  /* Pages that aren't map get proper scroll */
+  #mob-livreurs-page,
+  #mob-marketplace-page,
+  #mob-messages-page,
+  #mob-profil-page,
+  #mob-courses-page{
+    flex:1;
+    min-height:0;
+    overflow:hidden;
+  }
+}
+
 </style>
 <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
@@ -1354,8 +1426,8 @@ input:valid {
         </button>
       </div>
     </div>
-    <div class="map-wrap" style="flex:1;position:relative">
-      <div id="mob-map" style="width:100%;height:100%"></div>
+    <div class="map-wrap" style="flex:1;position:relative;min-height:0;overflow:hidden">
+      <div id="mob-map" style="width:100%;height:100%;display:block"></div>
       <div class="mob-search-bar">
         <i class="ti ti-search sic"></i>
         <input type="text" placeholder="Où voulez-vous aller ?" oninput="onSearch(this.value)">
@@ -2603,6 +2675,9 @@ function initMaps() {
       { '🛰 Satellite': mobSat, '🗺 Plan': _tileOsm(), '🏔 Terrain': _tileTopo() },
       {}, { position: 'topright', collapsed: false }
     ).addTo(mobMap);
+    // Force Leaflet to recalculate size after DOM is fully rendered
+    setTimeout(() => mobMap.invalidateSize(), 100);
+    setTimeout(() => mobMap.invalidateSize(), 500);
   }
 
   // Position client
@@ -4507,7 +4582,8 @@ function switchMobPage(page) {
 
   // Invalider les maps si on revient sur carte
   if (page === 'carte') {
-    setTimeout(() => { pcMap?.invalidateSize(); mobMap?.invalidateSize(); }, 100);
+    setTimeout(() => { pcMap?.invalidateSize(); mobMap?.invalidateSize(); }, 50);
+    setTimeout(() => { mobMap?.invalidateSize(); }, 300);
   }
   if (page === 'messages') loadConversations();
   if (page === 'profil') { updateWalletUI(); updateStatsMob(); }

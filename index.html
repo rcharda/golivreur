@@ -4104,7 +4104,7 @@ async function voirCourseEnCours() {
   openModal('modal-suivi');
   setTimeout(() => {
     initSuiviMap();
-    // Marqueur destination
+    // Placer marqueur destination
     if (_suiviDestLat && _suiviDestLng) {
       if (suiviDestMarker) { try { suiviDestMarker.remove(); } catch(e){} }
       suiviDestMarker = L.marker([_suiviDestLat, _suiviDestLng], {
@@ -4116,13 +4116,29 @@ async function voirCourseEnCours() {
           iconSize: [30, 36], iconAnchor: [15, 36]
         })
       }).addTo(suiviMap).bindPopup(`<b>🏁 Destination</b><br>${c.adresse_arrivee || ''}`);
+      suiviMap.setView([_suiviDestLat, _suiviDestLng], 14);
+    }
+    // Si le livreur a déjà une position
+    if (c.livreur?.latitude && c.livreur?.longitude) {
+      setLivreurMarkerPos(c.livreur.latitude, c.livreur.longitude, nom);
+    }
+  }, 250);
+
+  // ── Initialiser la carte ────────────────────────────────
+  setTimeout(() => {
+    initSuiviMap();
+    // Marqueur destination (adresse livraison)
+    if (c.latitude_arrivee && c.longitude_arrivee) {
+      if (suiviDestMarker) suiviDestMarker.setLatLng([c.latitude_arrivee, c.longitude_arrivee]);
+      else suiviDestMarker = L.marker([c.latitude_arrivee, c.longitude_arrivee], { icon: makeTrackIcon('📍', '#2563EB') })
+        .addTo(suiviMap).bindPopup('<b>📍 Votre adresse de livraison</b>').openPopup();
     }
     // Position initiale du livreur si déjà connue
     if (c.livreur?.latitude && c.livreur?.longitude) {
       setLivreurMarkerPos(c.livreur.latitude, c.livreur.longitude, nom);
     }
     suiviMap.invalidateSize();
-  }, 250);
+  }, 220);
 
   // ── Abonnement Realtime double (broadcast GPS + postgres statut) ──
   if (suiviSub) { try { suiviSub.unsubscribe(); } catch(e){} suiviSub = null; }
@@ -4149,7 +4165,7 @@ async function voirCourseEnCours() {
         }
       })
     // 3. Fallback : UPDATE de la position dans la table livreurs
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'livreurs', filter: `id=eq.${c.livreur_id || c.livreur?.id}` },
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'livreurs', filter: `id=eq.${c.livreur?.id}` },
       payload => {
         const lat = payload.new?.latitude, lng = payload.new?.longitude;
         if (lat && lng) setLivreurMarkerPos(lat, lng, nom);
@@ -5087,8 +5103,7 @@ async function passerCommandeCore(depart, arrivee, type, urgent, programmee, mod
     est_urgent: urgent, taux_majoration: urgent ? parseFloat(configPlateforme.taux_urgence_majoration_pct||30) : 0,
     est_programmee: !!programmee, heure_programmee: programmee || null,
     methode_paiement: modePaiement, est_paye: estPaye, statut: 'en_attente',
-    code_confirmation,
-    ...(description ? { notes: description } : {})
+    code_confirmation
   };
 
   try{

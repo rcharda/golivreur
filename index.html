@@ -5591,12 +5591,32 @@ function _createPeer() {
   _rtcPeer.ontrack = e => {
     _rtcRemoteStream = e.streams[0];
     const audio = document.getElementById('rtc-remote-audio');
-    if (audio) { audio.srcObject = _rtcRemoteStream; audio.play().catch(()=>{}); }
+    if (audio) {
+      audio.srcObject = _rtcRemoteStream;
+      // Réveiller AudioContext si suspendu (politique autoplay mobile)
+      const tryPlay = () => audio.play().catch(err => {
+        console.warn('audio.play() blocked:', err);
+      });
+      if (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined') {
+        try {
+          const tmpCtx = new (window.AudioContext || window.webkitAudioContext)();
+          if (tmpCtx.state === 'suspended') {
+            tmpCtx.resume().then(() => { tmpCtx.close(); tryPlay(); });
+          } else { tmpCtx.close(); tryPlay(); }
+        } catch(e) { tryPlay(); }
+      } else { tryPlay(); }
+    }
     _updateCallUI('connected');
   };
   _rtcPeer.onconnectionstatechange = () => {
-    if (['failed','disconnected','closed'].includes(_rtcPeer?.connectionState)) {
+    const state = _rtcPeer?.connectionState;
+    // 'disconnected' est transitoire pendant ICE — on ignore, grâce de 6s
+    if (state === 'failed' || state === 'closed') {
       raccrocherAppel(false);
+    } else if (state === 'disconnected') {
+      setTimeout(() => {
+        if (_rtcPeer?.connectionState === 'disconnected') raccrocherAppel(false);
+      }, 6000);
     }
   };
   return _rtcPeer;
@@ -5720,19 +5740,33 @@ async function repondreAppel(payload) {
   });
   _startCallTimer();
   _updateCallUI('connected');
+  // Forcer lecture audio côté répondant (callee)
+  const audio = document.getElementById('rtc-remote-audio');
+  if (audio && audio.srcObject) {
+    audio.play().catch(() => {});
+  }
 }
 
 // ── Raccrocher ─────────────────────────────────────────
 function raccrocherAppel(sendSignal = true) {
+  // Guard : si déjà nettoyé, ne pas relancer
+  if (!_rtcPeer && !_rtcCallChannel && !_rtcLocalStream) {
+    document.getElementById('modal-appel')?.classList.remove('open');
+    return;
+  }
   if (sendSignal && _rtcCallChannel) {
     _rtcCallChannel.send({ type: 'broadcast', event: 'hangup', payload: { from: currentUser.id } }).catch(()=>{});
   }
   if (_rtcRinging) { _rtcRinging(); _rtcRinging = null; }
   clearInterval(_rtcCallTimer); _rtcCallTimer = null;
+  // Couper l'audio distant proprement
+  const audioEl = document.getElementById('rtc-remote-audio');
+  if (audioEl) { audioEl.pause(); audioEl.srcObject = null; }
   if (_rtcLocalStream) { _rtcLocalStream.getTracks().forEach(t => t.stop()); _rtcLocalStream = null; }
   if (_rtcPeer) { _rtcPeer.close(); _rtcPeer = null; }
   if (_rtcCallChannel) { sb.removeChannel(_rtcCallChannel); _rtcCallChannel = null; }
-  if (navigator.vibrate) navigator.vibrate(0); // stop vibration
+  _rtcRemoteStream = null;
+  if (navigator.vibrate) navigator.vibrate(0);
   document.getElementById('modal-appel')?.classList.remove('open');
 }
 
@@ -6548,7 +6582,28 @@ async function testSupabasePerms() {
 <script>
   // Afficher le bouton debug en appuyant 5× rapidement sur le logo
   let _dbgTaps=0,_dbgTimer;
-  document.addEventListener('DOMContentLoaded', () => {
+  // ── Unlock AudioContext au premier geste (iOS/Android) ──
+(function() {
+  let _audioUnlocked = false;
+  const _unlockAudio = () => {
+    if (_audioUnlocked) return;
+    _audioUnlocked = true;
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const buf = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buf; src.connect(ctx.destination); src.start(0);
+      ctx.resume().then(() => ctx.close());
+      // Aussi débloquer l'élément audio WebRTC
+      const a = document.getElementById('rtc-remote-audio');
+      if (a) { a.play().catch(() => {}); }
+    } catch(e) {}
+    ['touchend','mouseup','keyup'].forEach(ev => document.removeEventListener(ev, _unlockAudio));
+  };
+  ['touchend','mouseup','keyup'].forEach(ev => document.addEventListener(ev, _unlockAudio, { passive: true }));
+})();
+
+document.addEventListener('DOMContentLoaded', () => {
     const logo = document.querySelector('.app-logo, .logo, h1, .brand');
     if(logo) logo.addEventListener('click', () => {
       _dbgTaps++;

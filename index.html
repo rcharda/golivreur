@@ -2383,6 +2383,7 @@ async function initApp() {
   loadNotifications();
   subscribeRealtime();
   startRTCListener();
+  initAPKBridge();
   document.dispatchEvent(new Event('allo-ready'));
 }
 
@@ -4118,33 +4119,62 @@ async function voirCourseEnCours() {
 // ══════════════════════════════════════════════════════════════
 //  NOTIFICATIONS
 // ══════════════════════════════════════════════════════════════
-async function loadNotifications() {
+// Nombre de notifs non lues au dernier chargement (pour détecter les nouvelles)
+let _lastUnreadCount = 0;
+
+async function loadNotifications(playSound) {
   const { data } = await sb.from('notifications')
     .select('*').eq('utilisateur_id', currentUser.id)
-    .order('created_at', { ascending: false }).limit(20);
+    .order('created_at', { ascending: false }).limit(30);
 
   const unread = data?.filter(n => !n.est_lue) || [];
   const badge1 = document.getElementById('notif-badge');
   const badge2 = document.getElementById('mob-notif-badge');
-  if (unread.length) {
-    badge1.style.display = badge2.style.display = '';
+  const count = unread.length;
+
+  // Jouer le son si nouvelles notifs non lues détectées
+  if (count > _lastUnreadCount || playSound) {
+    playNotifTone();
+    if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
+  }
+  _lastUnreadCount = count;
+
+  if (count) {
+    if (badge1) { badge1.style.display = ''; }
+    if (badge2) badge2.style.display = '';
   } else {
-    badge1.style.display = badge2.style.display = 'none';
+    if (badge1) badge1.style.display = 'none';
+    if (badge2) badge2.style.display = 'none';
   }
 
-  const el = document.getElementById('notif-list');
-  if (!data?.length) { if(el) el.innerHTML = '<div class="empty-state"><i class="ti ti-bell-off"></i><p>Aucune notification</p></div>'; return; }
-  if (el) el.innerHTML = data.map(n => `
+  // Contenu HTML commun
+  const empty = '<div class="empty-state"><i class="ti ti-bell-off"></i><p>Aucune notification</p></div>';
+  const items = !data?.length ? empty : data.map(n => `
     <div class="notif-item ${n.est_lue?'':'unread'}" onclick="marquerLue('${n.id}')">
-      <div class="notif-title">${n.titre}</div>
-      <div class="notif-body">${n.corps}</div>
-      <div class="notif-time">${new Date(n.created_at).toLocaleString('fr')}</div>
+      <div class="notif-title">${n.titre||''}</div>
+      <div class="notif-body">${n.corps||''}</div>
+      <div class="notif-time">${new Date(n.created_at).toLocaleString('fr-BJ')}</div>
     </div>`).join('');
+
+  // Remplir panel PC
+  const elPc = document.getElementById('notif-list');
+  if (elPc) elPc.innerHTML = items;
+
+  // Remplir modal mobile avec bouton "Tout lire"
+  const elMob = document.getElementById('mob-notif-body');
+  if (elMob) {
+    const btnToutLire = count > 0
+      ? `<div style="display:flex;justify-content:flex-end;margin-bottom:.5rem">
+           <button onclick="marquerToutesLues()" style="background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--primary);font-weight:700;font-family:var(--font)">✅ Tout marquer lu</button>
+         </div>`
+      : '';
+    elMob.innerHTML = btnToutLire + items;
+  }
 }
 
 async function marquerLue(id) {
   await sb.from('notifications').update({ est_lue: true, lue_at: new Date().toISOString() }).eq('id', id);
-  loadNotifications();
+  loadNotifications(false);
 }
 
 function toggleNotifs() {
@@ -4284,7 +4314,7 @@ function subscribeRealtime() {
 
   const notifSub = sb.channel('notifs-client')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `utilisateur_id=eq.${currentUser.id}` }, () => {
-      loadNotifications();
+      loadNotifications(true);
     })
     .subscribe();
 
@@ -5642,11 +5672,11 @@ async function updateStatsMob(){
 // ── marquerToutesLues
 async function marquerToutesLues(){
   await sb.from('notifications').update({est_lue:true}).eq('utilisateur_id',currentUser.id);
-  loadNotifications();
+  loadNotifications(false);
 }
 
 // ── mobToggleNotifs => modal
-function mobToggleNotifs(){ loadNotifications(); openModal('modal-notifs'); }
+function mobToggleNotifs(){ loadNotifications(false); openModal('modal-notifs'); }
 
 // ══════════════════════════════════════════════════════════════
 //  PC CHAT PANEL — fenêtre flottante draggable

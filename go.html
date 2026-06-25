@@ -229,6 +229,73 @@ input[type=range]{flex:1;accent-color:var(--primary)}
   .veh-grid{grid-template-columns:repeat(3,1fr)}
   .hero-title{font-size:1.35rem}
 }
+
+/* ════════════════════════════════════════════════
+   RESPONSIVE TABLETTE / PC
+   La page reste centrée et lisible sur grand écran
+   au lieu de s'étirer sur toute la largeur.
+   ════════════════════════════════════════════════ */
+@media(min-width:701px){
+  body{background:var(--bg)}
+
+  .hero{
+    padding:3rem 1.5rem 4rem;
+  }
+  .hero-logo{font-size:1.8rem}
+  .hero-title{font-size:2.1rem}
+  .hero-sub{font-size:1rem;max-width:480px;margin:0 auto}
+  .hero-badge{font-size:.82rem;padding:.4rem .9rem}
+
+  .steps-bar{
+    max-width:720px;margin:0 auto;
+    padding:1.75rem 1rem;
+  }
+  .step-circle{width:38px;height:38px;font-size:.85rem}
+  .step-label{font-size:.75rem}
+  .step-line{width:64px}
+
+  /* La carte centrale s'élargit un peu mais reste raisonnable,
+     comme un formulaire "desktop" classique plutôt qu'un mobile étiré */
+  .container{
+    max-width:680px;
+    padding:2.5rem 1.5rem 5rem;
+  }
+
+  .card{border-radius:18px}
+  .card-head{padding:1.25rem 1.5rem}
+  .card-head-icon{width:42px;height:42px;font-size:1.25rem}
+  .card-head-title{font-size:1.05rem}
+  .card-body{padding:1.75rem}
+
+  .form-input{padding:.75rem 1rem;font-size:.95rem}
+  .btn{font-size:.95rem;padding:.8rem 1.75rem}
+
+  .veh-grid{gap:.85rem}
+  .veh-option{padding:1rem .6rem}
+  .veh-option i{font-size:1.9rem}
+
+  .upload-zone{padding:1.75rem}
+
+  /* Sur grand écran, les boutons "Précédent / Suivant" peuvent
+     être posés côte à côte sans prendre toute la largeur du conteneur */
+  .btn-nav .btn{flex:0 0 auto}
+  .btn-nav .btn.btn-full{flex:1}
+}
+
+@media(min-width:1024px){
+  .container{max-width:760px}
+  .hero{padding:3.5rem 1.5rem 4.5rem}
+  .card-body{padding:2rem}
+}
+
+/* Très petits écrans (vieux smartphones) : on resserre encore un peu */
+@media(max-width:360px){
+  .container{padding:1.25rem .75rem 3rem}
+  .card-body{padding:1rem}
+  .veh-option{padding:.6rem .35rem}
+  .hero{padding:1.5rem 1rem 2.5rem}
+  .hero-title{font-size:1.2rem}
+}
 </style>
 </head>
 <body>
@@ -752,8 +819,22 @@ let selectedVeh = 'moto';
 let uploadedFiles = {};  // clé => File
 let authMode = 'login'; // login | signup
 
+// ── TRACKING DES CLICS / VISITES SUR LA PAGE ──
+// Enregistre une visite anonyme dans la table "page_clics" via la fonction SQL
+// "increment_page_clic". Ne bloque jamais la page : si ça échoue (offline,
+// table absente, etc.) on log juste un avertissement dans la console.
+async function trackPageClic() {
+  try {
+    const { error } = await sb.rpc('increment_page_clic', { p_page: 'go_livreur' });
+    if (error) console.warn('Tracking clic:', error.message);
+  } catch (e) {
+    console.warn('Tracking clic (exception):', e.message);
+  }
+}
+
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', async () => {
+  trackPageClic(); // on ne bloque pas l'auth en attendant le tracking
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
     currentUser = session.user;

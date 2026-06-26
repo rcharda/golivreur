@@ -422,6 +422,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
           </div>
           <div class="pd-item" onclick="openModal('modal-profil')"><i class="ti ti-user"></i> Mon profil</div>
           <div class="pd-item" onclick="openModal('modal-wallet')"><i class="ti ti-wallet"></i> Wallet & Retraits</div>
+          <div class="pd-item danger" onclick="declencherSOS()" style="color:var(--danger);font-weight:700"><i class="ti ti-alert-triangle"></i> 🆘 Alerte SOS urgence</div>
           <div class="pd-item danger" onclick="doLogout()"><i class="ti ti-logout"></i> Déconnexion</div>
         </div>
       </div>
@@ -655,6 +656,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
       <div class="mob-menu-item" onclick="openModal('modal-profil')"><i class="ti ti-user"></i> Modifier mon profil <i class="ti ti-chevron-right chevron"></i></div>
       <div class="mob-menu-item" onclick="openModal('modal-wallet')"><i class="ti ti-wallet"></i> Transactions <i class="ti ti-chevron-right chevron"></i></div>
       <div class="mob-menu-item" onclick="openModal('modal-vehicule')"><i class="ti ti-motorbike"></i> Mon véhicule <i class="ti ti-chevron-right chevron"></i></div>
+      <div class="mob-menu-item" style="color:var(--danger);font-weight:700" onclick="declencherSOS()"><i class="ti ti-alert-triangle" style="color:var(--danger)"></i> 🆘 Alerte SOS urgence <i class="ti ti-chevron-right chevron"></i></div>
       <div class="mob-menu-item" style="color:var(--danger)" onclick="doLogout()"><i class="ti ti-logout" style="color:var(--danger)"></i> Déconnexion</div>
     </div>
   </div>
@@ -888,6 +890,7 @@ let currentConvOtherId = null;
 let realtimeSubs = [];
 let allCourses = [];
 let courseEnCours = null; // course currently accepted
+let _gpsBroadcastCh = null; // canal Supabase souscrit pour broadcaster la position GPS
 let gpsWatchId = null;
 let pcMap = null, mobMap = null;
 let clientMarker = { pc: null, mob: null };
@@ -1004,6 +1007,46 @@ async function doLogout() {
   await sb.auth.signOut();
 }
 
+// ═══ SOS URGENCE ═══════════════════════════════════════
+let _sosEnvoiEnCours = false;
+async function declencherSOS() {
+  if (_sosEnvoiEnCours) return;
+  if (!confirm('🆘 Déclencher une alerte SOS urgence ?\n\nL\'équipe d\'assistance Allô Livreur sera notifiée immédiatement avec votre position GPS.')) return;
+  document.getElementById('profile-dropdown')?.classList.remove('open');
+  _sosEnvoiEnCours = true;
+  showToast('Localisation en cours…', 'wa');
+  const envoyer = async (lat, lng) => {
+    const { error } = await sb.from('sos_alertes').insert({
+      livreur_id: currentUser.id,
+      latitude: lat,
+      longitude: lng,
+      message: courseEnCours ? 'Appui bouton SOS urgence (en course)' : 'Appui bouton SOS urgence',
+      date_alerte: new Date().toISOString(),
+      est_resolue: false
+    });
+    _sosEnvoiEnCours = false;
+    if (error) { showToast('❌ Erreur envoi SOS : ' + error.message, 'er'); return; }
+    showToast('🆘 Alerte envoyée. L\'équipe d\'assistance arrive.', 'ok');
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
+  };
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => envoyer(pos.coords.latitude, pos.coords.longitude),
+      () => {
+        // Fallback : dernière position GPS connue du livreur
+        if (currentLivreur?.latitude && currentLivreur?.longitude) envoyer(currentLivreur.latitude, currentLivreur.longitude);
+        else { _sosEnvoiEnCours = false; showToast('❌ Impossible d\'obtenir votre position. Activez le GPS.', 'er'); }
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  } else if (currentLivreur?.latitude && currentLivreur?.longitude) {
+    envoyer(currentLivreur.latitude, currentLivreur.longitude);
+  } else {
+    _sosEnvoiEnCours = false;
+    showToast('❌ GPS non disponible sur cet appareil.', 'er');
+  }
+}
+
 // ═══ PROFILE & LIVREUR ═══════════════════════════════════
 async function loadProfile() {
   const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
@@ -1109,21 +1152,52 @@ function updateStatusUI(statut) {
 }
 
 // ═══ GPS ══════════════════════════════════════════════════
+
+// Souscrire UNE FOIS au canal broadcast de la course active.
+// Supabase Realtime requiert .subscribe() avant de pouvoir envoyer.
+function joinGpsBroadcastChannel(courseId) {
+  if (_gpsBroadcastCh) {
+    try { _gpsBroadcastCh.unsubscribe(); } catch(e) {}
+    _gpsBroadcastCh = null;
+  }
+  if (!courseId) return;
+  _gpsBroadcastCh = sb.channel('course-pos-' + courseId)
+    .on('broadcast', { event: 'pos' }, payload => {
+      // Écouter la position du client (optionnel)
+      const p = payload.payload;
+      if (p?.role === 'client' && p.lat && p.lng) updateClientMarker(p.lat, p.lng);
+    })
+    .subscribe();
+}
+
+function leaveGpsBroadcastChannel() {
+  if (_gpsBroadcastCh) {
+    try { _gpsBroadcastCh.unsubscribe(); } catch(e) {}
+    _gpsBroadcastCh = null;
+  }
+}
+
 function startGPS() {
   if (gpsWatchId) return;
   if (!navigator.geolocation) return;
   gpsWatchId = navigator.geolocation.watchPosition(async pos => {
     const lat = pos.coords.latitude, lng = pos.coords.longitude;
     if (!currentLivreur) return;
+    // 1. Upsert Postgres (fallback postgres_changes pour le client)
     await sb.from('livreurs').update({ latitude: lat, longitude: lng, derniere_position_at: new Date().toISOString() }).eq('id', currentLivreur.id);
-    // Update my marker on map
+    // 2. Mettre à jour mon marker sur la carte
     updateMyMarker(lat, lng);
-    // If in course, share position via realtime channel
-    if (courseEnCours) {
-      sb.channel('course-pos-' + courseEnCours.id).send({ type: 'broadcast', event: 'pos', payload: { uid: currentUser.id, lat, lng, role: 'livreur' } }).catch(()=>{});
+    // 3. Broadcast en temps réel via le canal souscrit (chemin principal)
+    if (courseEnCours && _gpsBroadcastCh) {
+      _gpsBroadcastCh.send({
+        type: 'broadcast',
+        event: 'pos',
+        payload: { uid: currentUser.id, lat, lng, role: 'livreur' }
+      }).catch(() => {});
     }
   }, err => {}, { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 });
 }
+
 function stopGPS() {
   if (gpsWatchId) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
 }
@@ -1200,7 +1274,7 @@ function initMaps() {
 async function loadCourses() {
   if (!currentLivreur) return;
   const { data } = await sb.from('courses')
-    .select('*, client:profiles!courses_client_id_fkey(id,prenom,nom,telephone,avatar_url)')
+    .select('*, client:profiles!courses_client_id_fkey(id,prenom,nom,telephone,avatar_url), course_arrets(*)')
     .eq('livreur_id', currentLivreur.id)
     .order('created_at', { ascending: false })
     .limit(50);
@@ -1246,14 +1320,15 @@ function courseCardHTML(c, isMob) {
   const nom = `${client.prenom||''} ${client.nom||''}`.trim() || 'Client';
   const url = getAvatarUrl(client);
   const imgHtml = url ? `<img src="${url}" style="width:100%;height:100%;object-fit:cover">` : getInitials(client);
-  const urgent = c.est_urgente ? '<span style="background:#FEF2F2;color:var(--danger);font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:50px">🔥 URGENT</span>' : '';
+  const urgent = c.est_urgent ? '<span style="background:#FEF2F2;color:var(--danger);font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:50px">🔥 URGENT</span>' : '';
+  const programmee = c.est_programmee && c.heure_programmee ? `<span style="background:#EFF6FF;color:#1D4ED8;font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:50px">📅 ${new Date(c.heure_programmee).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>` : '';
   const dist = c.distance_km ? `${c.distance_km} km` : '—';
-  const prix = fcfa(c.montant_total || 0);
+  const prix = fcfa(c.prix_final || c.prix_estime || 0);
   return `<div class="${isMob?'demande-card':'course-card'}">
     <div class="${isMob?'demande-head':'course-card-head'}">
       <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:.75rem;flex-shrink:0;border:2px solid var(--border)">${imgHtml}</div>
       <div style="font-weight:600;font-size:.88rem">${nom}</div>
-      ${urgent}
+      ${urgent}${programmee}
       <span style="margin-left:auto;font-weight:700;color:var(--primary)">${prix}</span>
     </div>
     <div class="demande-body">
@@ -1263,7 +1338,7 @@ function courseCardHTML(c, isMob) {
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem">
         <span style="font-size:.75rem;color:var(--text2)"><i class="ti ti-road"></i> ${dist}</span>
         <span style="font-size:.75rem;color:var(--text2)"><i class="ti ti-clock"></i> ${fmtDate(c.created_at)}</span>
-        ${c.type_course ? `<span class="tag en_attente">${c.type_course}</span>` : ''}
+        ${c.type ? `<span class="tag en_attente">${{simple:'📦 Simple',zem:'🛵 Zem',voiture_classique:'🚗 Classique',voiture_confort:'🌟 Confort',voiture_eco:'💚 Éco',transport_enfant:'🏫 Enfant',demenagement:'📦 Déménagt',camionnette:'🚐 Camionnette',avec_marchand:'🏪 Marchand',colis_tiers:'📫 Colis tiers',multi_arrets:'🔀 Multi-arrêts',programmee:'🗓️ Programmée'}[c.type]||c.type}</span>` : ''}
       </div>
     </div>
     <div class="course-action-btns">
@@ -1325,8 +1400,9 @@ function renderCourseEnCours() {
   </div>`;
   if(pcEl) { pcEl.innerHTML = html; pcEl.style.display = ''; }
   if(mobEl) { mobEl.innerHTML = html; mobEl.style.display = ''; }
-  // Subscribe to client position
+  // Subscribe to client position + rejoindre le canal broadcast GPS
   subscribeCoursePosition(c.id);
+  joinGpsBroadcastChannel(c.id);
 }
 
 async function accepterCourse(courseId) {
@@ -1403,6 +1479,7 @@ async function confirmerAnnulationLv() {
   currentLivreur.statut = 'disponible';
   updateStatusUI('disponible');
   courseEnCours = null;
+  leaveGpsBroadcastChannel();
 
   // Notifier le client
   if (course?.client_id) {
@@ -1481,7 +1558,7 @@ async function envoyerPreuve() {
     if (error) throw error;
     // Lire les données de la course (gains + mode paiement)
     const { data: courseData } = await sb.from('courses')
-      .select('gains_livreur,commission_plateforme,client_id,methode_paiement,montant_total,prix_final')
+      .select('gains_livreur,commission_plateforme,client_id,methode_paiement,prix_final')
       .eq('id', currentCodeCourseId).single();
     const { data: w } = await sb.from('wallets').select('id,solde').eq('utilisateur_id', currentUser.id).single();
 
@@ -1532,6 +1609,7 @@ async function envoyerPreuve() {
     currentLivreur.nombre_courses = (currentLivreur.nombre_courses||0)+1;
     updateStatusUI('disponible');
     courseEnCours = null;
+    leaveGpsBroadcastChannel();
     closeModal('modal-preuve');
     showToast('🎉 Livraison confirmée ! Gains crédités.', 'ok');
     loadCourses();
@@ -1548,6 +1626,21 @@ function voirDetailCourse(id) {
   const col = statColors[c.statut]||'#6B7280';
   const clientTel = client.telephone || null;
   const isActive = ['acceptee','en_route','en_cours','livraison_en_cours'].includes(c.statut);
+  const arrets = (c.course_arrets||[]).slice().sort((a,b)=>(a.ordre||0)-(b.ordre||0));
+  const arretsBlock = arrets.length ? `
+      <div style="background:#FFFBEB;border-radius:var(--radius-xs);padding:.6rem .8rem;border:1px solid #FDE68A">
+        <div style="font-size:.65rem;font-weight:700;color:#92400E;margin-bottom:.4rem">🔀 ${arrets.length} ARRÊT(S) INTERMÉDIAIRE(S)</div>
+        ${arrets.map((a,i)=>`<div style="display:flex;align-items:flex-start;gap:.4rem;font-size:.82rem;padding:.2rem 0">
+          <span style="background:#F59E0B;color:#fff;border-radius:50%;width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;margin-top:1px">${i+1}</span>
+          <span>${a.adresse||'—'}</span>
+          ${a.latitude&&a.longitude?`<a href="https://www.google.com/maps/dir/?api=1&destination=${a.latitude},${a.longitude}" target="_blank" style="margin-left:auto;color:var(--primary);flex-shrink:0"><i class="ti ti-navigation"></i></a>`:''}
+        </div>`).join('')}
+      </div>` : '';
+  const programmeeBlock = c.est_programmee && c.heure_programmee ? `
+      <div style="background:#EFF6FF;border-radius:var(--radius-xs);padding:.6rem .8rem;border:1px solid #BFDBFE;display:flex;align-items:center;gap:.5rem">
+        <i class="ti ti-calendar-time" style="color:#1D4ED8;font-size:1.1rem"></i>
+        <div><div style="font-size:.65rem;font-weight:700;color:#1D4ED8">COURSE PROGRAMMÉE</div><div style="font-size:.85rem;font-weight:600">${new Date(c.heure_programmee).toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'})}</div></div>
+      </div>` : '';
   const el = document.getElementById('detail-course-content');
   if (!el) return showToast(`${nom} → ${c.adresse_arrivee||'—'} · ${fcfa(c.gains_livreur||0)}`);
   el.innerHTML = `
@@ -1563,10 +1656,12 @@ function voirDetailCourse(id) {
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:.6rem;font-size:.85rem">
+      ${programmeeBlock}
       <div style="background:var(--bg);border-radius:var(--radius-xs);padding:.6rem .8rem;border:1px solid var(--border)">
         <div style="font-size:.65rem;font-weight:700;color:var(--success);margin-bottom:2px">DÉPART</div>
         <div>${c.adresse_depart||'—'}</div>
       </div>
+      ${arretsBlock}
       <div style="background:var(--bg);border-radius:var(--radius-xs);padding:.6rem .8rem;border:1px solid var(--border)">
         <div style="font-size:.65rem;font-weight:700;color:var(--danger);margin-bottom:2px">ARRIVÉE</div>
         <div style="font-weight:600">${c.adresse_arrivee||'—'}</div>
@@ -1770,6 +1865,26 @@ function toggleNavMode() {
 }
 
 // Nettoyer nav map à la fermeture du modal
+// ── Unlock AudioContext au premier geste (iOS/Android) ──
+(function() {
+  let _audioUnlocked = false;
+  const _unlockAudio = () => {
+    if (_audioUnlocked) return;
+    _audioUnlocked = true;
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const buf = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buf; src.connect(ctx.destination); src.start(0);
+      ctx.resume().then(() => ctx.close());
+      const a = document.getElementById('lv-rtc-remote-audio');
+      if (a) { a.play().catch(() => {}); }
+    } catch(e) {}
+    ['touchend','mouseup','keyup'].forEach(ev => document.removeEventListener(ev, _unlockAudio));
+  };
+  ['touchend','mouseup','keyup'].forEach(ev => document.addEventListener(ev, _unlockAudio, { passive: true }));
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('modal-detail-course')?.addEventListener('click', e => {
     if (e.target === document.getElementById('modal-detail-course')) {
@@ -1779,65 +1894,156 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ══════════════════════════════════════════════════════════
-//  APPEL WEBRTC — Livreur → Client
+//  APPEL WEB TEMPS RÉEL — WebRTC (compatible client_v26)
+//  Sonnerie vraie + mute + timer + haut-parleur + callerName
 // ══════════════════════════════════════════════════════════
-let _lvRtcPeer = null, _lvRtcLocalStream = null, _lvRtcChannel = null, _lvRtcRinging = null;
+let _lvRtcPeer = null, _lvRtcLocalStream = null, _lvRtcRemoteStream = null;
+let _lvRtcChannel = null, _lvRtcRole = null, _lvRtcTargetId = null;
+let _lvRtcRinging = null, _lvRtcCallTimer = null, _lvRtcSeconds = 0;
+let _lvRtcMuted = false, _lvRtcSpeaker = false;
 
+// ── Sonnerie téléphonique identique au client ──────────
 function _lvPlayRingtone(loop = true) {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     let active = true;
-    const play = () => {
+    if (navigator.vibrate) navigator.vibrate([400, 200, 400, 2000]);
+    const playRing = (startTime) => {
       if (!active) return;
-      const osc = ctx.createOscillator(); const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.value = 440; gain.gain.setValueAtTime(.12, ctx.currentTime);
-      osc.start(); osc.stop(ctx.currentTime + .4);
-      osc.onended = () => { if (loop && active) setTimeout(play, 900); };
+      [425, 480].forEach(freq => {
+        const osc = ctx.createOscillator(); const g = ctx.createGain();
+        osc.connect(g); g.connect(ctx.destination);
+        osc.type = 'sawtooth'; osc.frequency.value = freq;
+        g.gain.setValueAtTime(0, startTime);
+        g.gain.linearRampToValueAtTime(0.12, startTime + 0.02);
+        g.gain.setValueAtTime(0.12, startTime + 0.38);
+        g.gain.linearRampToValueAtTime(0, startTime + 0.4);
+        osc.start(startTime); osc.stop(startTime + 0.4);
+      });
+      const t2 = startTime + 0.6;
+      [425, 480].forEach(freq => {
+        const osc = ctx.createOscillator(); const g = ctx.createGain();
+        osc.connect(g); g.connect(ctx.destination);
+        osc.type = 'sawtooth'; osc.frequency.value = freq;
+        g.gain.setValueAtTime(0, t2);
+        g.gain.linearRampToValueAtTime(0.12, t2 + 0.02);
+        g.gain.setValueAtTime(0.12, t2 + 0.38);
+        g.gain.linearRampToValueAtTime(0, t2 + 0.4);
+        osc.start(t2); osc.stop(t2 + 0.4);
+      });
+      if (loop && active) {
+        setTimeout(() => {
+          if (active && navigator.vibrate) navigator.vibrate([400, 200, 400, 2000]);
+          playRing(ctx.currentTime);
+        }, 3000);
+      }
     };
-    play();
-    return () => { active = false; ctx.close(); };
+    playRing(ctx.currentTime);
+    return () => { active = false; try { ctx.close(); } catch(e) {} };
   } catch(e) { return () => {}; }
 }
 
+// ── Timer d'appel ──────────────────────────────────────
+function _lvStartCallTimer() {
+  _lvRtcSeconds = 0;
+  clearInterval(_lvRtcCallTimer);
+  _lvRtcCallTimer = setInterval(() => {
+    _lvRtcSeconds++;
+    const m = String(Math.floor(_lvRtcSeconds / 60)).padStart(2, '0');
+    const s = String(_lvRtcSeconds % 60).padStart(2, '0');
+    const el = document.getElementById('lv-call-timer');
+    if (el) el.textContent = m + ':' + s;
+  }, 1000);
+}
+
+// ── Canal commun ICE/hangup ────────────────────────────
+function _lvBuildCallChannel(chName) {
+  return sb.channel(chName)
+    .on('broadcast', { event: 'ice' }, async ({ payload }) => {
+      if (payload.from === currentUser.id) return;
+      try { await _lvRtcPeer?.addIceCandidate(new RTCIceCandidate(payload.candidate)); } catch(e){}
+    })
+    .on('broadcast', { event: 'hangup' }, () => lvRaccrocher(false));
+}
+
+// ── Créer PeerConnection (STUN multi-serveurs) ─────────
 function _lvCreatePeer() {
-  _lvRtcPeer = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+  _lvRtcPeer = new RTCPeerConnection({
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun.cloudflare.com:3478' }
+    ]
+  });
   _lvRtcPeer.onicecandidate = e => {
     if (e.candidate && _lvRtcChannel) {
-      _lvRtcChannel.send({ type: 'broadcast', event: 'ice', payload: { candidate: e.candidate, from: currentUser.id } }).catch(()=>{});
+      _lvRtcChannel.send({ type: 'broadcast', event: 'ice',
+        payload: { candidate: e.candidate, from: currentUser.id } }).catch(()=>{});
     }
   };
   _lvRtcPeer.ontrack = e => {
+    _lvRtcRemoteStream = e.streams[0];
     const audio = document.getElementById('lv-rtc-remote-audio');
-    if (audio) { audio.srcObject = e.streams[0]; audio.play().catch(()=>{}); }
-    const st = document.getElementById('lv-call-status');
-    if (st) st.textContent = '🟢 Connecté';
-    const rBtn = document.getElementById('lv-call-repondre');
-    if (rBtn) rBtn.style.display = 'none';
+    if (audio) {
+      audio.srcObject = _lvRtcRemoteStream;
+      const tryPlay = () => audio.play().catch(err => console.warn('audio.play() blocked:', err));
+      try {
+        const tmpCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (tmpCtx.state === 'suspended') {
+          tmpCtx.resume().then(() => { tmpCtx.close(); tryPlay(); });
+        } else { tmpCtx.close(); tryPlay(); }
+      } catch(e) { tryPlay(); }
+    }
+    _lvUpdateCallUI('connected');
   };
   _lvRtcPeer.onconnectionstatechange = () => {
-    if (['failed','disconnected','closed'].includes(_lvRtcPeer?.connectionState)) lvRaccrocher(false);
+    const state = _lvRtcPeer?.connectionState;
+    if (state === 'failed' || state === 'closed') {
+      lvRaccrocher(false);
+    } else if (state === 'disconnected') {
+      setTimeout(() => {
+        if (_lvRtcPeer?.connectionState === 'disconnected') lvRaccrocher(false);
+      }, 6000);
+    }
   };
   return _lvRtcPeer;
 }
 
+// ── Initier un appel depuis une course ─────────────────
 async function initierAppelWebRTCLv(courseId, clientId) {
   if (!clientId) return showToast('Client non disponible', 'wa');
-  try { _lvRtcLocalStream = await navigator.mediaDevices.getUserMedia({ audio: true, echoCancellation: true }); }
-  catch(e) { return showToast('Microphone non autorisé', 'er'); }
+  const { data: p } = await sb.from('profiles').select('prenom,nom').eq('id', clientId).single();
+  const nomContact = p ? ((p.prenom||'') + ' ' + (p.nom||'')).trim() : 'Client';
+  await _lvLancerAppel(clientId, nomContact, courseId);
+}
 
-  const chName = 'rtc-call-' + [currentUser.id, clientId].sort().join('-');
-  _lvRtcChannel = sb.channel(chName)
+// ── Initier un appel depuis la messagerie ─────────────
+async function lvCallContact() {
+  if (!currentConvOtherId) return showToast('Ouvrez une conversation d\'abord', 'wa');
+  const { data: p } = await sb.from('profiles').select('prenom,nom').eq('id', currentConvOtherId).single();
+  const nomContact = p ? ((p.prenom||'') + ' ' + (p.nom||'')).trim() : 'Contact';
+  await _lvLancerAppel(currentConvOtherId, nomContact, null);
+}
+
+// ── Cœur : lancer l'appel ─────────────────────────────
+async function _lvLancerAppel(targetId, nomContact, courseId) {
+  if (_lvRtcPeer) return showToast('Appel déjà en cours', 'wa');
+  _lvRtcRole = 'caller'; _lvRtcTargetId = targetId;
+
+  try {
+    _lvRtcLocalStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+    });
+  } catch(e) { return showToast('🎤 Microphone non autorisé', 'er'); }
+
+  const chName = 'rtc-call-' + [currentUser.id, targetId].sort().join('-');
+  _lvRtcChannel = _lvBuildCallChannel(chName)
     .on('broadcast', { event: 'answer' }, async ({ payload }) => {
       if (payload.to !== currentUser.id) return;
       if (_lvRtcRinging) { _lvRtcRinging(); _lvRtcRinging = null; }
       await _lvRtcPeer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
-      const st = document.getElementById('lv-call-status'); if (st) st.textContent = '🟢 Connecté';
-      const rBtn = document.getElementById('lv-call-repondre'); if (rBtn) rBtn.style.display = 'none';
-    })
-    .on('broadcast', { event: 'ice' }, async ({ payload }) => {
-      if (payload.from === currentUser.id) return;
-      try { await _lvRtcPeer?.addIceCandidate(new RTCIceCandidate(payload.candidate)); } catch(e){}
+      _lvStartCallTimer();
+      _lvUpdateCallUI('connected');
     })
     .on('broadcast', { event: 'hangup' }, () => lvRaccrocher(false))
     .subscribe(async status => {
@@ -1846,58 +2052,138 @@ async function initierAppelWebRTCLv(courseId, clientId) {
       _lvRtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _lvRtcLocalStream));
       const offer = await peer.createOffer();
       await peer.setLocalDescription(offer);
-      await _lvRtcChannel.send({ type: 'broadcast', event: 'offer', payload: { sdp: offer, from: currentUser.id, to: clientId, courseId } });
-      await sb.from('notifications').insert({ utilisateur_id: clientId, titre: '📞 Appel de votre livreur', corps: `${currentProfile?.prenom||'Votre livreur'} vous appelle via Allô Livreur`, type: 'appel_rtc', meta: { courseId, callerId: currentUser.id } });
+      // Envoyer l'offer sur le canal commun
+      await _lvRtcChannel.send({ type: 'broadcast', event: 'offer',
+        payload: { sdp: offer, from: currentUser.id, to: targetId, courseId,
+                   callerName: currentProfile?.prenom || 'Livreur' } });
+      // Canal personnel de la cible (écoute même sans conv ouverte)
+      await sb.channel('rtc-incoming-' + targetId).send({ type: 'broadcast', event: 'offer',
+        payload: { sdp: offer, from: currentUser.id, to: targetId, courseId,
+                   callerName: currentProfile?.prenom || 'Livreur' } });
+      // Notification backup
+      await sb.from('notifications').insert({
+        utilisateur_id: targetId,
+        titre: '📞 Appel de votre livreur',
+        corps: `${currentProfile?.prenom||'Votre livreur'} vous appelle via Allô Livreur`,
+        type: 'appel_rtc',
+        meta: { courseId, callerId: currentUser.id }
+      });
       _lvRtcRinging = _lvPlayRingtone(true);
-      _lvShowCallModal('caller');
+      _lvShowCallModal('caller', nomContact);
     });
 }
 
-function _lvShowCallModal(role) {
-  const st = document.getElementById('lv-call-status');
-  const rBtn = document.getElementById('lv-call-repondre');
-  if (st) st.textContent = role === 'caller' ? 'Appel en cours…' : '📞 Appel entrant';
-  if (rBtn) rBtn.style.display = role === 'callee' ? 'flex' : 'none';
-  openModal('modal-lv-appel');
+// ── Répondre à un appel entrant ────────────────────────
+async function lvRepondreAppel(payload) {
+  _lvRtcRole = 'callee'; _lvRtcTargetId = payload.from;
+  if (_lvRtcRinging) { _lvRtcRinging(); _lvRtcRinging = null; }
+  try {
+    _lvRtcLocalStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+    });
+  } catch(e) { return showToast('🎤 Micro non autorisé', 'er'); }
+  const peer = _lvRtcPeer || _lvCreatePeer();
+  _lvRtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _lvRtcLocalStream));
+  await peer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+  const answer = await peer.createAnswer();
+  await peer.setLocalDescription(answer);
+  await _lvRtcChannel.send({ type: 'broadcast', event: 'answer',
+    payload: { sdp: answer, from: currentUser.id, to: payload.from } });
+  _lvStartCallTimer();
+  _lvUpdateCallUI('connected');
+  const audioElR = document.getElementById('lv-rtc-remote-audio');
+  if (audioElR && audioElR.srcObject) audioElR.play().catch(() => {});
 }
 
+// ── Raccrocher ─────────────────────────────────────────
 function lvRaccrocher(sendSignal = true) {
-  if (sendSignal && _lvRtcChannel) _lvRtcChannel.send({ type: 'broadcast', event: 'hangup', payload: { from: currentUser.id } }).catch(()=>{});
+  if (!_lvRtcPeer && !_lvRtcChannel && !_lvRtcLocalStream) {
+    closeModal('modal-lv-appel'); return;
+  }
+  if (sendSignal && _lvRtcChannel)
+    _lvRtcChannel.send({ type: 'broadcast', event: 'hangup', payload: { from: currentUser.id } }).catch(()=>{});
   if (_lvRtcRinging) { _lvRtcRinging(); _lvRtcRinging = null; }
+  clearInterval(_lvRtcCallTimer); _lvRtcCallTimer = null;
+  const audioEl = document.getElementById('lv-rtc-remote-audio');
+  if (audioEl) { audioEl.pause(); audioEl.srcObject = null; }
   if (_lvRtcLocalStream) { _lvRtcLocalStream.getTracks().forEach(t => t.stop()); _lvRtcLocalStream = null; }
   if (_lvRtcPeer) { _lvRtcPeer.close(); _lvRtcPeer = null; }
   if (_lvRtcChannel) { sb.removeChannel(_lvRtcChannel); _lvRtcChannel = null; }
+  _lvRtcRemoteStream = null;
+  if (navigator.vibrate) navigator.vibrate(0);
   closeModal('modal-lv-appel');
 }
 
-// Écouter les appels entrants (client → livreur)
+// ── Toggle mute ────────────────────────────────────────
+function lvToggleMute() {
+  _lvRtcMuted = !_lvRtcMuted;
+  _lvRtcLocalStream?.getAudioTracks().forEach(t => t.enabled = !_lvRtcMuted);
+  const btn = document.getElementById('lv-call-btn-mute');
+  if (btn) {
+    btn.querySelector('div').style.background = _lvRtcMuted ? '#DC2626' : 'rgba(255,255,255,.18)';
+    btn.querySelector('span').textContent = _lvRtcMuted ? 'Muet' : 'Sourdine';
+    btn.querySelector('i').className = _lvRtcMuted ? 'ti ti-microphone-off' : 'ti ti-microphone';
+  }
+}
+
+// ── Toggle haut-parleur ────────────────────────────────
+function lvToggleSpeaker() {
+  _lvRtcSpeaker = !_lvRtcSpeaker;
+  const audio = document.getElementById('lv-rtc-remote-audio');
+  if (audio && audio.setSinkId) audio.setSinkId(_lvRtcSpeaker ? 'default' : '').catch(()=>{});
+  const btn = document.getElementById('lv-call-btn-speaker');
+  if (btn) {
+    btn.querySelector('div').style.background = _lvRtcSpeaker ? '#2563EB' : 'rgba(255,255,255,.18)';
+    btn.querySelector('span').textContent = _lvRtcSpeaker ? 'HP ON' : 'HP';
+  }
+}
+
+// ── Modal d'appel ──────────────────────────────────────
+function _lvShowCallModal(role, nomContact) {
+  const nameEl = document.getElementById('lv-call-contact-name');
+  const st = document.getElementById('lv-call-status');
+  const timer = document.getElementById('lv-call-timer');
+  const rBtn = document.getElementById('lv-call-repondre');
+  const muteBtn = document.getElementById('lv-call-btn-mute');
+  const spkBtn = document.getElementById('lv-call-btn-speaker');
+  if (nameEl) nameEl.textContent = nomContact || 'Contact';
+  if (st) st.textContent = role === 'caller' ? '📡 Appel en cours…' : '📞 Appel entrant';
+  if (timer) timer.textContent = '';
+  if (rBtn) rBtn.style.display = role === 'callee' ? 'flex' : 'none';
+  if (muteBtn) muteBtn.style.display = role === 'caller' ? 'none' : 'flex';
+  if (spkBtn) spkBtn.style.display = 'flex';
+  _lvRtcMuted = false;
+  _lvRtcLocalStream?.getAudioTracks().forEach(t => t.enabled = true);
+  openModal('modal-lv-appel');
+}
+
+function _lvUpdateCallUI(state) {
+  const st = document.getElementById('lv-call-status');
+  const rBtn = document.getElementById('lv-call-repondre');
+  const muteBtn = document.getElementById('lv-call-btn-mute');
+  if (state === 'connected') {
+    if (st) st.textContent = '🟢 En communication';
+    if (rBtn) rBtn.style.display = 'none';
+    if (muteBtn) muteBtn.style.display = 'flex';
+  }
+}
+
+// ── Écouter les appels entrants (client → livreur) ─────
 function startLvRTCListener() {
   if (!currentUser?.id) return;
   sb.channel('rtc-incoming-' + currentUser.id)
     .on('broadcast', { event: 'offer' }, async ({ payload }) => {
       if (payload.to !== currentUser.id) return;
+      if (_lvRtcPeer) return; // déjà en appel
       const chName = 'rtc-call-' + [payload.from, currentUser.id].sort().join('-');
-      _lvRtcChannel = sb.channel(chName)
-        .on('broadcast', { event: 'ice' }, async ({ payload: p }) => {
-          if (p.from === currentUser.id) return;
-          try { await _lvRtcPeer?.addIceCandidate(new RTCIceCandidate(p.candidate)); } catch(e){}
-        })
-        .on('broadcast', { event: 'hangup' }, () => lvRaccrocher(false));
+      _lvRtcChannel = _lvBuildCallChannel(chName)
+        .on('broadcast', { event: 'answer' }, () => {}); // géré côté appelant
       await new Promise(res => _lvRtcChannel.subscribe(s => s === 'SUBSCRIBED' && res()));
       _lvCreatePeer();
       _lvRtcRinging = _lvPlayRingtone(true);
-      _lvShowCallModal('callee');
-      document.getElementById('lv-call-repondre').onclick = async () => {
-        if (_lvRtcRinging) { _lvRtcRinging(); _lvRtcRinging = null; }
-        try { _lvRtcLocalStream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch(e) { return showToast('Micro non autorisé','er'); }
-        _lvRtcLocalStream.getTracks().forEach(t => _lvRtcPeer.addTrack(t, _lvRtcLocalStream));
-        await _lvRtcPeer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
-        const answer = await _lvRtcPeer.createAnswer();
-        await _lvRtcPeer.setLocalDescription(answer);
-        await _lvRtcChannel.send({ type: 'broadcast', event: 'answer', payload: { sdp: answer, from: currentUser.id, to: payload.from } });
-        const st = document.getElementById('lv-call-status'); if(st) st.textContent = '🟢 Connecté';
-        const rBtn = document.getElementById('lv-call-repondre'); if(rBtn) rBtn.style.display = 'none';
-      };
+      const nomAppelant = payload.callerName || 'Client';
+      _lvShowCallModal('callee', nomAppelant);
+      document.getElementById('lv-call-repondre').onclick = () => lvRepondreAppel(payload);
     })
     .subscribe();
 }
@@ -2399,11 +2685,8 @@ function broadcastTyping() {
   _typingCh.send({type:'broadcast',event:'typing',payload:{uid:currentUser.id}});
 }
 function callContact() {
-  if (!currentConvId) return showToast('Ouvrez une conversation d\'abord');
-  const tel = document.getElementById('chat-contact-tel')?.textContent;
-  if (tel && tel !== '—') { window.open('tel:'+tel); return; }
-  sb.from('messages').insert({ conversation_id: currentConvId, expediteur_id: currentUser.id, type: 'texte', contenu: '📞 Appel entrant — veuillez me rappeler' });
-  showToast('📞 Demande d\'appel envoyée', 'ok');
+  // Alias — utilise le nouveau système WebRTC complet
+  lvCallContact();
 }
 // hidden span to hold tel
 document.addEventListener('DOMContentLoaded',()=>{const sp=document.createElement('span');sp.id='chat-contact-tel';sp.style.display='none';sp.textContent='—';document.body.appendChild(sp);});
@@ -2750,23 +3033,67 @@ async function ouvrirOuCreerConvFromSearch(autreProfileId) {
 <!-- ─── AUDIO WEBRTC ─── -->
 <audio id="lv-rtc-remote-audio" autoplay playsinline style="display:none"></audio>
 
+<!-- ─── STYLES MODAL APPEL WEBRTC ─── -->
+<style>
+#modal-lv-appel .modal-sheet {
+  background: linear-gradient(160deg, #1A1A18 0%, #2d1e10 100%);
+  border-radius: 24px 24px 0 0;
+  color: #fff;
+}
+#modal-lv-appel .lv-call-avatar {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: var(--primary-light); border: 3px solid var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.2rem; animation: pulse 1.5s infinite;
+  box-shadow: 0 0 0 8px rgba(249,115,22,.15);
+}
+#modal-lv-appel .lv-call-action {
+  display: flex; flex-direction: column; align-items: center; gap: .35rem;
+  background: none; border: none; cursor: pointer;
+}
+#modal-lv-appel .lv-call-action div {
+  width: 56px; height: 56px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; color: #fff; transition: transform .15s;
+}
+#modal-lv-appel .lv-call-action:active div { transform: scale(.88); }
+#modal-lv-appel .lv-call-action span {
+  font-size: .7rem; font-weight: 600; color: rgba(255,255,255,.7);
+}
+</style>
+
 <!-- ─── MODAL APPEL WEBRTC LIVREUR ─── -->
 <div class="modal-overlay" id="modal-lv-appel" onclick="">
-  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:55vh">
-    <div style="padding:2rem 1.5rem;display:flex;flex-direction:column;align-items:center;gap:1.2rem">
-      <div style="width:68px;height:68px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:2rem;border:3px solid var(--primary);animation:pulse 1.5s infinite">📞</div>
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:60vh">
+    <div style="padding:2rem 1.5rem 1.5rem;display:flex;flex-direction:column;align-items:center;gap:1.1rem">
+      <!-- Avatar -->
+      <div class="lv-call-avatar">📞</div>
+      <!-- Nom + statut -->
       <div style="text-align:center">
-        <div style="font-family:var(--font-display);font-weight:800;font-size:1.2rem">Client</div>
-        <div style="font-size:.85rem;color:var(--text2);margin-top:.3rem" id="lv-call-status">Appel en cours…</div>
+        <div style="font-family:var(--font-display);font-weight:800;font-size:1.25rem;color:#fff" id="lv-call-contact-name">Contact</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.6);margin-top:.25rem" id="lv-call-status">📡 Appel en cours…</div>
+        <div style="font-size:.88rem;font-weight:700;color:rgba(255,255,255,.85);margin-top:.2rem;letter-spacing:.5px;min-height:1.2rem" id="lv-call-timer"></div>
       </div>
-      <div style="display:flex;gap:1.5rem;margin-top:.5rem">
-        <button id="lv-call-repondre" style="display:none;flex-direction:column;align-items:center;gap:.4rem;background:none;border:none;cursor:pointer">
-          <div style="width:54px;height:54px;border-radius:50%;background:#16A34A;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.4rem;box-shadow:0 4px 14px rgba(22,163,74,.4)"><i class="ti ti-phone-call"></i></div>
-          <span style="font-size:.72rem;font-weight:600;color:var(--text2)">Répondre</span>
+      <!-- Boutons secondaires : mute + haut-parleur -->
+      <div style="display:flex;gap:1.2rem;margin-top:.2rem">
+        <button class="lv-call-action" id="lv-call-btn-mute" onclick="lvToggleMute()" style="display:none">
+          <div style="background:rgba(255,255,255,.18)"><i class="ti ti-microphone"></i></div>
+          <span>Sourdine</span>
         </button>
-        <button onclick="lvRaccrocher(true)" style="display:flex;flex-direction:column;align-items:center;gap:.4rem;background:none;border:none;cursor:pointer">
-          <div style="width:54px;height:54px;border-radius:50%;background:#DC2626;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.4rem;box-shadow:0 4px 14px rgba(220,38,38,.4)"><i class="ti ti-phone-off"></i></div>
-          <span style="font-size:.72rem;font-weight:600;color:var(--text2)">Raccrocher</span>
+        <button class="lv-call-action" id="lv-call-btn-speaker" onclick="lvToggleSpeaker()">
+          <div style="background:rgba(255,255,255,.18)"><i class="ti ti-volume"></i></div>
+          <span>HP</span>
+        </button>
+      </div>
+      <!-- Boutons principaux : répondre + raccrocher -->
+      <div style="display:flex;gap:2rem;margin-top:.4rem">
+        <button class="lv-call-action" id="lv-call-repondre" style="display:none">
+          <div style="background:#16A34A;box-shadow:0 4px 14px rgba(22,163,74,.4)"><i class="ti ti-phone-call"></i></div>
+          <span>Répondre</span>
+        </button>
+        <button class="lv-call-action" onclick="lvRaccrocher(true)">
+          <div style="background:#DC2626;box-shadow:0 4px 14px rgba(220,38,38,.4)"><i class="ti ti-phone-off"></i></div>
+          <span>Raccrocher</span>
         </button>
       </div>
     </div>

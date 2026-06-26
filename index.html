@@ -1275,13 +1275,28 @@ input:valid {
           </div>
           <div class="field-row">
             <select id="cp-type" onchange="onTypeChange()" required>
-              <option value="simple" selected>📦 Course simple</option>
-              <option value="avec_marchand">🏪 Avec marchand</option>
-              <option value="colis_tiers">📫 Colis tiers</option>
-              <option value="multi_arrets">🔀 Multi-arrêts</option>
-              <option value="programmee">🗓️ Programmée</option>
+              <optgroup label="🛵 Moto / Zem">
+                <option value="simple" selected>📦 Course simple</option>
+                <option value="zem">🛵 Go Zem (moto taxi)</option>
+              </optgroup>
+              <optgroup label="🚗 Voiture">
+                <option value="voiture_classique">🚗 Voiture classique</option>
+                <option value="voiture_confort">🌟 Voiture confort (clim)</option>
+                <option value="voiture_eco">💚 Voiture Éco (économique)</option>
+              </optgroup>
+              <optgroup label="👨‍👧 Services spéciaux">
+                <option value="transport_enfant">🏫 Transport enfant (école)</option>
+                <option value="demenagement">📦 Déménagement</option>
+                <option value="camionnette">🚐 Gros colis / Camionnette</option>
+              </optgroup>
+              <optgroup label="📋 Livraison avancée">
+                <option value="avec_marchand">🏪 Avec marchand</option>
+                <option value="colis_tiers">📫 Colis tiers</option>
+                <option value="multi_arrets">🔀 Multi-arrêts</option>
+                <option value="programmee">🗓️ Programmée</option>
+              </optgroup>
             </select>
-            <select id="cp-urgent" onchange="estimerPrix()" required>
+            <div id="cp-type-hint" style="font-size:.74rem;padding:.4rem .65rem;border-radius:6px;background:var(--primary-light);color:var(--primary-dark);margin-top:.3rem;margin-bottom:.2rem;display:none"></div>
               <option value="false">Normal</option>
               <option value="true">⚡ Urgent</option>
             </select>
@@ -1458,12 +1473,28 @@ input:valid {
           <span id="mob-dist-detail">—</span>
         </div>
         <select id="mob-type" onchange="onMobTypeChange()" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;margin-bottom:.5rem;background:var(--bg)">
-          <option value="simple" selected>📦 Course simple</option>
-          <option value="avec_marchand">🏪 Avec marchand</option>
-          <option value="colis_tiers">📫 Colis tiers</option>
-          <option value="multi_arrets">🔀 Multi-arrêts</option>
-          <option value="programmee">🗓️ Programmée</option>
+          <optgroup label="🛵 Moto / Zem">
+            <option value="simple" selected>📦 Course simple</option>
+            <option value="zem">🛵 Go Zem (moto taxi)</option>
+          </optgroup>
+          <optgroup label="🚗 Voiture">
+            <option value="voiture_classique">🚗 Voiture classique</option>
+            <option value="voiture_confort">🌟 Voiture confort (clim)</option>
+            <option value="voiture_eco">💚 Voiture Éco (économique)</option>
+          </optgroup>
+          <optgroup label="👨‍👧 Services spéciaux">
+            <option value="transport_enfant">🏫 Transport enfant (école)</option>
+            <option value="demenagement">📦 Déménagement</option>
+            <option value="camionnette">🚐 Gros colis / Camionnette</option>
+          </optgroup>
+          <optgroup label="📋 Livraison avancée">
+            <option value="avec_marchand">🏪 Avec marchand</option>
+            <option value="colis_tiers">📫 Colis tiers</option>
+            <option value="multi_arrets">🔀 Multi-arrêts</option>
+            <option value="programmee">🗓️ Programmée</option>
+          </optgroup>
         </select>
+        <div id="mob-type-hint" style="font-size:.74rem;padding:.4rem .65rem;border-radius:6px;background:var(--primary-light);color:var(--primary-dark);margin-bottom:.4rem;display:none"></div>
         <select id="mob-urgent" onchange="estimerPrix()" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;margin-bottom:.5rem;background:var(--bg)">
           <option value="false">Normal</option>
           <option value="true">⚡ Urgent (+30%)</option>
@@ -1799,6 +1830,28 @@ input:valid {
           <button onclick="copierCodeLivraison()" style="background:#F59E0B;color:#fff;border:none;border-radius:var(--radius-xs);padding:.4rem .65rem;font-size:.75rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-copy"></i></button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL NOTATION LIVREUR ─── -->
+<div class="modal-overlay" id="modal-notation" onclick="event.target===this&&fermerModalNotation()">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem;text-align:center">
+      <div style="font-size:2.2rem;margin-bottom:.3rem">🛵</div>
+      <div style="font-family:var(--font-display);font-size:1.15rem;font-weight:800;margin-bottom:.15rem">Comment était votre livraison ?</div>
+      <div style="font-size:.82rem;color:var(--text2);margin-bottom:1.1rem">Notez <span id="notation-lv-nom" style="font-weight:700">votre livreur</span></div>
+      <div id="notation-stars" style="display:flex;justify-content:center;gap:.4rem;font-size:2.1rem;margin-bottom:1rem;cursor:pointer">
+        <span class="notation-star" data-n="1" onclick="selectionnerEtoile(1)">☆</span>
+        <span class="notation-star" data-n="2" onclick="selectionnerEtoile(2)">☆</span>
+        <span class="notation-star" data-n="3" onclick="selectionnerEtoile(3)">☆</span>
+        <span class="notation-star" data-n="4" onclick="selectionnerEtoile(4)">☆</span>
+        <span class="notation-star" data-n="5" onclick="selectionnerEtoile(5)">☆</span>
+      </div>
+      <textarea id="notation-commentaire" placeholder="Un commentaire ? (optionnel)" style="width:100%;min-height:70px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);padding:.6rem .75rem;font-family:var(--font);font-size:.85rem;resize:vertical;margin-bottom:1rem"></textarea>
+      <button class="btn-primary" style="width:100%" onclick="envoyerNotation()"><i class="ti ti-star"></i> Envoyer ma note</button>
+      <button onclick="fermerModalNotation()" style="width:100%;margin-top:.5rem;background:none;border:none;color:var(--text3);font-size:.8rem;padding:.5rem;cursor:pointer;font-family:var(--font)">Plus tard</button>
     </div>
   </div>
 </div>
@@ -3631,6 +3684,20 @@ async function ouvrirDetailCourse(courseId) {
   const distKm = c.distance_km ? parseFloat(c.distance_km).toFixed(1) + ' km' : '—';
   const urgent = c.est_urgent ? '<span style="background:#FEF2F2;color:#DC2626;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:50px;display:inline-block">🔥 URGENT</span>' : '';
 
+  // Notation : récupérer un éventuel avis déjà laissé pour cette course
+  let existingAvis = null;
+  const estLivree = c.statut === 'livree' || c.statut === 'terminee';
+  if (estLivree && c.livreur?.id) {
+    const { data: av } = await sb.from('avis_livreurs').select('note,commentaire').eq('course_id', c.id).maybeSingle();
+    existingAvis = av || null;
+  }
+  const lvNomSafe = (lvNom || 'votre livreur').replace(/'/g, "\\'");
+  const notationBlock = estLivree && c.livreur?.id
+    ? (existingAvis
+        ? `<div style="background:var(--bg);border-radius:var(--radius-sm);padding:.65rem .9rem;margin-bottom:.75rem;border:1px solid var(--border);font-size:.82rem;color:var(--text2)">⭐ Vous avez noté ce livreur <strong>${existingAvis.note}/5</strong>${existingAvis.commentaire ? ` — « ${existingAvis.commentaire} »` : ''}</div>`
+        : `<button onclick="closeModal('modal-detail-course');ouvrirModalNotation('${c.id}','${c.livreur.id}','${lvNomSafe}')" style="width:100%;padding:.72rem;background:var(--primary-light);color:var(--primary-dark);border:none;border-radius:var(--radius-sm);font-family:var(--font);font-weight:700;font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-bottom:.75rem"><i class="ti ti-star"></i> Noter ce livreur</button>`)
+    : '';
+
   // Build livreur block
   const lvBlock = lvNom ? `
     <div style="background:var(--bg);border-radius:var(--radius-sm);padding:.75rem .9rem;margin-bottom:.75rem;border:1px solid var(--border)">
@@ -3724,6 +3791,9 @@ async function ouvrirDetailCourse(courseId) {
 
     <!-- Photo preuve -->
     ${preuveBlock}
+
+    <!-- Notation livreur -->
+    ${notationBlock}
 
     <!-- Actions -->
     ${['acceptee','en_cours','livraison_en_cours'].includes(c.statut) ? `
@@ -4161,7 +4231,11 @@ async function voirCourseEnCours() {
           updateSuiviStep('livree');
           if (suiviLvMarker) { suiviLvMarker.setIcon(makeTrackIcon('✅', 'var(--success)')); }
           showToast('🎉 Livraison confirmée !', 'ok');
-          setTimeout(() => { closeModal('modal-suivi'); loadCourses(); }, 2500);
+          setTimeout(() => {
+            closeModal('modal-suivi');
+            loadCourses();
+            if (c.livreur?.id) ouvrirModalNotation(c.id, c.livreur.id, nom);
+          }, 2500);
         }
       })
     // 3. Fallback : UPDATE de la position dans la table livreurs
@@ -4709,7 +4783,7 @@ async function showAbonnement() {
     const { data } = await sb.from('abonnements_clients')
       .select('*').eq('client_id', currentUser.id).eq('statut', 'actif').single();
     if (data) {
-      document.getElementById('abo-plan-nom').textContent = data.type_plan === 'annuel' ? '🥇 Premium Annuel' : '🥈 Premium Mensuel';
+      document.getElementById('abo-plan-nom').textContent = data.type_forfait === 'annuel' ? '🥇 Premium Annuel' : '🥈 Premium Mensuel';
       const fin = new Date(data.date_fin).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
       document.getElementById('abo-plan-detail').textContent = 'Actif jusqu\'au ' + fin;
     }
@@ -4725,7 +4799,7 @@ async function souscrireAbo(type, montant) {
   else fin.setMonth(fin.getMonth() + 1);
   try {
     await sb.from('abonnements_clients').upsert({
-      client_id: currentUser.id, type_plan: type, statut: 'actif',
+      client_id: currentUser.id, type_forfait: type, prix: montant, statut: 'actif',
       date_debut: now.toISOString(), date_fin: fin.toISOString()
     }, { onConflict: 'client_id' });
     document.getElementById('abo-plan-nom').textContent = type === 'annuel' ? '🥇 Premium Annuel' : '🥈 Premium Mensuel';
@@ -4761,6 +4835,54 @@ window.addEventListener('resize', () => {
 // ── Modals
 function openModal(id){ const m=document.getElementById(id); if(m) m.classList.add('open'); }
 function closeModal(id){ const m=document.getElementById(id); if(m) m.classList.remove('open'); }
+
+// ══════════════════════════════════════════════════════════════
+//  NOTATION LIVREUR
+// ══════════════════════════════════════════════════════════════
+let _notationCourseId = null, _notationLivreurId = null, _notationNote = 0;
+function ouvrirModalNotation(courseId, livreurId, nomLivreur) {
+  _notationCourseId = courseId;
+  _notationLivreurId = livreurId;
+  _notationNote = 0;
+  document.getElementById('notation-lv-nom').textContent = nomLivreur || 'votre livreur';
+  document.getElementById('notation-commentaire').value = '';
+  document.querySelectorAll('#notation-stars .notation-star').forEach(s => { s.textContent = '☆'; s.style.color = 'var(--text3)'; });
+  openModal('modal-notation');
+}
+function fermerModalNotation() {
+  closeModal('modal-notation');
+  _notationCourseId = null; _notationLivreurId = null; _notationNote = 0;
+}
+function selectionnerEtoile(n) {
+  _notationNote = n;
+  document.querySelectorAll('#notation-stars .notation-star').forEach(s => {
+    const filled = parseInt(s.dataset.n) <= n;
+    s.textContent = filled ? '★' : '☆';
+    s.style.color = filled ? '#F59E0B' : 'var(--text3)';
+  });
+}
+async function envoyerNotation() {
+  if (!_notationNote) return showToast('Choisissez au moins une étoile', 'wa');
+  if (!_notationCourseId || !_notationLivreurId) return fermerModalNotation();
+  const commentaire = document.getElementById('notation-commentaire').value.trim() || null;
+  try {
+    const { error } = await sb.from('avis_livreurs').insert({
+      course_id: _notationCourseId, client_id: currentUser.id,
+      livreur_id: _notationLivreurId, note: _notationNote, commentaire
+    });
+    if (error) throw error;
+    // Recalcul de la note moyenne du livreur
+    const { data: avis } = await sb.from('avis_livreurs').select('note').eq('livreur_id', _notationLivreurId);
+    if (avis?.length) {
+      const moyenne = avis.reduce((s, a) => s + a.note, 0) / avis.length;
+      await sb.from('livreurs').update({ note_moyenne: Math.round(moyenne * 10) / 10 }).eq('id', _notationLivreurId);
+    }
+    showToast('Merci pour votre avis ⭐', 'ok');
+    fermerModalNotation();
+  } catch (e) {
+    showToast('Erreur : ' + (e.message || 'envoi impossible'), 'er');
+  }
+}
 
 // ── Autocomplete Nominatim — style Google Maps
 const _acTimers={};
@@ -4911,20 +5033,38 @@ function getDistKm() {
 
 // ── Multi-arrêts
 let stopCount=0;
+const _typeHints={
+  zem:'🛵 Moto taxi rapide — idéal pour se déplacer en ville',
+  voiture_classique:'🚗 Berline standard — confortable pour 1 à 4 personnes',
+  voiture_confort:'🌟 Voiture climatisée premium — voyage en toute sérénité (×2)',
+  voiture_eco:'💚 Option économique — prix réduit, véhicule basique (×1.2)',
+  transport_enfant:'🏫 Transport sécurisé pour enfants — entrée / sortie d\'école (×1.8)',
+  demenagement:'📦 Déménagement — grand volume, équipe disponible (×3)',
+  camionnette:'🚐 Gros colis ou commande commerciale en camionnette (×2.5)',
+  simple:'📦 Livraison standard — colis, commandes du quotidien',
+  avec_marchand:'🏪 Le livreur achète et livre à votre place',
+  colis_tiers:'📫 Récupérer un colis chez une tierce personne',
+  multi_arrets:'🔀 Plusieurs points de récupération ou livraison',
+  programmee:'🗓️ Planifiez votre livraison à l\'avance'
+};
 function onTypeChange(){
   const type=document.getElementById('cp-type').value;
   const sc=document.getElementById('stops-container');
   const ps=document.getElementById('prog-section');
+  const hint=document.getElementById('cp-type-hint');
   if(sc) sc.style.display=(type==='multi_arrets')?'block':'none';
   if(ps) ps.style.display=(type==='programmee')?'block':'none';
+  if(hint){ const h=_typeHints[type]; if(h){hint.textContent=h;hint.style.display='block';}else{hint.style.display='none';} }
   estimerPrix();
 }
 function onMobTypeChange(){
   const type=document.getElementById('mob-type').value;
   const sc=document.getElementById('mob-stops-container');
   const ps=document.getElementById('mob-prog-section');
+  const hint=document.getElementById('mob-type-hint');
   if(sc) sc.style.display=(type==='multi_arrets')?'':'none';
   if(ps) ps.style.display=(type==='programmee')?'':'none';
+  if(hint){ const h=_typeHints[type]; if(h){hint.textContent=h;hint.style.display='block';}else{hint.style.display='none';} }
   estimerPrix();
 }
 // Stockage coordonnées des arrêts intermédiaires
@@ -4987,11 +5127,19 @@ function removeStop(id){
 }
 
 // ── Calcul prix (inclut distance livreur → départ + départ → arrivée)
-function calcPrix(lv, distKm, urgent){
+function calcPrix(lv, distKm, urgent, type){
   const base=parseFloat(lv?.tarif_base||configPlateforme.tarif_base_fcfa||500);
   const km=parseFloat(lv?.tarif_km||configPlateforme.tarif_km_fcfa||200);
-  const maj=urgent?parseFloat(configPlateforme.taux_urgence_majoration_pct||30)/100:0;
-  return Math.round((base+km*distKm)*(1+maj));
+  const maj=urgent?parseFloat(configPlateforme.majoration_urgence_pct||30)/100:0;
+  // Multiplicateurs selon type de course
+  const typeMulti={
+    simple:1, zem:1,
+    voiture_classique:1.5, voiture_confort:2, voiture_eco:1.2,
+    transport_enfant:1.8, demenagement:3, camionnette:2.5,
+    avec_marchand:1.1, colis_tiers:1, multi_arrets:1, programmee:1
+  };
+  const multi = typeMulti[type] || 1;
+  return Math.round((base+km*distKm)*(1+maj)*multi);
 }
 
 // Distance livreur → point de départ (si coords dispo)
@@ -5023,12 +5171,15 @@ function estimerPrix(){
 
   const urgent=(document.getElementById('cp-urgent')?.value==='true')||(document.getElementById('mob-urgent')?.value==='true');
   const stops=document.querySelectorAll('[id^="stop-"]').length;
-  const prix=calcPrix(selectedLivreur,distTotale,urgent)+stops*200;
-  const majPct=urgent?parseFloat(configPlateforme.taux_urgence_majoration_pct||30):0;
+  const courseType=(document.getElementById('cp-type')?.value||document.getElementById('mob-type')?.value||'simple');
+  const prix=calcPrix(selectedLivreur,distTotale,urgent,courseType)+stops*200;
+  const majPct=urgent?parseFloat(configPlateforme.majoration_urgence_pct||30):0;
+  const typeMultiLabels={voiture_classique:'×1.5',voiture_confort:'×2',voiture_eco:'×1.2',transport_enfant:'×1.8',demenagement:'×3',camionnette:'×2.5',zem:'×1'};
 
   // Détail lisible
   let detail = `${distTrajet} km trajet`;
   if (distLivreur > 0) detail += ` + ${distLivreur} km (livreur → départ)`;
+  if (typeMultiLabels[courseType]) detail += ` · ${typeMultiLabels[courseType]} (type)`;
   if (urgent) detail += ` · ⚡ +${majPct}% urgent`;
   if (stops) detail += ` · +${stops} arrêt(s)`;
 
@@ -5064,7 +5215,7 @@ async function passerCommandeCore(depart, arrivee, type, urgent, programmee, mod
   if(!depart||!arrivee) return showToast('Renseignez le depart et l arrivee','wa');
 
   // ── Sécurité : type ne peut pas être vide (enum PostgreSQL) ──
-  const typesValides = ['simple','avec_marchand','colis_tiers','multi_arrets','programmee'];
+  const typesValides = ['simple','zem','voiture_classique','voiture_confort','voiture_eco','transport_enfant','demenagement','camionnette','avec_marchand','colis_tiers','multi_arrets','programmee'];
   const typeFinal = typesValides.includes(type) ? type : 'simple';
 
   // Coordonnées GPS réelles (sélectionnées via Nominatim)
@@ -5078,7 +5229,7 @@ async function passerCommandeCore(depart, arrivee, type, urgent, programmee, mod
   const stopEls = [...document.querySelectorAll('[id^="stop-"]')];
   const stops = stopEls.length;
 
-  const prix = calcPrix(selectedLivreur, distTotale, urgent) + stops * 200;
+  const prix = calcPrix(selectedLivreur, distTotale, urgent, typeFinal) + stops * 200;
   const commPct = parseFloat(configPlateforme.commission_livraison_pct||10);
   const comm = Math.round(prix * commPct / 100);
 
@@ -5100,7 +5251,7 @@ async function passerCommandeCore(depart, arrivee, type, urgent, programmee, mod
     adresse_arrivee: arrivee, lat_arrivee: arrCoords.lat, lng_arrivee: arrCoords.lng,
     distance_km: distTotale, prix_estime: prix, prix_final: prix,
     taux_commission: commPct, commission_plateforme: comm, gains_livreur: prix - comm,
-    est_urgent: urgent, taux_majoration: urgent ? parseFloat(configPlateforme.taux_urgence_majoration_pct||30) : 0,
+    est_urgent: urgent, taux_majoration: urgent ? parseFloat(configPlateforme.majoration_urgence_pct||30) : 0,
     est_programmee: !!programmee, heure_programmee: programmee || null,
     methode_paiement: modePaiement, est_paye: estPaye, statut: 'en_attente',
     code_confirmation
@@ -5141,7 +5292,7 @@ async function passerCommandeCore(depart, arrivee, type, urgent, programmee, mod
     }catch(e){}
 
     // 4. Notifier le livreur
-    const typeLabels = { simple:'Course simple', avec_marchand:'Avec marchand', colis_tiers:'Colis tiers', multi_arrets:'Multi-arrêts', programmee:'Programmée' };
+    const typeLabels = { simple:'Course simple', zem:'Go Zem (moto taxi)', voiture_classique:'Voiture classique', voiture_confort:'Voiture confort', voiture_eco:'Voiture Éco', transport_enfant:'Transport enfant (école)', demenagement:'Déménagement', camionnette:'Gros colis / Camionnette', avec_marchand:'Avec marchand', colis_tiers:'Colis tiers', multi_arrets:'Multi-arrêts', programmee:'Programmée' };
     await sb.from('notifications').insert({
       utilisateur_id: selectedLivreurId,
       titre: '🛵 Nouvelle course !',

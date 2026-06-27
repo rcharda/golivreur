@@ -725,6 +725,42 @@ input[type=range]{flex:1;accent-color:var(--primary)}
       </div>
     </div>
 
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-icon"><i class="ti ti-steering-wheel"></i></div>
+        <div>
+          <div class="card-head-title">🧑‍✈️ Service Chauffeur (optionnel)</div>
+          <div class="card-head-sub">En plus de la livraison, devenez chauffeur</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <label class="check-item" style="margin-bottom:1rem">
+          <input type="checkbox" id="f-chauffeur" onchange="toggleChauffeurForm()"/>
+          <div class="check-item-text">
+            <strong>Je souhaite aussi être disponible comme chauffeur</strong>
+            Conduire des clients avec votre propre voiture, ou conduire le véhicule d'un client. Vous fixez vos tarifs séparément.
+          </div>
+        </label>
+        <div id="chauffeur-tarifs-wrap" style="display:none">
+          <div class="form-group">
+            <label class="form-label">Tarif chauffeur au kilomètre</label>
+            <div class="tarif-row">
+              <input type="range" id="slider-km-chauffeur" min="100" max="600" step="25" value="250" oninput="updateTarifChauffeur('km')"/>
+              <div class="tarif-val" id="val-km-chauffeur">250 FCFA/km</div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:1.25rem;margin-bottom:0">
+            <label class="form-label">Tarif chauffeur à l'heure</label>
+            <div class="tarif-row">
+              <input type="range" id="slider-heure-chauffeur" min="500" max="5000" step="100" value="1000" oninput="updateTarifChauffeur('heure')"/>
+              <div class="tarif-val" id="val-heure-chauffeur">1 000 FCFA/h</div>
+            </div>
+            <div class="form-hint">Ce tarif s'applique pour les courses chauffeur (km parcourus + heures de mise à disposition)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="btn-nav">
       <button class="btn btn-ghost" onclick="goStep(3)"><i class="ti ti-arrow-left"></i> Retour</button>
       <button class="btn btn-primary" style="flex:1" onclick="goStep(5)">Suivant <i class="ti ti-arrow-right"></i></button>
@@ -823,7 +859,22 @@ input[type=range]{flex:1;accent-color:var(--primary)}
 <script>
 const SUPABASE_URL = 'https://kathcclodsceifbyygzk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_9m78hZ7BUe9jYykJ1w3kZw_Q_yig4J3';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// ── Vérification localStorage (essentiel pour garder la session connectée dans l'APK) ──
+function _isStorageAvailable() {
+  try {
+    const k = '__storage_test__';
+    window.localStorage.setItem(k, '1');
+    window.localStorage.removeItem(k);
+    return true;
+  } catch (e) { return false; }
+}
+const _storageOk = _isStorageAvailable();
+if (!_storageOk) {
+  console.warn('⚠️ localStorage indisponible — la session ne persistera pas. Activez WebSettings.setDomStorageEnabled(true) côté Android.');
+}
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: _storageOk, autoRefreshToken: true, detectSessionInUrl: false }
+});
 
 let currentUser = null;
 let currentStep = 1;
@@ -1028,6 +1079,22 @@ function updateTarif(type) {
   document.getElementById('exemple-prix').textContent = exemple.toLocaleString('fr') + ' FCFA';
 }
 
+// ── CHAUFFEUR (optionnel) ──
+function toggleChauffeurForm() {
+  const checked = document.getElementById('f-chauffeur').checked;
+  document.getElementById('chauffeur-tarifs-wrap').style.display = checked ? 'block' : 'none';
+}
+function updateTarifChauffeur(type) {
+  if (type === 'km') {
+    const km = parseInt(document.getElementById('slider-km-chauffeur').value);
+    document.getElementById('val-km-chauffeur').textContent = km.toLocaleString('fr') + ' FCFA/km';
+  }
+  if (type === 'heure') {
+    const h = parseInt(document.getElementById('slider-heure-chauffeur').value);
+    document.getElementById('val-heure-chauffeur').textContent = h.toLocaleString('fr') + ' FCFA/h';
+  }
+}
+
 // ── AVATAR ──
 function previewAvatar(input) {
   if (!input.files[0]) return;
@@ -1102,6 +1169,9 @@ function buildRecap() {
   const km = document.getElementById('slider-km').value;
   const docs = ['cni','selfie','photo_id','permis','vehicule'];
   const docsOk = docs.filter(k => uploadedFiles[k]).length;
+  const estChauffeur = document.getElementById('f-chauffeur').checked;
+  const kmChauffeur = document.getElementById('slider-km-chauffeur').value;
+  const heureChauffeur = document.getElementById('slider-heure-chauffeur').value;
 
   document.getElementById('recap-body').innerHTML = `
     <div style="display:flex;flex-direction:column;gap:.65rem">
@@ -1121,10 +1191,15 @@ function buildRecap() {
         <span style="font-size:.8rem;color:var(--text2)"><i class="ti ti-bike"></i> Véhicule</span>
         <span style="font-size:.85rem;font-weight:600">${selectedVeh} · ${immat.toUpperCase()}</span>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:.8rem;color:var(--text2)"><i class="ti ti-coin"></i> Tarifs</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;${estChauffeur?'border-bottom:1px solid var(--border)':''}">
+        <span style="font-size:.8rem;color:var(--text2)"><i class="ti ti-coin"></i> Tarifs livraison</span>
         <span style="font-size:.85rem;font-weight:600">${parseInt(base).toLocaleString('fr')} FCFA + ${parseInt(km).toLocaleString('fr')} FCFA/km</span>
       </div>
+      ${estChauffeur ? `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:.8rem;color:var(--text2)"><i class="ti ti-steering-wheel"></i> Tarifs chauffeur</span>
+        <span style="font-size:.85rem;font-weight:600">${parseInt(kmChauffeur).toLocaleString('fr')} FCFA/km + ${parseInt(heureChauffeur).toLocaleString('fr')} FCFA/h</span>
+      </div>` : ''}
       <div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem 0">
         <span style="font-size:.8rem;color:var(--text2)"><i class="ti ti-files"></i> Documents</span>
         <span style="font-size:.85rem;font-weight:600;color:${docsOk===5?'var(--success)':'var(--warning)'}">${docsOk}/5 uploadés</span>
@@ -1155,11 +1230,13 @@ async function submitKYC() {
   let avatarUrl = null;
   if (uploadedFiles['avatar']) {
     const compressedAvatar = await compressImage(uploadedFiles['avatar']);
-    const { error } = await sb.storage.from('avatars').upload(`${uid}/avatar.jpg`, compressedAvatar, { contentType: 'image/jpeg', upsert: true });
+    const avatarPath = `${uid}/avatar.jpg`;
+    const { error } = await sb.storage.from('avatars').upload(avatarPath, compressedAvatar, { contentType: 'image/jpeg', upsert: true });
     if (!error) {
-      const { data } = sb.storage.from('avatars').getPublicUrl(`${uid}/avatar.jpg`);
-      avatarUrl = data.publicUrl;
-      await sb.from('profiles').update({ avatar_url: avatarUrl }).eq('id', uid);
+      // On stocke le CHEMIN relatif (pas l'URL complète) pour rester cohérent
+      // avec client.html / livreur.html qui résolvent l'URL via getPublicUrl() à l'affichage.
+      avatarUrl = avatarPath;
+      await sb.from('profiles').update({ avatar_url: avatarPath }).eq('id', uid);
     } else {
       console.warn('Avatar upload:', error.message);
     }
@@ -1225,6 +1302,10 @@ async function submitKYC() {
     // Tarifs
     tarif_base: parseInt(document.getElementById('slider-base').value),
     tarif_km: parseInt(document.getElementById('slider-km').value),
+    // Chauffeur (optionnel)
+    souhaite_chauffeur: document.getElementById('f-chauffeur').checked,
+    tarif_km_chauffeur: document.getElementById('f-chauffeur').checked ? parseInt(document.getElementById('slider-km-chauffeur').value) : null,
+    tarif_heure_chauffeur: document.getElementById('f-chauffeur').checked ? parseInt(document.getElementById('slider-heure-chauffeur').value) : null,
     // Infos supplémentaires
     adresse_boutique: document.getElementById('f-ville').value.trim() + ', ' + document.getElementById('f-pays').value,
     description_boutique: [

@@ -242,11 +242,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 #mob-chat-page{position:fixed;inset:0;z-index:300;background:var(--surface);flex-direction:column;overflow:hidden;display:none}
 #mob-chat-page.active{display:flex}
 .wa-bg{background:#e5ddd5}
-.wa-msgs{flex:1;overflow-y:auto;padding:.6rem .75rem;display:flex;flex-direction:column;gap:1px;position:relative;z-index:1;scroll-behavior:smooth}
-.msg-row{display:flex;flex-direction:column;margin-bottom:1px}
+.wa-msgs{flex:1;overflow-y:auto;padding:.6rem .75rem;display:flex;flex-direction:column;gap:1px;position:relative;z-index:1;scroll-behavior:smooth;min-width:0}
+.msg-row{display:flex;flex-direction:column;margin-bottom:1px;width:100%;max-width:100%}
 .msg-row.mine{align-items:flex-end}
 .msg-row.other{align-items:flex-start}
-.msg-bubble{max-width:75%;padding:.42rem .65rem .25rem;border-radius:8px;position:relative;word-break:break-word;line-height:1.45;font-size:.88rem;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.msg-bubble{max-width:75%;padding:.42rem .65rem .25rem;border-radius:8px;position:relative;word-break:break-word;line-height:1.45;font-size:.88rem;box-shadow:0 1px 2px rgba(0,0,0,.12);box-sizing:border-box;min-width:0}
 .msg-bubble.mine{background:#d9fdd3;border-bottom-right-radius:2px}
 .msg-bubble.other{background:#fff;border-bottom-left-radius:2px}
 .msg-footer{display:inline-flex;align-items:center;gap:2px;float:right;margin-left:.75rem;margin-top:2px;height:13px}
@@ -260,7 +260,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 .vwavebar{flex:1;height:3px;background:rgba(0,0,0,.15);border-radius:2px;cursor:pointer;position:relative;overflow:hidden}
 .vwavebar-fill{height:100%;background:var(--primary);border-radius:2px;width:0%;pointer-events:none;transition:width .1s linear}
 .vduration{font-size:.67rem;color:rgba(0,0,0,.45);white-space:nowrap;min-width:28px}
-.msg-img{border-radius:6px;max-width:100%;cursor:pointer;display:block;max-height:240px;object-fit:cover}
+.msg-img{border-radius:6px;width:100%;max-width:260px;min-width:120px;cursor:pointer;display:block;max-height:240px;object-fit:cover}
 .msg-map-wrap{border-radius:8px;overflow:hidden;cursor:pointer;display:block;border:1px solid rgba(0,0,0,.08)}
 .msg-mini-map{width:100%;height:140px;border-radius:6px;overflow:hidden}
 .msg-map-btns{display:flex;gap:.4rem;margin-top:4px}
@@ -336,6 +336,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 .conv-last{font-size:.78rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .conv-time{font-size:.72rem;color:var(--text3)}
 .mob-conv-item{display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;background:var(--surface);margin:.5rem .75rem;border-radius:var(--radius);box-shadow:var(--shadow);cursor:pointer}
+.mob-conv-item .mob-lv-ava{width:48px;height:48px;border-radius:50%;overflow:hidden;background:var(--primary-light);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:.9rem;border:2px solid var(--border)}
+.mob-conv-item .mob-lv-ava img{width:100%;height:100%;object-fit:cover}
 
 /* Code confirmation */
 .code-input-group{display:flex;gap:.5rem;justify-content:center;margin:1rem 0}
@@ -617,13 +619,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
     <div class="wa-input-bar">
       <div class="wa-input-row">
         <button class="wa-action-btn" onclick="toggleAttach('mob')"><i class="ti ti-paperclip"></i></button>
-        <textarea class="wa-textarea" id="mob-msg-input" placeholder="Message…" rows="1" oninput="onMsgInput(this,'mob')"></textarea>
+        <textarea class="wa-textarea" id="mob-msg-input" placeholder="Message…" rows="1" oninput="onMsgInput(this,'mob')" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();envoyerMessageMob()}"></textarea>
         <button class="wa-send-btn" id="mob-send-btn" onclick="envoyerMessageMob()" style="display:none"><i class="ti ti-send"></i></button>
         <button class="wa-action-btn" id="mob-voice-btn-wa" onclick="toggleVoiceRecord('mob')" style="display:flex"><i class="ti ti-microphone"></i></button>
       </div>
     </div>
     <input type="file" id="mob-photo-file-input" accept="image/*" style="display:none" onchange="uploadPhotoMsgMob(this)">
   </div>
+
 
   <!-- ═══ PAGE PROFIL -->
   <div class="mob-page" id="mob-profil-page">
@@ -1639,26 +1642,40 @@ function renderCourseEnCours() {
   const nom = `${client.prenom||''} ${client.nom||''}`.trim() || 'Client';
   const isAcceptee = c.statut === 'acceptee';
   const isEnRoute = ['en_cours','en_route','prise_en_charge','livraison_en_cours'].includes(c.statut);
+  const isChauffeur = c.type === 'chauffeur_perso' || c.type === 'chauffeur_client';
+
+  // Libellés et boutons adaptés selon livraison ou chauffeur
+  const statusLabel = isAcceptee
+    ? (isChauffeur ? '🚘 Course chauffeur acceptée' : 'Course acceptée — En préparation')
+    : (isChauffeur ? '🚘 Chauffeur en service' : 'Course en route 🛵');
+
+  let actionBtn = '';
+  if (c.statut === 'acceptee') {
+    actionBtn = isChauffeur
+      ? `<button onclick="marquerEnRoute('${c.id}')" style="padding:.4rem .85rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-steering-wheel"></i> Démarrer</button>`
+      : `<button onclick="marquerEnRoute('${c.id}')" style="padding:.4rem .85rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-bike"></i> En Route</button>`;
+  } else if (c.statut === 'en_cours' || c.statut === 'en_route') {
+    actionBtn = isChauffeur
+      ? `<button onclick="terminerCourseChauffeur('${c.id}')" style="padding:.4rem .85rem;background:var(--success);color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer">🏁 Terminer</button>`
+      : `<button onclick="marquerColisRecupere('${c.id}')" style="padding:.4rem .85rem;background:#7C3AED;color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer">📦 Récupéré</button>`;
+  } else if (isEnRoute && !isChauffeur) {
+    actionBtn = `<button onclick="ouvrirModalCode('${c.id}')" style="padding:.4rem .75rem;background:var(--success);color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:600;cursor:pointer">✓ Code</button>`;
+  }
+
   const html = `<div class="course-banner">
     <div class="pulse"></div>
     <div style="flex:1;min-width:0">
-      <div style="font-size:.78rem;font-weight:700;color:var(--success)">${isAcceptee ? 'Course acceptée — En préparation' : 'Course en route 🛵'}</div>
+      <div style="font-size:.78rem;font-weight:700;color:var(--success)">${statusLabel}</div>
       <div style="font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nom} → ${c.adresse_arrivee||'—'}</div>
     </div>
     <div style="display:flex;gap:.4rem;flex-shrink:0">
       <button onclick="ouvrirChat_course('${c.id}')" style="padding:.4rem .75rem;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-message-2"></i></button>
-      ${isAcceptee
-        ? (c.statut === 'acceptee' ? `<button onclick="marquerEnRoute('${c.id}')" style="padding:.4rem .85rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-bike"></i> En Route</button>` : (c.statut === 'en_cours' || c.statut === 'en_route' ? `<button onclick="marquerColisRecupere('${c.id}')" style="padding:.4rem .85rem;background:#7C3AED;color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer">📦 Récupéré</button>` : ''))
-        : isEnRoute
-          ? `<button onclick="ouvrirModalCode('${c.id}')" style="padding:.4rem .75rem;background:var(--success);color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:600;cursor:pointer">✓ Code</button>`
-          : ''
-      }
+      ${actionBtn}
       <button onclick="ouvrirModalAnnulerLv('${c.id}')" style="padding:.4rem .65rem;background:#FEE2E2;color:var(--danger);border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem" title="Annuler la course"><i class="ti ti-x"></i></button>
     </div>
   </div>`;
   if(pcEl) { pcEl.innerHTML = html; pcEl.style.display = ''; }
   if(mobEl) { mobEl.innerHTML = html; mobEl.style.display = ''; }
-  // Subscribe to client position + rejoindre le canal broadcast GPS
   subscribeCoursePosition(c.id);
   joinGpsBroadcastChannel(c.id);
 }
@@ -1683,7 +1700,8 @@ async function accepterCourse(courseId) {
   // Notification au client
   const course = allCourses.find(c => c.id === courseId);
   if (course?.client_id) {
-    await sb.from('notifications').insert({ utilisateur_id: course.client_id, titre: '✅ Course acceptée !', corps: 'Votre livreur a accepté votre course. Il vous contactera avant de partir.', type: 'course' });
+    const isChauffeur = course.type === 'chauffeur_perso' || course.type === 'chauffeur_client';
+    await sb.from('notifications').insert({ utilisateur_id: course.client_id, titre: isChauffeur ? '🚘 Chauffeur en route !' : '✅ Course acceptée !', corps: isChauffeur ? 'Votre chauffeur a accepté la réservation. Il vous contactera avant de partir.' : 'Votre livreur a accepté votre course. Il vous contactera avant de partir.', type: 'course' });
   }
   showToast('Course acceptée ✓', 'ok');
   loadCourses();
@@ -1713,9 +1731,11 @@ async function marquerEnRoute(courseId) {
   // Notifier client
   const course = allCourses.find(c => c.id === courseId);
   if (course?.client_id) {
-    await sb.from('notifications').insert({ utilisateur_id: course.client_id, titre: '🛵 Votre livreur est en route !', corps: `Il arrive. Suivez sa position en temps réel dans l'application.`, type: 'course' });
+    const isChauffeur2 = course.type === 'chauffeur_perso' || course.type === 'chauffeur_client';
+    await sb.from('notifications').insert({ utilisateur_id: course.client_id, titre: isChauffeur2 ? '🚘 Votre chauffeur démarre !' : '🛵 Votre livreur est en route !', corps: isChauffeur2 ? 'Votre chauffeur a démarré la course. Suivez sa position en temps réel.' : `Il arrive. Suivez sa position en temps réel dans l'application.`, type: 'course' });
   }
-  showToast('🛵 En route ! Le client est notifié.', 'ok');
+  const _isChauffeurToast = allCourses.find(c => c.id === courseId);
+  showToast((_isChauffeurToast?.type==='chauffeur_perso'||_isChauffeurToast?.type==='chauffeur_client') ? '🚘 Course démarrée ! Le client est notifié.' : '🛵 En route ! Le client est notifié.', 'ok');
   loadCourses();
 }
 
@@ -1918,6 +1938,65 @@ async function envoyerPreuve() {
   } catch(e) { showToast('Erreur : ' + e.message, 'er'); }
 }
 
+
+async function terminerCourseChauffeur(courseId) {
+  if (!confirm('Confirmer la fin de la course chauffeur ?')) return;
+  showToast('Finalisation de la course chauffeur…');
+  try {
+    const { error } = await sb.from('courses').update({
+      statut: 'livree',
+      date_livraison: new Date().toISOString()
+    }).eq('id', courseId);
+    if (error) throw error;
+    // Lire gains et mode paiement
+    const { data: courseData } = await sb.from('courses')
+      .select('gains_livreur,commission_plateforme,client_id,methode_paiement,prix_final')
+      .eq('id', courseId).single();
+    const { data: w } = await sb.from('wallets').select('id,solde').eq('utilisateur_id', currentUser.id).single();
+    if (courseData) {
+      const modePaie = courseData.methode_paiement || 'fedapay';
+      const commission = parseFloat(courseData.commission_plateforme || 0);
+      if (modePaie === 'especes' || modePaie === 'cash' || modePaie === 'a_la_livraison') {
+        if (w) {
+          const gains = parseFloat(courseData.gains_livreur || 0);
+          if (gains > 0) {
+            await sb.from('wallets').update({ solde: w.solde + gains }).eq('id', w.id);
+            await sb.from('transactions').insert({ wallet_id: w.id, type: 'credit', montant: gains, motif: 'course', description: 'Gains chauffeur #'+courseId.slice(-6) });
+          }
+          if (commission > 0) {
+            const { data: wR } = await sb.from('wallets').select('id,solde').eq('utilisateur_id', currentUser.id).single();
+            const soldeApres = (wR?.solde || (w.solde + gains)) - commission;
+            await sb.from('wallets').update({ solde: soldeApres }).eq('id', wR?.id || w.id);
+            await sb.from('transactions').insert({ wallet_id: w.id, type: 'debit', montant: commission, motif: 'commission_cash', description: 'Commission plateforme chauffeur #'+courseId.slice(-6) });
+            showToast(`⚠️ Commission ${fcfa(commission)} déduite`, 'wa');
+            if (soldeApres < 0) {
+              await sb.from('profiles').update({ statut_compte: 'en_attente_regularisation', date_regularisation_deadline: new Date(Date.now() + 24*3600*1000).toISOString() }).eq('id', currentUser.id);
+              showToast('⚠️ Solde négatif ! Régularisez dans 24h.', 'wa');
+            }
+          }
+        }
+      } else {
+        if (courseData.gains_livreur && w) {
+          await sb.from('wallets').update({ solde: w.solde + courseData.gains_livreur }).eq('id', w.id);
+          await sb.from('transactions').insert({ wallet_id: w.id, type: 'credit', montant: courseData.gains_livreur, motif: 'course', description: 'Gains chauffeur #'+courseId.slice(-6) });
+        }
+      }
+      if (courseData.client_id) {
+        await sb.from('notifications').insert({ utilisateur_id: courseData.client_id, titre: '🚘 Course chauffeur terminée ✓', corps: 'Votre course chauffeur est terminée. Merci de votre confiance !', type: 'course' });
+      }
+    }
+    await sb.from('livreurs').update({ statut: 'disponible', nombre_courses: (currentLivreur.nombre_courses||0)+1 }).eq('id', currentLivreur.id);
+    currentLivreur.statut = 'disponible';
+    currentLivreur.nombre_courses = (currentLivreur.nombre_courses||0)+1;
+    updateStatusUI('disponible');
+    courseEnCours = null;
+    leaveGpsBroadcastChannel();
+    showToast('🎉 Course chauffeur terminée ! Gains crédités.', 'ok');
+    loadCourses();
+    loadWallet();
+  } catch(e) { showToast('Erreur : ' + e.message, 'er'); }
+}
+
 function voirDetailCourse(id) {
   const c = allCourses.find(x => x.id === id); if(!c) return;
   const client = c.client||{};
@@ -2010,8 +2089,12 @@ function voirDetailCourse(id) {
         <button onclick="refuserCourse('${c.id}');closeModal('modal-detail-course')" style="flex:1;padding:.7rem;background:var(--danger);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:600;cursor:pointer">✗ Refuser</button>
       </div>` : ''}
       ${c.statut === 'acceptee' ? `
-      <button onclick="marquerEnRoute('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem"><i class="ti ti-bike"></i> 🛵 Je pars récupérer le colis</button>` : ''}
-      ${c.statut === 'en_cours' || c.statut === 'en_route' ? `
+      <button onclick="${(c.type==='chauffeur_perso'||c.type==='chauffeur_client') ? `marquerEnRoute('${c.id}')` : `marquerEnRoute('${c.id}')`};closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem">
+        ${(c.type==='chauffeur_perso'||c.type==='chauffeur_client') ? '<i class="ti ti-steering-wheel"></i> 🚘 Démarrer la course chauffeur' : '<i class="ti ti-bike"></i> 🛵 Je pars récupérer le colis'}
+      </button>` : ''}
+      ${(c.statut === 'en_cours' || c.statut === 'en_route') && (c.type==='chauffeur_perso'||c.type==='chauffeur_client') ? `
+      <button onclick="terminerCourseChauffeur('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:var(--success);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem">🏁 Terminer la course chauffeur</button>` : ''}
+      ${(c.statut === 'en_cours' || c.statut === 'en_route') && c.type!=='chauffeur_perso' && c.type!=='chauffeur_client' ? `
       <button onclick="marquerColisRecupere('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:#7C3AED;color:#fff;border:none;border-radius:var(--radius-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem">📦 Colis récupéré — En route !</button>` : ''}
       ${(c.statut === 'prise_en_charge' || c.statut === 'livraison_en_cours') ? `
       <button onclick="ouvrirModalCode('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:var(--success);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem"><i class="ti ti-shield-check"></i> Valider code de livraison</button>` : ''}

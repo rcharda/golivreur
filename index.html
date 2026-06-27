@@ -47,7 +47,7 @@
 
 /* ── Reset & Base ── */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden;height:100vh;width:100vw}
+body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden;height:100vh;width:100vw;min-height:100vh}
 
 /* ══════════════════════════════════
    AUTH SCREEN — Bold dark immersive
@@ -150,7 +150,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 /* ══════════════════════════════════
    PC LAYOUT
 ══════════════════════════════════ */
-#pc-layout{display:none;height:100vh;width:100vw;flex-direction:column}
+#pc-layout{display:none;height:100vh;min-height:100vh;width:100vw;flex-direction:column}
 
 /* PC Topbar — Navy */
 .pc-topbar{
@@ -201,7 +201,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 }
 .avatar-btn img{width:100%;height:100%;object-fit:cover}
 
-.pc-body{display:flex;flex:1;overflow:hidden}
+.pc-body{display:flex;flex:1;overflow:hidden;min-height:0}
 
 /* ── Rail d'icônes — barre étroite verticale style app native ── */
 .pc-icon-rail{
@@ -237,7 +237,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 .pc-sidebar{
   width:300px;background:var(--surface);
   border-right:1px solid var(--border);
-  display:flex;flex-direction:column;overflow:hidden;
+  display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;
   flex-shrink:0;
 }
 
@@ -301,7 +301,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 .pc-nav-section-lbl{display:none}
 
 /* Contenu panneau scrollable */
-.sidebar-panel{flex:1;overflow-y:auto;display:none;flex-direction:column}
+.sidebar-panel{flex:1;overflow-y:auto;overflow-x:hidden;display:none;flex-direction:column;min-height:0}
 .sidebar-panel.active{display:flex}
 
 /* Compatibilité ancienne API stab (plus utilisés mais par sécurité) */
@@ -417,7 +417,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 .unread-dot{width:9px;height:9px;background:var(--primary);border-radius:50%;flex-shrink:0}
 
 /* PC Map area */
-.pc-map-area{flex:1;display:flex;flex-direction:column;position:relative}
+.pc-map-area{flex:1;display:flex;flex-direction:column;position:relative;min-height:0;overflow:hidden}
 #pc-map{flex:1;z-index:1}
 
 /* Commande panel — redesign */
@@ -796,10 +796,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 /* Responsive */
 @media (max-width:768px){
   #pc-layout{display:none !important}
-  #mobile-layout{display:flex !important}
+  body.app-ready #mobile-layout{display:flex !important}
+}
+@media (min-width:769px) and (max-height:700px){
+  body{overflow-y:auto !important;height:auto !important;overflow-x:hidden}
+  #pc-layout{height:auto !important;min-height:100vh;overflow-y:auto;overflow-x:hidden}
+  .pc-body{overflow-y:auto !important;min-height:580px}
 }
 @media (min-width:769px){
-  #pc-layout{display:flex !important}
+  body.app-ready #pc-layout{display:flex !important}
   #mobile-layout{display:none !important}
 }
 .loading-dots span{animation:blink 1.2s infinite both}
@@ -1472,7 +1477,7 @@ input:valid {
 </style>
 <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
-<script src="validation.js"></script>
+
 </head>
 <body>
 
@@ -3599,6 +3604,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function initApp() {
   document.getElementById('auth-screen').style.display = 'none';
+  document.body.classList.add('app-ready');
   await loadConfig();
   await loadProfile();
   initMaps();
@@ -5840,7 +5846,7 @@ async function loadCourses() {
   renderCoursesList(data || [], 'mob-courses-list');
 
   // Vérifier si course en cours
-  const activeStatuts = ['acceptee', 'en_cours', 'livraison_en_cours'];
+  const activeStatuts = ['en_attente', 'acceptee', 'en_cours', 'livraison_en_cours'];
   const enCours = data?.find(c => activeStatuts.includes(c.statut));
   const banner = document.getElementById('course-banner');
   if (enCours) {
@@ -6383,16 +6389,23 @@ async function confirmerAnnulationClient() {
 }
 
 async function voirCourseEnCours() {
-  // Étape 1 : récupérer la course active (sans join pour éviter échec FK silencieux)
-  const { data: courses, error: cErr } = await sb.from('courses')
-    .select('*')
-    .eq('client_id', currentUser.id)
-    .in('statut', ['en_attente', 'acceptee', 'en_cours', 'livraison_en_cours'])
-    .order('created_at', { ascending: false })
-    .limit(1);
+  const STATUTS_ACTIFS = ['en_attente', 'acceptee', 'en_cours', 'livraison_en_cours'];
 
-  if (cErr) console.error('[suivi] courses query error:', cErr);
-  const c = courses?.[0];
+  // Chercher d'abord dans le cache local (instantané)
+  let c = (_allCoursesCache || []).find(x => STATUTS_ACTIFS.includes(x.statut));
+
+  // Si pas en cache, requête fraîche DB
+  if (!c) {
+    const { data: courses, error: cErr } = await sb.from('courses')
+      .select('*')
+      .eq('client_id', currentUser.id)
+      .in('statut', STATUTS_ACTIFS)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (cErr) console.error('[suivi] courses query error:', cErr);
+    c = courses?.[0];
+  }
+
   if (!c) return showToast('Aucune course active pour le moment');
 
   // Étape 2 : enrichir avec les infos livreur si livreur_id existe

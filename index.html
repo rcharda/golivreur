@@ -606,17 +606,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 }
 .mob-search-bar .sic{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);font-size:1rem;color:var(--text3)}
 .mob-course-sheet{
-  position:fixed;bottom:0;left:0;right:0;
+  position:absolute;bottom:0;left:0;right:0;
   background:var(--surface);border-radius:24px 24px 0 0;
-  box-shadow:var(--shadow-lg);z-index:900;
-  transition:transform .3s cubic-bezier(.4,0,.2,1);transform:translateY(100%);
-  max-height:calc(100dvh - 60px);
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
+  box-shadow:0 -8px 40px rgba(13,27,42,.18);z-index:600;
+  transform:translateY(100%);
+  transition:transform .35s cubic-bezier(.32,1.2,.64,1);
+  max-height:92dvh;
+  display:flex;flex-direction:column;
+  overflow:hidden;
 }
 .mob-course-sheet.open{transform:translateY(0)}
-.sheet-handle{width:40px;height:4px;background:var(--border2);border-radius:2px;margin:.75rem auto}
-.sheet-inner{padding:0 1rem 2rem}
+.sheet-handle{display:flex;justify-content:center;padding:.6rem 0 .2rem;flex-shrink:0;cursor:grab}
+.sheet-handle-pill{width:40px;height:4px;border-radius:4px;background:var(--border2)}
+.sheet-inner{overflow-y:auto;padding:.5rem 1rem 1.5rem;flex:1;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
 
 /* Mobile page header */
 .mob-page-head{
@@ -1158,6 +1160,315 @@ input:valid {
   }
 }
 
+/* ══════════════════════════════════════════════════
+   FORM REDESIGN v2 — "Cotonou Rush Pro"
+   Formulaires livraison + course chauffeur
+══════════════════════════════════════════════════ */
+
+/* ── Nouveau Mobile Sheet ── */
+.mob-course-sheet {
+  position:absolute;bottom:0;left:0;right:0;
+  background:var(--surface);
+  border-radius:24px 24px 0 0;
+  box-shadow:0 -8px 40px rgba(13,27,42,.18);
+  z-index:600;
+  transform:translateY(100%);
+  transition:transform .35s cubic-bezier(.32,1.2,.64,1);
+  max-height:92dvh;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.mob-course-sheet.open { transform:translateY(0); }
+.sheet-handle {
+  display:flex;justify-content:center;padding:.6rem 0 .2rem;
+  flex-shrink:0;cursor:grab;
+}
+.sheet-handle-pill {
+  width:40px;height:4px;border-radius:4px;
+  background:var(--border2);
+}
+.sheet-inner {
+  overflow-y:auto;padding:.5rem 1rem 1.5rem;flex:1;
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
+}
+
+/* ── Header sheet avec tabs ── */
+.form-tabs {
+  display:flex;gap:.3rem;margin-bottom:1rem;
+  background:var(--surface2);border-radius:12px;padding:.25rem;
+}
+.form-tab {
+  flex:1;padding:.5rem;border:none;border-radius:10px;
+  background:transparent;cursor:pointer;
+  font-family:var(--font);font-size:.78rem;font-weight:600;
+  color:var(--text2);transition:all .2s;display:flex;
+  align-items:center;justify-content:center;gap:.3rem;
+}
+.form-tab.active {
+  background:var(--surface);color:var(--primary);
+  box-shadow:0 1px 6px rgba(0,0,0,.1);
+}
+
+/* ── Fieldgroup ── */
+.fgroup {
+  margin-bottom:.9rem;
+}
+.fgroup-label {
+  font-size:.68rem;font-weight:700;letter-spacing:.7px;
+  text-transform:uppercase;color:var(--text3);margin-bottom:.4rem;
+  display:flex;align-items:center;gap:.35rem;
+}
+.fgroup-label i { font-size:.8rem; }
+
+/* ── Route input card ── */
+.route-card {
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:14px;overflow:visible;position:relative;
+}
+.route-row {
+  display:flex;align-items:center;padding:.65rem .75rem;position:relative;
+}
+.route-row + .route-row { border-top:1px solid var(--border); }
+.route-icon {
+  width:28px;height:28px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;flex-shrink:0;
+  font-size:.8rem;font-weight:700;margin-right:.6rem;
+}
+.route-icon.dep { background:#DBEAFE;color:#1D4ED8; }
+.route-icon.arr { background:#D1FAE5;color:#065F46; }
+.route-input {
+  flex:1;border:none;background:transparent;outline:none;
+  font-family:var(--font);font-size:.9rem;color:var(--text);
+  min-width:0;
+}
+.route-input::placeholder { color:var(--text3); }
+.route-gps-btn {
+  width:30px;height:30px;flex-shrink:0;border:none;
+  background:var(--primary-light);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--primary);font-size:.85rem;
+  transition:background .15s;
+}
+.route-gps-btn:hover { background:rgba(255,76,41,.2); }
+.route-divider {
+  position:relative;display:flex;align-items:center;justify-content:center;
+  height:1px;
+}
+.route-dotline {
+  position:absolute;left:38px;top:-8px;bottom:-8px;
+  width:2px;background:repeating-linear-gradient(180deg,var(--border2) 0,var(--border2) 4px,transparent 4px,transparent 8px);
+  z-index:0;
+}
+
+/* ── Select stylé ── */
+.f-select {
+  width:100%;padding:.7rem .95rem;
+  border:1.5px solid var(--border);border-radius:12px;
+  font-family:var(--font);font-size:.88rem;outline:none;
+  background:var(--bg);color:var(--text);
+  transition:border-color .18s,box-shadow .18s;
+  cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right .85rem center;
+  padding-right:2.5rem;
+}
+.f-select:focus { border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow);background-color:#fff; }
+
+/* ── Input stylé ── */
+.f-input {
+  width:100%;padding:.7rem .95rem;
+  border:1.5px solid var(--border);border-radius:12px;
+  font-family:var(--font);font-size:.88rem;outline:none;
+  background:var(--bg);color:var(--text);
+  transition:border-color .18s,box-shadow .18s;
+}
+.f-input:focus { border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow);background:#fff; }
+
+/* ── Pills mode urgent ── */
+.urgency-pills { display:flex;gap:.4rem; }
+.urgency-pill {
+  flex:1;padding:.55rem .5rem;border-radius:10px;
+  border:1.5px solid var(--border);background:var(--bg);
+  text-align:center;cursor:pointer;transition:all .18s;
+  font-family:var(--font);font-size:.8rem;font-weight:600;color:var(--text2);
+}
+.urgency-pill.selected-normal { border-color:var(--success);background:#F0FDF4;color:var(--success); }
+.urgency-pill.selected-urgent { border-color:var(--danger);background:#FEF2F2;color:var(--danger); }
+
+/* ── Paiement pills ── */
+.pay-pills { display:grid;grid-template-columns:1fr 1fr;gap:.4rem; }
+.pay-pill {
+  padding:.6rem .75rem;border-radius:12px;border:1.5px solid var(--border);
+  background:var(--bg);cursor:pointer;transition:all .18s;
+  display:flex;align-items:center;gap:.4rem;
+  font-family:var(--font);font-size:.82rem;font-weight:600;color:var(--text2);
+}
+.pay-pill.active-mm { border-color:var(--primary);background:var(--primary-light);color:var(--primary); }
+.pay-pill.active-cash { border-color:var(--success);background:#F0FDF4;color:var(--success); }
+.pay-pill-icon { font-size:1.1rem; }
+
+/* ── Price row ── */
+.price-row {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.75rem 1rem;
+  background:linear-gradient(135deg,#fff8f7,var(--primary-light));
+  border:1.5px solid rgba(255,76,41,.15);border-radius:14px;
+  margin-bottom:.75rem;
+}
+.price-row-left { display:flex;flex-direction:column;gap:2px; }
+.price-row-lbl { font-size:.72rem;color:var(--text2);font-weight:500; }
+.price-row-detail { font-size:.68rem;color:var(--text3); }
+.price-row-amount { font-family:var(--font-display);font-size:1.2rem;font-weight:800;color:var(--primary); }
+
+/* ── Livreur chip ── */
+.lv-chip {
+  display:flex;align-items:center;gap:.6rem;
+  padding:.6rem .75rem;background:var(--bg);
+  border:1.5px solid var(--border);border-radius:12px;margin-bottom:.85rem;
+}
+.lv-chip-ava {
+  width:38px;height:38px;border-radius:50%;overflow:hidden;
+  background:var(--primary-light);display:flex;align-items:center;
+  justify-content:center;color:var(--primary);font-weight:700;font-size:.82rem;
+  border:2px solid var(--border);flex-shrink:0;
+}
+.lv-chip-ava img { width:100%;height:100%;object-fit:cover; }
+.lv-chip-name { font-weight:700;font-size:.88rem; }
+.lv-chip-meta { font-size:.72rem;color:var(--text2); }
+.lv-chip-badge {
+  margin-left:auto;background:var(--primary);color:#fff;
+  font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:50px;
+}
+
+/* ── Confirm button ── */
+.btn-confirm {
+  width:100%;padding:.88rem;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;border:none;border-radius:14px;
+  font-family:var(--font-display);font-size:.95rem;font-weight:700;
+  cursor:pointer;transition:all .2s;
+  box-shadow:0 4px 20px rgba(255,76,41,.35);
+  display:flex;align-items:center;justify-content:center;gap:.5rem;
+  letter-spacing:.2px;
+}
+.btn-confirm:hover:not(:disabled) { transform:translateY(-1px);box-shadow:0 6px 28px rgba(255,76,41,.45); }
+.btn-confirm:active:not(:disabled) { transform:translateY(0); }
+.btn-confirm:disabled { opacity:.55;cursor:not-allowed;pointer-events:none;box-shadow:none; }
+.btn-cancel-ghost {
+  width:100%;padding:.65rem;margin-top:.4rem;
+  background:transparent;color:var(--text3);border:1.5px solid var(--border);
+  border-radius:12px;font-family:var(--font);font-size:.85rem;cursor:pointer;
+  transition:all .15s;
+}
+.btn-cancel-ghost:hover { background:var(--surface2);color:var(--text2); }
+
+/* ── Textarea instructions ── */
+.f-textarea {
+  width:100%;padding:.7rem .95rem;
+  border:1.5px solid var(--border);border-radius:12px;
+  font-family:var(--font);font-size:.85rem;resize:none;outline:none;
+  background:var(--bg);color:var(--text);line-height:1.5;
+  transition:border-color .18s,box-shadow .18s;
+}
+.f-textarea:focus { border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow);background:#fff; }
+
+/* ── Notice cash ── */
+.cash-notice {
+  display:none;padding:.45rem .75rem;
+  background:#FEF9C3;border-radius:10px;
+  font-size:.75rem;color:#92400E;margin-top:.4rem;
+  border-left:3px solid #F59E0B;
+}
+
+/* ── Chauffeur mode toggle ── */
+.chauf-mode-wrap {
+  display:flex;gap:.4rem;margin-bottom:.85rem;
+}
+.chauf-mode-btn {
+  flex:1;padding:.55rem;border-radius:50px;
+  font-family:var(--font);font-size:.8rem;font-weight:700;
+  cursor:pointer;transition:all .2s;border:1.5px solid var(--border);
+  background:var(--bg);color:var(--text2);
+}
+.chauf-mode-btn.active {
+  background:var(--primary);color:#fff;border-color:var(--primary);
+  box-shadow:0 2px 12px rgba(255,76,41,.3);
+}
+
+/* ── Chauffeur card ── */
+.chauf-card {
+  display:flex;align-items:center;gap:.75rem;
+  padding:.9rem;background:var(--bg);border:1.5px solid var(--border);
+  border-radius:14px;cursor:pointer;transition:all .18s;margin-bottom:.5rem;
+}
+.chauf-card:hover,.chauf-card.selected {
+  border-color:var(--primary);background:var(--primary-light);
+}
+.chauf-card-ava {
+  width:46px;height:46px;border-radius:50%;overflow:hidden;
+  background:linear-gradient(135deg,var(--primary-light),#fde8e4);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  color:var(--primary);font-weight:700;font-size:.9rem;
+  border:2.5px solid var(--border);
+}
+.chauf-card-ava img { width:100%;height:100%;object-fit:cover; }
+.chauf-card-info { flex:1;min-width:0; }
+.chauf-card-name { font-size:.9rem;font-weight:700; }
+.chauf-card-meta {
+  font-size:.74rem;color:var(--text2);
+  display:flex;align-items:center;gap:.4rem;margin-top:2px;flex-wrap:wrap;
+}
+.chauf-card-price { font-size:.85rem;font-weight:700;color:var(--primary);flex-shrink:0; }
+
+/* ── Section collapse ── */
+.section-extra {
+  display:none;margin-top:.5rem;
+  padding:.75rem;background:var(--bg);border-radius:12px;
+  border:1.5px solid var(--border);
+}
+.section-extra.show { display:block; }
+
+/* ── Sugg box ── */
+.sugg-box {
+  position:absolute;top:calc(100% + 4px);left:0;right:0;
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:12px;box-shadow:var(--shadow-md);z-index:700;
+  max-height:200px;overflow-y:auto;display:none;
+}
+.sugg-box.open { display:block; }
+
+/* Mise à jour commande-panel PC pour nouveau style */
+.commande-panel {
+  position:absolute;bottom:1.5rem;right:1.5rem;width:350px;
+  background:var(--surface);border-radius:20px;
+  box-shadow:var(--shadow-lg);z-index:10;padding:0;display:none;
+  max-height:calc(100vh - 80px);overflow:hidden;
+  border:1px solid var(--border);
+}
+.commande-panel.open { display:flex;flex-direction:column; }
+.cp-header {
+  padding:1rem 1.2rem .75rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:.6rem;flex-shrink:0;
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy3) 100%);
+  border-radius:20px 20px 0 0;
+}
+.cp-header-title {
+  font-family:var(--font-display);font-size:.95rem;font-weight:800;
+  color:#fff;flex:1;
+}
+.cp-close-btn {
+  width:28px;height:28px;border-radius:50%;border:none;
+  background:rgba(255,255,255,.15);color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:.85rem;
+  transition:background .15s;
+}
+.cp-close-btn:hover { background:rgba(255,255,255,.25); }
+.cp-scroll { overflow-y:auto;padding:1rem 1.2rem 1.2rem;flex:1; }
+
+/* spin keyframe si absent */
+@keyframes spin { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }
+
 </style>
 <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
@@ -1406,37 +1717,50 @@ input:valid {
 
       <!-- Commande panel -->
       <div class="commande-panel" id="commande-panel">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-          <div class="cp-title">🛵 Nouvelle course</div>
-          <button onclick="closeCommandePanel()" style="background:#fee2e2;color:#dc2626;border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;flex-shrink:0;transition:background .15s" onmouseenter="this.style.background='#dc2626';this.style.color='#fff'" onmouseleave="this.style.background='#fee2e2';this.style.color='#dc2626'" title="Fermer"><i class="ti ti-x"></i></button>
+        <!-- Header -->
+        <div class="cp-header">
+          <i class="ti ti-motorbike" style="color:var(--primary);font-size:1.1rem"></i>
+          <span class="cp-header-title">Nouvelle course</span>
+          <button class="cp-close-btn" onclick="closeCommandePanel()" title="Fermer"><i class="ti ti-x"></i></button>
         </div>
-        <div class="cp-livreur" id="cp-livreur-info">
-          <div class="cp-lv-ava"><img id="cp-lv-img" src="" alt="" style="display:none"><span id="cp-lv-initials">?</span></div>
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:600;font-size:.9rem" id="cp-lv-name">—</div>
-            <div style="font-size:.78rem;color:var(--text2)" id="cp-lv-meta">—</div>
+        <div class="cp-scroll">
+          <!-- Livreur chip -->
+          <div class="lv-chip" id="cp-livreur-info">
+            <div class="lv-chip-ava cp-lv-ava"><img id="cp-lv-img" src="" alt="" style="display:none"><span id="cp-lv-initials">?</span></div>
+            <div>
+              <div class="lv-chip-name" id="cp-lv-name">—</div>
+              <div class="lv-chip-meta" id="cp-lv-meta">—</div>
+            </div>
+            <div class="lv-chip-badge">Sélectionné</div>
           </div>
-        </div>
-        <div class="cp-form">
+
           <!-- Trajet -->
-          <span class="cp-slabel">📍 Trajet</span>
-          <div style="position:relative">
-            <input type="text" id="cp-depart" placeholder="📍 Adresse de récupération" oninput="acSearch(this,'sugg-cp-depart')" autocomplete="off" required style="padding-right:2.8rem">
-            <button type="button" onclick="gpsRemplirChamp('cp-depart','sugg-cp-depart')" title="Utiliser ma position actuelle" style="position:absolute;right:.45rem;top:50%;transform:translateY(-50%);background:var(--primary-light);border:none;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--primary);font-size:.85rem;transition:background .15s" onmouseenter="this.style.background='var(--primary)';this.style.color='#fff'" onmouseleave="this.style.background='var(--primary-light)';this.style.color='var(--primary)'"><i class="ti ti-current-location"></i></button>
-            <div class="sugg-box" id="sugg-cp-depart"></div>
+          <div class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-route"></i> Trajet</div>
+            <div class="route-card" style="position:relative">
+              <div class="route-row">
+                <div class="route-icon dep">A</div>
+                <input type="text" id="cp-depart" class="route-input" placeholder="Point de récupération" oninput="acSearch(this,'sugg-cp-depart')" autocomplete="off">
+                <button type="button" class="route-gps-btn" onclick="gpsRemplirChamp('cp-depart','sugg-cp-depart')" title="Ma position"><i class="ti ti-current-location"></i></button>
+              </div>
+              <div style="position:relative;height:0;overflow:visible"><div class="route-dotline"></div></div>
+              <div class="route-row">
+                <div class="route-icon arr">B</div>
+                <input type="text" id="cp-arrivee" class="route-input" placeholder="Destination exacte" oninput="acSearch(this,'sugg-cp-arrivee')" autocomplete="off">
+                <button type="button" class="route-gps-btn" onclick="gpsRemplirChamp('cp-arrivee','sugg-cp-arrivee')" title="Ma position"><i class="ti ti-current-location"></i></button>
+              </div>
+              <div class="sugg-box" id="sugg-cp-depart" style="z-index:800"></div>
+              <div class="sugg-box" id="sugg-cp-arrivee" style="z-index:800"></div>
+            </div>
+            <div class="desc-dist-info" id="cp-dist-info" style="display:none;margin-top:.4rem">
+              <i class="ti ti-route"></i><span id="cp-dist-detail">—</span>
+            </div>
           </div>
-          <div style="position:relative">
-            <input type="text" id="cp-arrivee" placeholder="🏁 Adresse de destination" oninput="acSearch(this,'sugg-cp-arrivee')" autocomplete="off" required style="padding-right:2.8rem">
-            <button type="button" onclick="gpsRemplirChamp('cp-arrivee','sugg-cp-arrivee')" title="Utiliser ma position actuelle" style="position:absolute;right:.45rem;top:50%;transform:translateY(-50%);background:var(--primary-light);border:none;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--primary);font-size:.85rem;transition:background .15s" onmouseenter="this.style.background='var(--primary)';this.style.color='#fff'" onmouseleave="this.style.background='var(--primary-light)';this.style.color='var(--primary)'"><i class="ti ti-current-location"></i></button>
-            <div class="sugg-box" id="sugg-cp-arrivee"></div>
-          </div>
-          <!-- Info distance livreur -->
-          <div class="desc-dist-info" id="cp-dist-info" style="display:none">
-            <i class="ti ti-route"></i>
-            <span id="cp-dist-detail">—</span>
-          </div>
-          <div class="field-row">
-            <select id="cp-type" onchange="onTypeChange()" required>
+
+          <!-- Type de service -->
+          <div class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-category"></i> Type de service</div>
+            <select id="cp-type" class="f-select" onchange="onTypeChange()">
               <optgroup label="🛵 Moto / Zem">
                 <option value="simple" selected>📦 Course simple</option>
                 <option value="zem">🛵 Go Zem (moto taxi)</option>
@@ -1458,83 +1782,107 @@ input:valid {
                 <option value="programmee">🗓️ Programmée</option>
               </optgroup>
               <optgroup label="🌍 Personnel / Tourisme">
-                <option value="tourisme">🏖️ Excursion touristique / Voyage personnel</option>
+                <option value="tourisme">🏖️ Excursion / Voyage personnel</option>
               </optgroup>
               <optgroup label="🧑‍✈️ Chauffeur">
                 <option value="chauffeur_perso">🚘 Chauffeur avec sa voiture</option>
                 <option value="chauffeur_client">🔑 Chauffeur pour votre véhicule</option>
               </optgroup>
             </select>
-            <div id="cp-type-hint" style="font-size:.74rem;padding:.4rem .65rem;border-radius:6px;background:var(--primary-light);color:var(--primary-dark);margin-top:.3rem;margin-bottom:.2rem;display:none"></div>
+            <div id="cp-type-hint" style="font-size:.74rem;padding:.4rem .65rem;border-radius:8px;background:var(--primary-light);color:var(--primary-dark);margin-top:.4rem;display:none"></div>
+          </div>
+
+          <!-- Priorité -->
+          <div class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-bolt"></i> Priorité</div>
+            <div class="urgency-pills">
+              <div class="urgency-pill selected-normal" id="cp-pill-normal" onclick="setCpUrgence(false)">✅ Normal</div>
+              <div class="urgency-pill" id="cp-pill-urgent" onclick="setCpUrgence(true)">⚡ Urgent +30%</div>
+            </div>
+            <select id="cp-urgent" style="display:none" onchange="estimerPrix()">
               <option value="false">Normal</option>
-              <option value="true">⚡ Urgent</option>
+              <option value="true">Urgent</option>
             </select>
           </div>
+
           <!-- Multi-arrêts PC -->
-          <div id="stops-container" style="display:none;margin-bottom:.6rem">
-            <div style="font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:.4rem">Arrêts intermédiaires</div>
+          <div id="stops-container" style="display:none" class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-map-pins"></i> Arrêts intermédiaires</div>
             <div id="stops-list-pc"></div>
-            <button type="button" onclick="addStop('pc')" style="width:100%;padding:.45rem;border:1.5px dashed var(--border2);border-radius:var(--radius-xs);background:transparent;cursor:pointer;font-size:.82rem;color:var(--text2);font-family:var(--font)">+ Ajouter un arrêt</button>
+            <button type="button" onclick="addStop('pc')" style="width:100%;padding:.45rem;border:1.5px dashed var(--border2);border-radius:10px;background:transparent;cursor:pointer;font-size:.82rem;color:var(--text2);font-family:var(--font)">+ Ajouter un arrêt</button>
           </div>
+
           <!-- Livraison programmée PC -->
-          <div id="prog-section" style="display:none;margin-bottom:.6rem">
-            <div style="font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:.4rem">Date & heure de livraison</div>
-            <input type="datetime-local" id="cp-programmee" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg)">
+          <div id="prog-section" style="display:none" class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-calendar"></i> Date & heure de livraison</div>
+            <input type="datetime-local" id="cp-programmee" class="f-input">
           </div>
+
           <!-- Tourisme / Aller-retour PC -->
-          <div id="ar-section" style="display:none;margin-bottom:.6rem">
-            <label style="display:flex;align-items:center;gap:.5rem;padding:.6rem .75rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);cursor:pointer;font-size:.84rem;font-weight:600;margin-bottom:.5rem;background:var(--bg)">
+          <div id="ar-section" style="display:none" class="fgroup">
+            <label style="display:flex;align-items:center;gap:.5rem;padding:.6rem .75rem;border:1.5px solid var(--border2);border-radius:12px;cursor:pointer;font-size:.84rem;font-weight:600;background:var(--bg)">
               <input type="checkbox" id="cp-aller-retour" onchange="onArToggle('cp')" style="width:18px;height:18px;accent-color:var(--primary);flex-shrink:0">
-              🔄 Aller-retour (le livreur vous attend sur place et vous ramène)
+              🔄 Aller-retour (livreur vous attend sur place)
             </label>
-            <div id="cp-attente-wrap" style="display:none">
-              <div style="font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:.4rem">⏱️ Durée d'attente sur place (minutes)</div>
-              <input type="number" id="cp-attente" min="0" step="5" value="30" oninput="estimerPrix()" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg)">
-              <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">Les 15 premières minutes sont offertes, puis 300 FCFA par tranche de 30 min.</div>
+            <div id="cp-attente-wrap" style="display:none;margin-top:.5rem">
+              <div class="fgroup-label"><i class="ti ti-clock"></i> Durée d'attente sur place (min)</div>
+              <input type="number" id="cp-attente" class="f-input" min="0" step="5" value="30" oninput="estimerPrix()">
+              <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">15 min offertes, puis 300 FCFA / 30 min.</div>
             </div>
           </div>
+
           <!-- Chauffeur PC -->
-          <div id="chauf-section" style="display:none;margin-bottom:.6rem">
-            <div style="font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:.4rem">⏱️ Durée prévue (heures)</div>
-            <input type="number" id="cp-duree-chauffeur" min="1" step="0.5" value="2" oninput="estimerPrix()" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg)">
-            <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">Le tarif est fixé par le chauffeur (FCFA/km + FCFA/heure) — sélectionnez un chauffeur pour voir son prix.</div>
+          <div id="chauf-section" style="display:none" class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-clock"></i> Durée prévue (heures)</div>
+            <input type="number" id="cp-duree-chauffeur" class="f-input" min="1" step="0.5" value="2" oninput="estimerPrix()">
+            <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">Tarif fixé par le chauffeur (FCFA/km + FCFA/heure).</div>
           </div>
-          <!-- Description / Instructions au livreur -->
-          <span class="cp-slabel">💬 Instructions au livreur <span style="font-weight:400;text-transform:none;font-size:.68rem;color:var(--text3)">(envoyé automatiquement)</span></span>
-          <div class="desc-box">
-            <textarea class="desc-textarea" id="cp-description" placeholder="Ex: Récupérer un colis chez Mme Adjobi, bâtiment bleu en face du marché Dantokpa, sonner au 2ème étage. Livrer à M. Kofi, résidence Les Palmiers appt 14…" rows="3"></textarea>
-            <div class="desc-actions">
-              <button type="button" class="desc-audio-btn" id="cp-audio-btn" onclick="toggleAudioDesc('cp')">
-                <i class="ti ti-microphone"></i> <span id="cp-audio-label">Enregistrer vocal</span>
-              </button>
-              <div class="desc-audio-preview" id="cp-audio-preview">
-                <audio id="cp-audio-player" controls></audio>
+
+          <!-- Instructions -->
+          <div class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-message"></i> Instructions au livreur <span style="font-weight:400;text-transform:none;font-size:.68rem;opacity:.7">(auto-envoyé)</span></div>
+            <div class="desc-box" style="border-radius:12px">
+              <textarea class="f-textarea" id="cp-description" placeholder="Type de colis, lieu précis, accès, contact sur place, appt…" rows="3"></textarea>
+              <div class="desc-actions">
+                <button type="button" class="desc-audio-btn" id="cp-audio-btn" onclick="toggleAudioDesc('cp')">
+                  <i class="ti ti-microphone"></i> <span id="cp-audio-label">Enregistrer vocal</span>
+                </button>
+                <div class="desc-audio-preview" id="cp-audio-preview">
+                  <audio id="cp-audio-player" controls></audio>
+                </div>
+                <span id="cp-audio-timer" style="font-size:.72rem;color:var(--danger);font-weight:700;display:none">⏺ <span id="cp-audio-sec">0</span>s</span>
               </div>
-              <span id="cp-audio-timer" style="font-size:.72rem;color:var(--danger);font-weight:700;display:none">⏺ <span id="cp-audio-sec">0</span>s</span>
             </div>
           </div>
-          <!-- Mode de paiement -->
-          <span class="cp-slabel">💳 Mode de paiement</span>
-          <div style="margin-bottom:.6rem">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem">
-              <label id="lbl-pay-fedapay" style="display:flex;align-items:center;gap:.5rem;padding:.55rem .75rem;border:1.5px solid var(--primary);border-radius:var(--radius-xs);cursor:pointer;background:var(--primary-light);font-size:.82rem;font-weight:600;color:var(--primary)">
-                <input type="radio" name="cp-paiement" value="fedapay" checked onchange="onPayModeChange()" style="accent-color:var(--primary)"> 📱 Mobile Money
-              </label>
-              <label id="lbl-pay-cash" style="display:flex;align-items:center;gap:.5rem;padding:.55rem .75rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);cursor:pointer;background:var(--surface);font-size:.82rem;font-weight:600;color:var(--text2)">
-                <input type="radio" name="cp-paiement" value="cash" onchange="onPayModeChange()" style="accent-color:var(--primary)"> 💵 Cash / livraison
-              </label>
+
+          <!-- Paiement -->
+          <div class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-credit-card"></i> Mode de paiement</div>
+            <div class="pay-pills">
+              <div class="pay-pill active-mm" id="cp-pill-mm" onclick="setCpPayMode('fedapay')">
+                <span class="pay-pill-icon">📱</span> Mobile Money
+              </div>
+              <div class="pay-pill" id="cp-pill-cash" onclick="setCpPayMode('cash')">
+                <span class="pay-pill-icon">💵</span> Cash / livraison
+              </div>
             </div>
-            <div id="cash-notice-pc" style="display:none;margin-top:.4rem;padding:.45rem .7rem;background:#FEF9C3;border-radius:var(--radius-xs);font-size:.75rem;color:#92400E">⚠️ Le paiement se fait en espèces directement au livreur à la livraison.</div>
+            <input type="radio" name="cp-paiement" value="fedapay" checked style="display:none" id="cp-radio-fedapay">
+            <input type="radio" name="cp-paiement" value="cash" style="display:none" id="cp-radio-cash">
+            <div class="cash-notice" id="cash-notice-pc">⚠️ Le paiement se fait en espèces directement au livreur à la livraison.</div>
           </div>
+
           <!-- Prix estimé -->
-          <div class="price-est">
-            <div>
-              <span class="label">Prix estimé</span>
-              <div class="price-detail" id="cp-price-detail" style="font-size:.7rem;color:var(--text3);margin-top:1px"></div>
+          <div class="price-row">
+            <div class="price-row-left">
+              <span class="price-row-lbl">Prix estimé</span>
+              <span class="price-row-detail" id="cp-price-detail"></span>
             </div>
-            <span class="price" id="cp-price-est">0 FCFA</span>
+            <span class="price-row-amount" id="cp-price-est">0 FCFA</span>
           </div>
-          <button class="btn-primary" id="cp-confirm-btn" onclick="passerCommande()">Confirmer & payer via FedaPay</button>
+
+          <button class="btn-confirm" id="cp-confirm-btn" onclick="passerCommande()">
+            <i class="ti ti-credit-card"></i> Confirmer & Payer
+          </button>
         </div>
       </div>
     </div>
@@ -1638,129 +1986,239 @@ input:valid {
     </div>
     <!-- Bottom sheet commande mobile -->
     <div class="mob-course-sheet" id="mob-sheet">
-      <div class="sheet-handle"></div>
+      <div class="sheet-handle"><div class="sheet-handle-pill"></div></div>
       <div class="sheet-inner">
-        <h3 style="font-weight:700;margin-bottom:.75rem;font-family:var(--font-display)">🛵 Nouvelle course</h3>
-        <div id="mob-selected-lv" style="display:none;margin-bottom:.75rem"></div>
-        <!-- Trajet -->
-        <div style="font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:.35rem">📍 Trajet</div>
-        <div style="position:relative;margin-bottom:.5rem">
-          <input type="text" id="mob-depart" placeholder="📍 Lieu de récupération" oninput="acSearch(this,'sugg-mob-depart')" autocomplete="off" style="width:100%;padding:.65rem 2.8rem .65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none">
-          <button type="button" onclick="gpsRemplirChamp('mob-depart','sugg-mob-depart')" title="Ma position" style="position:absolute;right:.4rem;top:50%;transform:translateY(-50%);background:var(--primary-light);border:none;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--primary);font-size:.85rem"><i class="ti ti-current-location"></i></button>
-          <div class="sugg-box" id="sugg-mob-depart"></div>
+        <!-- Tabs Livraison / Chauffeur -->
+        <div class="form-tabs" id="mob-form-tabs">
+          <button class="form-tab active" id="mob-tab-livraison" onclick="mobSwitchFormTab('livraison')">
+            <i class="ti ti-motorbike"></i> Livraison
+          </button>
+          <button class="form-tab" id="mob-tab-chauffeur" onclick="mobSwitchFormTab('chauffeur')">
+            <i class="ti ti-steering-wheel"></i> Chauffeur
+          </button>
         </div>
-        <div style="position:relative;margin-bottom:.5rem">
-          <input type="text" id="mob-arrivee" placeholder="🏁 Destination exacte" oninput="acSearch(this,'sugg-mob-arrivee')" autocomplete="off" style="width:100%;padding:.65rem 2.8rem .65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none">
-          <button type="button" onclick="gpsRemplirChamp('mob-arrivee','sugg-mob-arrivee')" title="Ma position" style="position:absolute;right:.4rem;top:50%;transform:translateY(-50%);background:var(--primary-light);border:none;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--primary);font-size:.85rem"><i class="ti ti-current-location"></i></button>
-          <div class="sugg-box" id="sugg-mob-arrivee"></div>
-        </div>
-        <!-- Info distance livreur mobile -->
-        <div class="desc-dist-info" id="mob-dist-info" style="display:none;margin-bottom:.5rem">
-          <i class="ti ti-route"></i>
-          <span id="mob-dist-detail">—</span>
-        </div>
-        <select id="mob-type" onchange="onMobTypeChange()" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;margin-bottom:.5rem;background:var(--bg)">
-          <optgroup label="🛵 Moto / Zem">
-            <option value="simple" selected>📦 Course simple</option>
-            <option value="zem">🛵 Go Zem (moto taxi)</option>
-          </optgroup>
-          <optgroup label="🚗 Voiture">
-            <option value="voiture_classique">🚗 Voiture classique</option>
-            <option value="voiture_confort">🌟 Voiture confort (clim)</option>
-            <option value="voiture_eco">💚 Voiture Éco (économique)</option>
-          </optgroup>
-          <optgroup label="👨‍👧 Services spéciaux">
-            <option value="transport_enfant">🏫 Transport enfant (école)</option>
-            <option value="demenagement">📦 Déménagement</option>
-            <option value="camionnette">🚐 Gros colis / Camionnette</option>
-          </optgroup>
-          <optgroup label="📋 Livraison avancée">
-            <option value="avec_marchand">🏪 Avec marchand</option>
-            <option value="colis_tiers">📫 Colis tiers</option>
-            <option value="multi_arrets">🔀 Multi-arrêts</option>
-            <option value="programmee">🗓️ Programmée</option>
-          </optgroup>
-          <optgroup label="🌍 Personnel / Tourisme">
-            <option value="tourisme">🏖️ Excursion touristique / Voyage personnel</option>
-          </optgroup>
-          <optgroup label="🧑‍✈️ Chauffeur">
-            <option value="chauffeur_perso">🚘 Chauffeur avec sa voiture</option>
-            <option value="chauffeur_client">🔑 Chauffeur pour votre véhicule</option>
-          </optgroup>
-        </select>
-        <div id="mob-type-hint" style="font-size:.74rem;padding:.4rem .65rem;border-radius:6px;background:var(--primary-light);color:var(--primary-dark);margin-bottom:.4rem;display:none"></div>
-        <select id="mob-urgent" onchange="estimerPrix()" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;margin-bottom:.5rem;background:var(--bg)">
-          <option value="false">Normal</option>
-          <option value="true">⚡ Urgent (+30%)</option>
-        </select>
-        <!-- Multi-arrêts Mobile -->
-        <div id="mob-stops-container" style="display:none;margin-bottom:.5rem">
-          <div style="font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:.4rem">Arrêts intermédiaires</div>
-          <div id="stops-list-mob"></div>
-          <button type="button" onclick="addStop('mob')" style="width:100%;padding:.45rem;border:1.5px dashed var(--border2);border-radius:var(--radius-xs);background:transparent;cursor:pointer;font-size:.82rem;color:var(--text2);font-family:var(--font)">+ Ajouter un arrêt</button>
-        </div>
-        <!-- Livraison programmée Mobile -->
-        <div id="mob-prog-section" style="display:none;margin-bottom:.5rem">
-          <div style="font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:.4rem">Date & heure de livraison</div>
-          <input type="datetime-local" id="mob-programmee" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg);margin-bottom:.5rem">
-        </div>
-        <!-- Tourisme / Aller-retour Mobile -->
-        <div id="mob-ar-section" style="display:none;margin-bottom:.5rem">
-          <label style="display:flex;align-items:center;gap:.5rem;padding:.6rem .75rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);cursor:pointer;font-size:.84rem;font-weight:600;margin-bottom:.5rem;background:var(--bg)">
-            <input type="checkbox" id="mob-aller-retour" onchange="onArToggle('mob')" style="width:18px;height:18px;accent-color:var(--primary);flex-shrink:0">
-            🔄 Aller-retour (le livreur vous attend sur place et vous ramène)
-          </label>
-          <div id="mob-attente-wrap" style="display:none">
-            <div style="font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:.4rem">⏱️ Durée d'attente sur place (minutes)</div>
-            <input type="number" id="mob-attente" min="0" step="5" value="30" oninput="estimerPrix()" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg)">
-            <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">Les 15 premières minutes sont offertes, puis 300 FCFA par tranche de 30 min.</div>
-          </div>
-        </div>
-        <!-- Chauffeur Mobile -->
-        <div id="mob-chauf-section" style="display:none;margin-bottom:.5rem">
-          <div style="font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:.4rem">⏱️ Durée prévue (heures)</div>
-          <input type="number" id="mob-duree-chauffeur" min="1" step="0.5" value="2" oninput="estimerPrix()" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg)">
-          <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">Le tarif est fixé par le chauffeur (FCFA/km + FCFA/heure).</div>
-        </div>
-        <!-- Description / Instructions -->
-        <div style="font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:.35rem">
-          💬 Instructions au livreur <span style="font-weight:400;text-transform:none;color:var(--text3)">(auto-envoyé)</span>
-        </div>
-        <div class="desc-box" style="margin-bottom:.6rem">
-          <textarea class="desc-textarea" id="mob-description" placeholder="Décrivez exactement : type de colis, lieu précis de récupération, accès, contact sur place, destination exacte…" rows="3"></textarea>
-          <div class="desc-actions">
-            <button type="button" class="desc-audio-btn" id="mob-audio-btn" onclick="toggleAudioDesc('mob')">
-              <i class="ti ti-microphone"></i> <span id="mob-audio-label">Vocal</span>
-            </button>
-            <span id="mob-audio-timer" style="font-size:.72rem;color:var(--danger);font-weight:700;display:none">⏺ <span id="mob-audio-sec">0</span>s</span>
-            <div class="desc-audio-preview" id="mob-audio-preview">
-              <audio id="mob-audio-player" controls></audio>
+
+        <!-- ═══ FORMULAIRE LIVRAISON ═══ -->
+        <div id="mob-form-livraison">
+          <!-- Livreur sélectionné -->
+          <div id="mob-selected-lv" style="display:none;margin-bottom:.85rem"></div>
+
+          <!-- Trajet -->
+          <div class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-route"></i> Trajet</div>
+            <div class="route-card">
+              <div class="route-row">
+                <div class="route-icon dep">A</div>
+                <input type="text" id="mob-depart" class="route-input" placeholder="Point de récupération" oninput="acSearch(this,'sugg-mob-depart')" autocomplete="off">
+                <button type="button" class="route-gps-btn" onclick="gpsRemplirChamp('mob-depart','sugg-mob-depart')" title="Ma position"><i class="ti ti-current-location"></i></button>
+              </div>
+              <div style="position:relative;height:0;overflow:visible">
+                <div class="route-dotline"></div>
+              </div>
+              <div class="route-row">
+                <div class="route-icon arr">B</div>
+                <input type="text" id="mob-arrivee" class="route-input" placeholder="Destination exacte" oninput="acSearch(this,'sugg-mob-arrivee')" autocomplete="off">
+                <button type="button" class="route-gps-btn" onclick="gpsRemplirChamp('mob-arrivee','sugg-mob-arrivee')" title="Ma position"><i class="ti ti-current-location"></i></button>
+              </div>
+              <div class="sugg-box" id="sugg-mob-depart" style="position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:800"></div>
+              <div class="sugg-box" id="sugg-mob-arrivee" style="position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:800"></div>
+            </div>
+            <div class="desc-dist-info" id="mob-dist-info" style="display:none;margin-top:.4rem">
+              <i class="ti ti-route"></i><span id="mob-dist-detail">—</span>
             </div>
           </div>
-        </div>
-        <!-- Prix estimé -->
-        <div class="price-est" style="margin-bottom:.75rem">
-          <div>
-            <span class="label">Prix estimé</span>
-            <div class="price-detail" id="mob-price-detail" style="font-size:.7rem;color:var(--text3);margin-top:1px"></div>
+
+          <!-- Type de service -->
+          <div class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-category"></i> Type de service</div>
+            <select id="mob-type" class="f-select" onchange="onMobTypeChange()">
+              <optgroup label="🛵 Moto / Zem">
+                <option value="simple" selected>📦 Course simple</option>
+                <option value="zem">🛵 Go Zem (moto taxi)</option>
+              </optgroup>
+              <optgroup label="🚗 Voiture">
+                <option value="voiture_classique">🚗 Voiture classique</option>
+                <option value="voiture_confort">🌟 Voiture confort (clim)</option>
+                <option value="voiture_eco">💚 Voiture Éco</option>
+              </optgroup>
+              <optgroup label="👨‍👧 Services spéciaux">
+                <option value="transport_enfant">🏫 Transport enfant</option>
+                <option value="demenagement">📦 Déménagement</option>
+                <option value="camionnette">🚐 Gros colis / Camionnette</option>
+              </optgroup>
+              <optgroup label="📋 Livraison avancée">
+                <option value="avec_marchand">🏪 Avec marchand</option>
+                <option value="colis_tiers">📫 Colis tiers</option>
+                <option value="multi_arrets">🔀 Multi-arrêts</option>
+                <option value="programmee">🗓️ Programmée</option>
+              </optgroup>
+              <optgroup label="🌍 Personnel">
+                <option value="tourisme">🏖️ Excursion / Voyage</option>
+              </optgroup>
+            </select>
+            <div id="mob-type-hint" style="font-size:.74rem;padding:.4rem .65rem;border-radius:8px;background:var(--primary-light);color:var(--primary-dark);margin-top:.4rem;display:none"></div>
           </div>
-          <span class="price" id="mob-price-est">0 FCFA</span>
-        </div>
-        <!-- Mode de paiement -->
-        <div style="margin-bottom:.75rem">
-          <div style="font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:.4rem">💳 Mode de paiement</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">
-            <label style="display:flex;align-items:center;gap:.4rem;padding:.55rem .65rem;border:1.5px solid var(--primary);border-radius:var(--radius-xs);cursor:pointer;background:var(--primary-light);font-size:.8rem;font-weight:600;color:var(--primary)" id="mob-lbl-fedapay">
-              <input type="radio" name="mob-paiement" value="fedapay" checked onchange="onMobPayModeChange()" style="accent-color:var(--primary)"> 📱 Mobile Money
-            </label>
-            <label style="display:flex;align-items:center;gap:.4rem;padding:.55rem .65rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);cursor:pointer;background:var(--surface);font-size:.8rem;font-weight:600;color:var(--text2)" id="mob-lbl-cash">
-              <input type="radio" name="mob-paiement" value="cash" onchange="onMobPayModeChange()" style="accent-color:var(--primary)"> 💵 Cash
-            </label>
+
+          <!-- Priorité -->
+          <div class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-bolt"></i> Priorité</div>
+            <div class="urgency-pills">
+              <div class="urgency-pill selected-normal" id="mob-pill-normal" onclick="setMobUrgence(false)">✅ Normal</div>
+              <div class="urgency-pill" id="mob-pill-urgent" onclick="setMobUrgence(true)">⚡ Urgent +30%</div>
+            </div>
+            <select id="mob-urgent" style="display:none">
+              <option value="false">Normal</option>
+              <option value="true">Urgent</option>
+            </select>
           </div>
-          <div id="cash-notice-mob" style="display:none;margin-top:.4rem;padding:.45rem .7rem;background:#FEF9C3;border-radius:var(--radius-xs);font-size:.74rem;color:#92400E">⚠️ Paiement en espèces à la livraison.</div>
+
+          <!-- Multi-arrêts Mobile -->
+          <div id="mob-stops-container" style="display:none" class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-map-pins"></i> Arrêts intermédiaires</div>
+            <div id="stops-list-mob"></div>
+            <button type="button" onclick="addStop('mob')" style="width:100%;padding:.45rem;border:1.5px dashed var(--border2);border-radius:10px;background:transparent;cursor:pointer;font-size:.82rem;color:var(--text2);font-family:var(--font)">+ Ajouter un arrêt</button>
+          </div>
+
+          <!-- Livraison programmée Mobile -->
+          <div id="mob-prog-section" style="display:none" class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-calendar"></i> Date & heure de livraison</div>
+            <input type="datetime-local" id="mob-programmee" class="f-input">
+          </div>
+
+          <!-- Tourisme / Aller-retour Mobile -->
+          <div id="mob-ar-section" style="display:none" class="fgroup">
+            <label style="display:flex;align-items:center;gap:.5rem;padding:.6rem .75rem;border:1.5px solid var(--border2);border-radius:12px;cursor:pointer;font-size:.84rem;font-weight:600;background:var(--bg)">
+              <input type="checkbox" id="mob-aller-retour" onchange="onArToggle('mob')" style="width:18px;height:18px;accent-color:var(--primary);flex-shrink:0">
+              🔄 Aller-retour (livreur vous attend sur place)
+            </label>
+            <div id="mob-attente-wrap" style="display:none;margin-top:.5rem">
+              <div class="fgroup-label"><i class="ti ti-clock"></i> Durée d'attente sur place (min)</div>
+              <input type="number" id="mob-attente" class="f-input" min="0" step="5" value="30" oninput="estimerPrix()">
+              <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">15 min offertes, puis 300 FCFA / 30 min.</div>
+            </div>
+          </div>
+
+          <!-- Instructions -->
+          <div class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-message"></i> Instructions au livreur <span style="font-weight:400;text-transform:none;font-size:.68rem;opacity:.7">(auto-envoyé)</span></div>
+            <div class="desc-box" style="border-radius:12px">
+              <textarea class="f-textarea" id="mob-description" placeholder="Type de colis, lieu précis, accès, contact sur place…" rows="2"></textarea>
+              <div class="desc-actions">
+                <button type="button" class="desc-audio-btn" id="mob-audio-btn" onclick="toggleAudioDesc('mob')">
+                  <i class="ti ti-microphone"></i> <span id="mob-audio-label">Vocal</span>
+                </button>
+                <span id="mob-audio-timer" style="font-size:.72rem;color:var(--danger);font-weight:700;display:none">⏺ <span id="mob-audio-sec">0</span>s</span>
+                <div class="desc-audio-preview" id="mob-audio-preview">
+                  <audio id="mob-audio-player" controls></audio>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paiement -->
+          <div class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-credit-card"></i> Mode de paiement</div>
+            <div class="pay-pills">
+              <div class="pay-pill active-mm" id="mob-pill-mm" onclick="setMobPayMode('fedapay')">
+                <span class="pay-pill-icon">📱</span> Mobile Money
+              </div>
+              <div class="pay-pill" id="mob-pill-cash" onclick="setMobPayMode('cash')">
+                <span class="pay-pill-icon">💵</span> Cash / livraison
+              </div>
+            </div>
+            <input type="radio" name="mob-paiement" value="fedapay" checked style="display:none" id="mob-radio-fedapay">
+            <input type="radio" name="mob-paiement" value="cash" style="display:none" id="mob-radio-cash">
+            <div class="cash-notice" id="cash-notice-mob">⚠️ Paiement en espèces directement au livreur à la livraison.</div>
+          </div>
+
+          <!-- Prix -->
+          <div class="price-row">
+            <div class="price-row-left">
+              <span class="price-row-lbl">Prix estimé</span>
+              <span class="price-row-detail" id="mob-price-detail"></span>
+            </div>
+            <span class="price-row-amount" id="mob-price-est">0 FCFA</span>
+          </div>
+
+          <button class="btn-confirm" id="mob-pay-btn" onclick="passerCommandeMob()">
+            <i class="ti ti-credit-card"></i> Confirmer et Payer
+          </button>
+          <button class="btn-cancel-ghost" onclick="hideMobSheet()">Annuler</button>
         </div>
-        <button class="btn-primary" id="mob-pay-btn" onclick="passerCommandeMob()"><i class="ti ti-credit-card"></i> Confirmer et Payer</button>
-        <button class="btn btn-ghost" style="margin-top:.5rem" onclick="hideMobSheet()">Annuler</button>
+
+        <!-- ═══ FORMULAIRE CHAUFFEUR ═══ -->
+        <div id="mob-form-chauffeur" style="display:none">
+          <div style="font-size:.8rem;color:var(--text2);margin-bottom:.85rem;padding:.6rem .75rem;background:var(--primary-light);border-radius:10px;border-left:3px solid var(--primary)">
+            🚘 Réservez un chauffeur avec sa voiture, ou pour conduire la vôtre.
+          </div>
+          <div class="chauf-mode-wrap">
+            <button class="chauf-mode-btn active" id="mob-chaufmode-perso" onclick="mobSwitchChauffeurMode('chauffeur_perso')">🚘 Sa voiture</button>
+            <button class="chauf-mode-btn" id="mob-chaufmode-client" onclick="mobSwitchChauffeurMode('chauffeur_client')">🔑 Votre véhicule</button>
+          </div>
+          <div class="mob-scroll" id="chauffeurs-list-mob" style="max-height:220px;overflow-y:auto;margin-bottom:.85rem">
+            <div class="empty-state"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><p>Chargement…</p></div>
+          </div>
+          <!-- Chip livreur sélectionné chauffeur -->
+          <div id="mob-chauf-selected-lv" style="display:none;margin-bottom:.85rem"></div>
+          <!-- Trajet chauffeur -->
+          <div class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-route"></i> Trajet</div>
+            <div class="route-card">
+              <div class="route-row">
+                <div class="route-icon dep">A</div>
+                <input type="text" id="mob-chauf-depart" class="route-input" placeholder="Lieu de prise en charge" oninput="acSearch(this,'sugg-mob-chauf-dep')" autocomplete="off">
+                <button type="button" class="route-gps-btn" onclick="gpsRemplirChamp('mob-chauf-depart','sugg-mob-chauf-dep')"><i class="ti ti-current-location"></i></button>
+              </div>
+              <div class="route-row">
+                <div class="route-icon arr">B</div>
+                <input type="text" id="mob-chauf-arrivee" class="route-input" placeholder="Destination (optionnel)" oninput="acSearch(this,'sugg-mob-chauf-arr')" autocomplete="off">
+              </div>
+              <div class="sugg-box" id="sugg-mob-chauf-dep" style="position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:800"></div>
+              <div class="sugg-box" id="sugg-mob-chauf-arr" style="position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:800"></div>
+            </div>
+          </div>
+          <!-- Durée -->
+          <div class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-clock"></i> Durée prévue (heures)</div>
+            <input type="number" id="mob-duree-chauffeur" class="f-input" min="1" step="0.5" value="2" oninput="estimerPrix()">
+            <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">Tarif fixé par le chauffeur (FCFA/km + FCFA/heure).</div>
+          </div>
+          <!-- Urgence chauffeur -->
+          <div class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-bolt"></i> Priorité</div>
+            <div class="urgency-pills">
+              <div class="urgency-pill selected-normal" id="mob-chauf-pill-normal" onclick="setMobChauffeurUrgence(false)">✅ Normal</div>
+              <div class="urgency-pill" id="mob-chauf-pill-urgent" onclick="setMobChauffeurUrgence(true)">⚡ Urgent</div>
+            </div>
+          </div>
+          <!-- Paiement chauffeur -->
+          <div class="fgroup">
+            <div class="fgroup-label"><i class="ti ti-credit-card"></i> Mode de paiement</div>
+            <div class="pay-pills">
+              <div class="pay-pill active-mm" id="mob-chauf-pill-mm" onclick="setMobChauffeurPayMode('fedapay')">
+                <span class="pay-pill-icon">📱</span> Mobile Money
+              </div>
+              <div class="pay-pill" id="mob-chauf-pill-cash" onclick="setMobChauffeurPayMode('cash')">
+                <span class="pay-pill-icon">💵</span> Cash
+              </div>
+            </div>
+            <input type="radio" name="mob-chauf-paiement" value="fedapay" checked style="display:none" id="mob-chauf-radio-fedapay">
+            <input type="radio" name="mob-chauf-paiement" value="cash" style="display:none" id="mob-chauf-radio-cash">
+            <div class="cash-notice" id="cash-notice-mob-chauf">⚠️ Paiement en espèces directement au chauffeur.</div>
+          </div>
+          <!-- Prix chauffeur -->
+          <div class="price-row">
+            <div class="price-row-left">
+              <span class="price-row-lbl">Prix estimé chauffeur</span>
+              <span class="price-row-detail" id="mob-chauf-price-detail"></span>
+            </div>
+            <span class="price-row-amount" id="mob-chauf-price-est">— FCFA</span>
+          </div>
+          <button class="btn-confirm" id="mob-chauf-confirm-btn" onclick="passerCommandeChauffeurMob()">
+            <i class="ti ti-steering-wheel"></i> Confirmer le chauffeur
+          </button>
+          <button class="btn-cancel-ghost" onclick="hideMobSheet()">Annuler</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1776,18 +2234,16 @@ input:valid {
     </div>
   </div>
 
-  <!-- Page Chauffeur -->
+  <!-- Page Chauffeur — redirige vers le sheet avec l'onglet chauffeur -->
   <div class="mob-page" id="mob-chauffeur-page">
     <div class="mob-topbar">
       <div class="mob-page-title">🚘 Service Chauffeur</div>
     </div>
-    <div style="padding:.65rem .75rem .3rem;font-size:.78rem;color:var(--text2);flex-shrink:0">Réservez un chauffeur avec sa voiture ou pour conduire la vôtre.</div>
-    <div style="display:flex;gap:.4rem;padding:.4rem .75rem .6rem;flex-shrink:0">
-      <button class="chauffeur-mode-btn active" id="chaufmode-perso-mob" onclick="switchChauffeurMode('chauffeur_perso','mob')" style="flex:1;padding:.5rem;border:1.5px solid var(--primary);border-radius:var(--radius-pill);background:var(--primary);color:#fff;font-family:var(--font);font-size:.8rem;font-weight:700;cursor:pointer">🚘 Sa voiture</button>
-      <button class="chauffeur-mode-btn" id="chaufmode-client-mob" onclick="switchChauffeurMode('chauffeur_client','mob')" style="flex:1;padding:.5rem;border:1.5px solid var(--border2);border-radius:var(--radius-pill);background:var(--bg);color:var(--text2);font-family:var(--font);font-size:.8rem;font-weight:700;cursor:pointer">🔑 Votre véhicule</button>
-    </div>
-    <div class="mob-scroll" id="chauffeurs-list-mob">
-      <div class="empty-state"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><p>Chargement…</p></div>
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:1rem;padding:2rem">
+      <div style="font-size:2.5rem">🚘</div>
+      <div style="font-weight:700;font-size:1.1rem;font-family:var(--font-display)">Réserver un chauffeur</div>
+      <div style="font-size:.85rem;color:var(--text2);text-align:center">Choisissez un chauffeur avec sa voiture ou pour conduire la vôtre.</div>
+      <button onclick="showMobSheet();setTimeout(()=>mobSwitchFormTab('chauffeur'),100)" style="padding:.75rem 2rem;background:var(--primary);color:#fff;border:none;border-radius:50px;font-family:var(--font);font-size:.92rem;font-weight:700;cursor:pointer;box-shadow:var(--shadow-primary)"><i class="ti ti-steering-wheel"></i> Réserver maintenant</button>
     </div>
   </div>
 
@@ -3763,43 +4219,15 @@ function updateMobSelectedLv(lv) {
   el.style.display = '';
 }
 
-// ── Gestion mode paiement PC
+// ── Gestion mode paiement PC (compat + délégation)
 function onPayModeChange() {
   const val = document.querySelector('input[name="cp-paiement"]:checked')?.value || 'fedapay';
-  const notice = document.getElementById('cash-notice-pc');
-  const btn = document.getElementById('cp-confirm-btn');
-  const lblFeda = document.getElementById('lbl-pay-fedapay');
-  const lblCash = document.getElementById('lbl-pay-cash');
-  if (val === 'cash') {
-    if (notice) notice.style.display = 'block';
-    if (btn) btn.innerHTML = '<i class="ti ti-check"></i> Confirmer — Payer à la livraison';
-    if (lblFeda) { lblFeda.style.borderColor='var(--border2)'; lblFeda.style.background='var(--surface)'; lblFeda.style.color='var(--text2)'; }
-    if (lblCash) { lblCash.style.borderColor='var(--success)'; lblCash.style.background='#F0FDF4'; lblCash.style.color='var(--success)'; }
-  } else {
-    if (notice) notice.style.display = 'none';
-    if (btn) btn.innerHTML = 'Confirmer & payer via FedaPay';
-    if (lblFeda) { lblFeda.style.borderColor='var(--primary)'; lblFeda.style.background='var(--primary-light)'; lblFeda.style.color='var(--primary)'; }
-    if (lblCash) { lblCash.style.borderColor='var(--border2)'; lblCash.style.background='var(--surface)'; lblCash.style.color='var(--text2)'; }
-  }
+  setCpPayMode(val);
 }
-// ── Gestion mode paiement Mobile
+// ── Gestion mode paiement Mobile (compat + délégation)
 function onMobPayModeChange() {
   const val = document.querySelector('input[name="mob-paiement"]:checked')?.value || 'fedapay';
-  const notice = document.getElementById('cash-notice-mob');
-  const btn = document.getElementById('mob-pay-btn');
-  const lblFeda = document.getElementById('mob-lbl-fedapay');
-  const lblCash = document.getElementById('mob-lbl-cash');
-  if (val === 'cash') {
-    if (notice) notice.style.display = 'block';
-    if (btn) btn.innerHTML = '<i class="ti ti-check"></i> Confirmer — Payer à la livraison';
-    if (lblFeda) { lblFeda.style.borderColor='var(--border2)'; lblFeda.style.background='var(--surface)'; lblFeda.style.color='var(--text2)'; }
-    if (lblCash) { lblCash.style.borderColor='var(--success)'; lblCash.style.background='#F0FDF4'; lblCash.style.color='var(--success)'; }
-  } else {
-    if (notice) notice.style.display = 'none';
-    if (btn) btn.innerHTML = '<i class="ti ti-credit-card"></i> Confirmer et Payer';
-    if (lblFeda) { lblFeda.style.borderColor='var(--primary)'; lblFeda.style.background='var(--primary-light)'; lblFeda.style.color='var(--primary)'; }
-    if (lblCash) { lblCash.style.borderColor='var(--border2)'; lblCash.style.background='var(--surface)'; lblCash.style.color='var(--text2)'; }
-  }
+  setMobPayMode(val);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -3869,6 +4297,132 @@ async function verifierPresenceLivreur(livreurId) {
 // Recalcul si urgence change
 document.addEventListener('change', e => { if (e.target.id === 'cp-urgent') estimerPrix(); });
 
+// ── Helpers nouveaux contrôles PC ──
+function setCpUrgence(isUrgent) {
+  const sel = document.getElementById('cp-urgent');
+  if (sel) sel.value = isUrgent ? 'true' : 'false';
+  const pn = document.getElementById('cp-pill-normal');
+  const pu = document.getElementById('cp-pill-urgent');
+  if (pn) { pn.className = 'urgency-pill' + (!isUrgent ? ' selected-normal' : ''); }
+  if (pu) { pu.className = 'urgency-pill' + (isUrgent ? ' selected-urgent' : ''); }
+  estimerPrix();
+}
+function setCpPayMode(mode) {
+  const r = document.getElementById(mode === 'fedapay' ? 'cp-radio-fedapay' : 'cp-radio-cash');
+  if (r) r.checked = true;
+  const pm = document.getElementById('cp-pill-mm');
+  const pc = document.getElementById('cp-pill-cash');
+  const notice = document.getElementById('cash-notice-pc');
+  const btn = document.getElementById('cp-confirm-btn');
+  if (mode === 'fedapay') {
+    if (pm) pm.className = 'pay-pill active-mm';
+    if (pc) pc.className = 'pay-pill';
+    if (notice) notice.style.display = 'none';
+    if (btn) btn.innerHTML = '<i class="ti ti-credit-card"></i> Confirmer & Payer';
+  } else {
+    if (pm) pm.className = 'pay-pill';
+    if (pc) pc.className = 'pay-pill active-cash';
+    if (notice) notice.style.display = 'block';
+    if (btn) btn.innerHTML = '<i class="ti ti-check"></i> Confirmer — Payer à la livraison';
+  }
+}
+
+// ── Helpers nouveaux contrôles Mobile ──
+function setMobUrgence(isUrgent) {
+  const sel = document.getElementById('mob-urgent');
+  if (sel) sel.value = isUrgent ? 'true' : 'false';
+  const pn = document.getElementById('mob-pill-normal');
+  const pu = document.getElementById('mob-pill-urgent');
+  if (pn) { pn.className = 'urgency-pill' + (!isUrgent ? ' selected-normal' : ''); }
+  if (pu) { pu.className = 'urgency-pill' + (isUrgent ? ' selected-urgent' : ''); }
+  estimerPrix();
+}
+function setMobPayMode(mode) {
+  const r = document.getElementById(mode === 'fedapay' ? 'mob-radio-fedapay' : 'mob-radio-cash');
+  if (r) r.checked = true;
+  const pm = document.getElementById('mob-pill-mm');
+  const pc = document.getElementById('mob-pill-cash');
+  const notice = document.getElementById('cash-notice-mob');
+  const btn = document.getElementById('mob-pay-btn');
+  if (mode === 'fedapay') {
+    if (pm) pm.className = 'pay-pill active-mm';
+    if (pc) pc.className = 'pay-pill';
+    if (notice) notice.style.display = 'none';
+    if (btn) btn.innerHTML = '<i class="ti ti-credit-card"></i> Confirmer et Payer';
+  } else {
+    if (pm) pm.className = 'pay-pill';
+    if (pc) pc.className = 'pay-pill active-cash';
+    if (notice) notice.style.display = 'block';
+    if (btn) btn.innerHTML = '<i class="ti ti-check"></i> Confirmer — Payer à la livraison';
+  }
+}
+function setMobChauffeurPayMode(mode) {
+  const r = document.getElementById(mode === 'fedapay' ? 'mob-chauf-radio-fedapay' : 'mob-chauf-radio-cash');
+  if (r) r.checked = true;
+  const pm = document.getElementById('mob-chauf-pill-mm');
+  const pc = document.getElementById('mob-chauf-pill-cash');
+  const notice = document.getElementById('cash-notice-mob-chauf');
+  if (mode === 'fedapay') {
+    if (pm) pm.className = 'pay-pill active-mm';
+    if (pc) pc.className = 'pay-pill';
+    if (notice) notice.style.display = 'none';
+  } else {
+    if (pm) pm.className = 'pay-pill';
+    if (pc) pc.className = 'pay-pill active-cash';
+    if (notice) notice.style.display = 'block';
+  }
+}
+function setMobChauffeurUrgence(isUrgent) {
+  const pn = document.getElementById('mob-chauf-pill-normal');
+  const pu = document.getElementById('mob-chauf-pill-urgent');
+  if (pn) { pn.className = 'urgency-pill' + (!isUrgent ? ' selected-normal' : ''); }
+  if (pu) { pu.className = 'urgency-pill' + (isUrgent ? ' selected-urgent' : ''); }
+}
+
+// ── Tab switcher mobile formulaire ──
+function mobSwitchFormTab(tab) {
+  const isLiv = tab === 'livraison';
+  document.getElementById('mob-form-livraison').style.display = isLiv ? '' : 'none';
+  document.getElementById('mob-form-chauffeur').style.display = isLiv ? 'none' : '';
+  document.getElementById('mob-tab-livraison').className = 'form-tab' + (isLiv ? ' active' : '');
+  document.getElementById('mob-tab-chauffeur').className = 'form-tab' + (!isLiv ? ' active' : '');
+  if (!isLiv) loadChauffeursMob();
+}
+function mobSwitchChauffeurMode(mode) {
+  const isPerso = mode === 'chauffeur_perso';
+  document.getElementById('mob-chaufmode-perso').className = 'chauf-mode-btn' + (isPerso ? ' active' : '');
+  document.getElementById('mob-chaufmode-client').className = 'chauf-mode-btn' + (!isPerso ? ' active' : '');
+  if (typeof switchChauffeurMode === 'function') switchChauffeurMode(mode, 'mob');
+}
+function loadChauffeursMob() {
+  // Délègue à la fonction existante si disponible
+  if (typeof loadChauffeurs === 'function') loadChauffeurs();
+}
+async function passerCommandeChauffeurMob() {
+  const depart = document.getElementById('mob-chauf-depart')?.value?.trim() || document.getElementById('mob-depart').value.trim();
+  const arrivee = document.getElementById('mob-chauf-arrivee')?.value?.trim() || 'À définir';
+  if (!selectedLivreur) return showToast('Sélectionnez un chauffeur d\'abord');
+  if (!depart) return showToast('Renseignez le lieu de prise en charge');
+  const dureeChauffeur = document.getElementById('mob-duree-chauffeur')?.value || 2;
+  const modePaiement = document.querySelector('input[name="mob-chauf-paiement"]:checked')?.value || 'fedapay';
+  const btn = document.getElementById('mob-chauf-confirm-btn');
+  const origText = btn?.innerHTML;
+  try {
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Vérification…'; }
+    const presence = await verifierPresenceLivreur(selectedLivreur.id);
+    if (!presence.ok) return showToast('⚠️ ' + presence.raison, 'wa');
+    const mode = document.getElementById('mob-chaufmode-client')?.classList?.contains('active') ? 'chauffeur_client' : 'chauffeur_perso';
+    if (_coords['mob-chauf-depart']) _coords['cp-depart'] = _coords['mob-chauf-depart'];
+    if (_coords['mob-chauf-arrivee']) _coords['cp-arrivee'] = _coords['mob-chauf-arrivee'];
+    document.getElementById('cp-depart').value = depart;
+    document.getElementById('cp-arrivee').value = arrivee;
+    await passerCommandeCore(depart, arrivee, mode, false, null, modePaiement, '', null, false, 0, dureeChauffeur);
+    hideMobSheet();
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = origText; }
+  }
+}
+
 // ══════════════════════════════════════════════════════════════
 //  PASSER COMMANDE
 // ══════════════════════════════════════════════════════════════
@@ -3890,20 +4444,20 @@ async function passerCommande() {
   const description = document.getElementById('cp-description')?.value?.trim() || '';
   const audioBlob = _audioDescBlob?.cp || null;
 
-  // Vérification présence réelle livreur
   const btn = document.getElementById('cp-confirm-btn');
   const origText = btn?.innerHTML;
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Vérification livreur…'; }
-  const presence = await verifierPresenceLivreur(selectedLivreur.id);
-  if (!presence.ok) {
+  try {
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Vérification livreur…'; }
+    const presence = await verifierPresenceLivreur(selectedLivreur.id);
+    if (!presence.ok) {
+      return showToast('⚠️ ' + presence.raison, 'wa');
+    }
+    if (btn) btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Traitement…';
+    await passerCommandeCore(depart, arrivee, type, urgent, programmee, modePaiement, description, audioBlob, allerRetour, dureeAttente, dureeChauffeur);
+    closeCommandePanel();
+  } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = origText; }
-    return showToast('⚠️ ' + presence.raison, 'wa');
   }
-  if (btn) btn.innerHTML = origText || 'Confirmer';
-
-  await passerCommandeCore(depart, arrivee, type, urgent, programmee, modePaiement, description, audioBlob, allerRetour, dureeAttente, dureeChauffeur);
-  if (btn) { btn.disabled = false; btn.innerHTML = origText; }
-  closeCommandePanel();
 }
 
 async function passerCommandeMob() {
@@ -3923,26 +4477,27 @@ async function passerCommandeMob() {
   const description = document.getElementById('mob-description')?.value?.trim() || '';
   const audioBlob = _audioDescBlob?.mob || null;
 
-  // Vérification présence réelle livreur
   const btn = document.getElementById('mob-pay-btn');
   const origText = btn?.innerHTML;
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Vérification…'; }
-  const presence = await verifierPresenceLivreur(selectedLivreur.id);
-  if (!presence.ok) {
+  try {
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Vérification…'; }
+    const presence = await verifierPresenceLivreur(selectedLivreur.id);
+    if (!presence.ok) {
+      return showToast('⚠️ ' + presence.raison, 'wa');
+    }
+    if (btn) btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Traitement…';
+    // Synchroniser les coordonnées mob → pc si nécessaire
+    if (_coords['mob-depart'] && !_coords['cp-depart']) _coords['cp-depart'] = _coords['mob-depart'];
+    if (_coords['mob-arrivee'] && !_coords['cp-arrivee']) _coords['cp-arrivee'] = _coords['mob-arrivee'];
+    document.getElementById('cp-depart').value = depart;
+    document.getElementById('cp-arrivee').value = arrivee;
+    document.getElementById('cp-type').value = type;
+    document.getElementById('cp-urgent').value = urgent ? 'true' : 'false';
+    await passerCommandeCore(depart, arrivee, type, urgent, programmee, modePaiement, description, audioBlob, allerRetour, dureeAttente, dureeChauffeur);
+    hideMobSheet();
+  } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = origText; }
-    return showToast('⚠️ ' + presence.raison, 'wa');
   }
-  if (btn) { btn.disabled = false; btn.innerHTML = origText; }
-
-  // Synchroniser les coordonnées mob → pc si nécessaire
-  if (_coords['mob-depart'] && !_coords['cp-depart']) _coords['cp-depart'] = _coords['mob-depart'];
-  if (_coords['mob-arrivee'] && !_coords['cp-arrivee']) _coords['cp-arrivee'] = _coords['mob-arrivee'];
-  document.getElementById('cp-depart').value = depart;
-  document.getElementById('cp-arrivee').value = arrivee;
-  document.getElementById('cp-type').value = type;
-  document.getElementById('cp-urgent').value = urgent ? 'true' : 'false';
-  await passerCommandeCore(depart, arrivee, type, urgent, programmee, modePaiement, description, audioBlob, allerRetour, dureeAttente, dureeChauffeur);
-  hideMobSheet();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -7062,14 +7617,27 @@ function estimerPrix(){
 // ── FedaPay
 function openFedaPay(amount){
   return new Promise(resolve=>{
+    let resolved = false;
+    const done = (val) => { if(!resolved){ resolved=true; resolve(val); } };
+    // Timeout sécurité : si FedaPay ne répond pas en 3 min → annuler
+    const safetyTimer = setTimeout(() => done(false), 180000);
     try{
+      if(typeof FedaPay === 'undefined' || !FedaPay.init){
+        clearTimeout(safetyTimer);
+        showToast('Paiement simulé (mode démo)','ok');
+        return done(true);
+      }
       FedaPay.init({
         public_key:FEDAPAY_PK,
         transaction:{amount,description:'Course Allo Livreur'},
         customer:{email:currentUser?.email||'client@allolivreur.bj'},
-        onComplete:resp=>resolve(resp.reason!==FedaPay.DIALOG_DISMISSED)
+        onComplete:resp=>{ clearTimeout(safetyTimer); done(resp.reason!==FedaPay.DIALOG_DISMISSED); }
       }).open();
-    }catch(e){ showToast('Paiement simule (demo)','ok'); resolve(true); }
+    }catch(e){
+      clearTimeout(safetyTimer);
+      showToast('Paiement simulé (démo)','ok');
+      done(true);
+    }
   });
 }
 

@@ -422,6 +422,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
           </div>
           <div class="pd-item" onclick="openModal('modal-profil')"><i class="ti ti-user"></i> Mon profil</div>
           <div class="pd-item" onclick="openModal('modal-wallet')"><i class="ti ti-wallet"></i> Wallet & Retraits</div>
+          <div class="pd-item" onclick="openModal('modal-vehicule')"><i class="ti ti-car"></i> Mon véhicule & Chauffeur</div>
+          <div class="pd-item" onclick="openModal('modal-mon-artisan');chargerMonArtisan()"><i class="ti ti-tools"></i> Allô Artisans — Ma vitrine</div>
           <div class="pd-item danger" onclick="declencherSOS()" style="color:var(--danger);font-weight:700"><i class="ti ti-alert-triangle"></i> 🆘 Alerte SOS urgence</div>
           <div class="pd-item danger" onclick="doLogout()"><i class="ti ti-logout"></i> Déconnexion</div>
         </div>
@@ -729,7 +731,75 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
       <div class="field"><label>Plaque d'immatriculation</label><input type="text" id="veh-plaque" placeholder="AA 123 BN"></div>
       <div class="field"><label>Tarif de base (FCFA)</label><input type="number" id="veh-tarif-base" placeholder="500" min="100"></div>
       <div class="field"><label>Tarif par km (FCFA)</label><input type="number" id="veh-tarif-km" placeholder="200" min="50"></div>
+      <hr style="border:none;border-top:1px solid var(--border2);margin:1.1rem 0">
+      <label style="display:flex;align-items:center;gap:.5rem;padding:.6rem .75rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);cursor:pointer;font-size:.86rem;font-weight:700;margin-bottom:.75rem">
+        <input type="checkbox" id="veh-est-chauffeur" onchange="document.getElementById('chauffeur-tarifs-wrap').style.display=this.checked?'block':'none'" style="width:18px;height:18px;accent-color:var(--primary);flex-shrink:0">
+        🧑‍✈️ Activer le service Chauffeur
+      </label>
+      <div id="chauffeur-tarifs-wrap" style="display:none">
+        <div style="font-size:.78rem;color:var(--text2);margin-bottom:.6rem">Vous pourrez être réservé comme chauffeur (avec votre voiture, ou pour conduire le véhicule d'un client). Fixez vos propres tarifs :</div>
+        <div class="field"><label>Tarif chauffeur par km (FCFA)</label><input type="number" id="veh-tarif-km-chauffeur" placeholder="250" min="50"></div>
+        <div class="field"><label>Tarif chauffeur par heure (FCFA)</label><input type="number" id="veh-tarif-heure-chauffeur" placeholder="1000" min="200"></div>
+      </div>
       <button class="btn-primary" onclick="sauvegarderVehicule()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Allô Artisans -->
+<div class="modal-overlay" id="modal-mon-artisan" onclick="if(event.target===this)closeModal('modal-mon-artisan')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle" onclick="closeModal('modal-mon-artisan')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem">
+      <div style="text-align:center;padding:.3rem 0 .9rem">
+        <div style="font-size:2rem">🛠️</div>
+        <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800">Allô Artisans</div>
+        <div style="font-size:.8rem;color:var(--text2);margin-top:2px">Créez votre vitrine en plus de la livraison</div>
+      </div>
+      <label style="display:flex;align-items:center;gap:.5rem;padding:.65rem .8rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);cursor:pointer;font-size:.86rem;font-weight:700;margin-bottom:.9rem;background:var(--bg)">
+        <input type="checkbox" id="art-actif" onchange="document.getElementById('art-form-wrap').style.display=this.checked?'block':'none'" style="width:18px;height:18px;accent-color:var(--primary);flex-shrink:0">
+        Activer ma vitrine Artisan
+      </label>
+      <div id="art-form-wrap" style="display:none">
+        <div class="field">
+          <label>Photo de couverture</label>
+          <div id="art-couv-preview" style="margin-top:.4rem;height:90px;border-radius:var(--radius-sm);background:var(--surface2);border:2px dashed var(--border2);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;background-size:cover;background-position:center" onclick="document.getElementById('art-couv-input').click()">
+            <i class="ti ti-camera" style="font-size:1.4rem;color:var(--text3)"></i>
+          </div>
+          <input type="file" id="art-couv-input" accept="image/*" style="display:none" onchange="previewCouvertureArtisan(this)">
+        </div>
+        <div class="field">
+          <label>Métier / Profession</label>
+          <select id="art-profession" style="width:100%;padding:.75rem 1rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.95rem;outline:none;background:#fff" onchange="document.getElementById('art-profession-autre').style.display=this.value==='Autre'?'block':'none'">
+            <option>Électricien</option><option>Plombier</option><option>Menuisier</option><option>Maçon</option>
+            <option>Peintre en bâtiment</option><option>Mécanicien auto/moto</option><option>Couturier / Couturière</option>
+            <option>Coiffeur / Coiffeuse</option><option>Photographe</option><option>Réparation informatique / téléphone</option>
+            <option>Jardinier / Paysagiste</option><option>Soudeur</option><option>Vitrier</option><option>Carreleur</option>
+            <option>Décorateur d'intérieur</option><option>Traiteur / Cuisinier</option><option>Autre</option>
+          </select>
+          <input type="text" id="art-profession-autre" placeholder="Précisez votre métier" style="display:none;width:100%;margin-top:.5rem;padding:.75rem 1rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.95rem;outline:none">
+        </div>
+        <div class="field">
+          <label>Description de vos services</label>
+          <textarea id="art-description" rows="3" placeholder="Ex: Installation et dépannage électrique…" style="width:100%;padding:.75rem 1rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.92rem;outline:none;resize:vertical"></textarea>
+        </div>
+        <div class="field"><label>Tarif indicatif</label><input type="text" id="art-tarif" placeholder="Ex: À partir de 5 000 FCFA"></div>
+        <div class="field"><label>Zone d'intervention</label><input type="text" id="art-zone" placeholder="Ex: Cotonou et environs"></div>
+        <button class="btn-primary" onclick="enregistrerProfilArtisan()" style="margin-bottom:1.1rem">💾 Enregistrer ma vitrine</button>
+        <hr style="border:none;border-top:1px solid var(--border2);margin:0 0 1rem">
+        <div style="font-size:.85rem;font-weight:700;margin-bottom:.6rem">📣 Publier sur ma vitrine</div>
+        <textarea id="art-post-contenu" rows="2" placeholder="Quoi de neuf ? Partagez une réalisation, une promo…" style="width:100%;padding:.7rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.9rem;outline:none;resize:vertical;margin-bottom:.5rem"></textarea>
+        <div id="art-post-photo-preview" style="display:none;height:110px;border-radius:var(--radius-sm);background-size:cover;background-position:center;margin-bottom:.5rem;position:relative">
+          <button onclick="retirerPhotoPost()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer"><i class="ti ti-x"></i></button>
+        </div>
+        <div style="display:flex;gap:.5rem;margin-bottom:1.1rem">
+          <button onclick="document.getElementById('art-post-photo-input').click()" style="display:flex;align-items:center;gap:.35rem;padding:.55rem .8rem;border:1.5px solid var(--border2);border-radius:50px;background:var(--bg);color:var(--text2);font-family:var(--font);font-size:.8rem;font-weight:600;cursor:pointer"><i class="ti ti-photo"></i> Photo</button>
+          <input type="file" id="art-post-photo-input" accept="image/*" style="display:none" onchange="previewPhotoPost(this)">
+          <button class="btn-primary" onclick="publierSurVitrine()" style="flex:1">Publier</button>
+        </div>
+        <div style="font-size:.85rem;font-weight:700;margin-bottom:.6rem">Mes publications</div>
+        <div id="mes-publications-list"><div class="empty-state" style="padding:1rem"><p style="font-size:.78rem">Aucune publication pour le moment</p></div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -878,7 +948,22 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 <script>
 const SUPABASE_URL = 'https://kathcclodsceifbyygzk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_9m78hZ7BUe9jYykJ1w3kZw_Q_yig4J3';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// ── Vérification localStorage (essentiel pour garder la session connectée dans l'APK) ──
+function _isStorageAvailable() {
+  try {
+    const k = '__storage_test__';
+    window.localStorage.setItem(k, '1');
+    window.localStorage.removeItem(k);
+    return true;
+  } catch (e) { return false; }
+}
+const _storageOk = _isStorageAvailable();
+if (!_storageOk) {
+  console.warn('⚠️ localStorage indisponible — la session ne persistera pas. Activez WebSettings.setDomStorageEnabled(true) côté Android.');
+}
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: _storageOk, autoRefreshToken: true, detectSessionInUrl: false }
+});
 const FEDAPAY_PK = 'pk_live_1i7UkFPVn-pUhhO1OnoKQncy';
 
 // ═══ STATE ═══════════════════════════════════════════════
@@ -1062,13 +1147,172 @@ async function loadLivreurRecord() {
     document.getElementById('mob-stat-courses').textContent = data.nombre_courses || 0;
   }
 }
+
+// ══════════════════════════════════════════════════════════════
+//  ALLÔ ARTISANS — Gestion de sa propre vitrine (livreur)
+// ══════════════════════════════════════════════════════════════
+let _artCouvFile = null, _artPostPhotoFile = null;
+
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+async function _compresserImageGenerique(file, maxSize=900, quality=0.82) {
+  return new Promise(res => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxSize || h > maxSize) { if (w >= h) { h = Math.round(h * maxSize / w); w = maxSize; } else { w = Math.round(w * maxSize / h); h = maxSize; } }
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        c.toBlob(b => res(b), 'image/jpeg', quality);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function chargerMonArtisan() {
+  const { data: a } = await sb.from('artisans').select('*').eq('id', currentUser.id).maybeSingle();
+  const cb = document.getElementById('art-actif');
+  const wrap = document.getElementById('art-form-wrap');
+  cb.checked = !!a;
+  wrap.style.display = a ? 'block' : 'none';
+  if (a) {
+    const profSelect = document.getElementById('art-profession');
+    const profOptions = [...profSelect.options].map(o=>o.value);
+    if (profOptions.includes(a.profession)) { profSelect.value = a.profession; document.getElementById('art-profession-autre').style.display='none'; }
+    else { profSelect.value = 'Autre'; document.getElementById('art-profession-autre').style.display='block'; document.getElementById('art-profession-autre').value = a.profession; }
+    document.getElementById('art-description').value = a.description || '';
+    document.getElementById('art-tarif').value = a.tarif_indicatif || '';
+    document.getElementById('art-zone').value = a.zone_intervention || '';
+    const preview = document.getElementById('art-couv-preview');
+    if (a.couverture_url) { preview.style.backgroundImage = `url('${a.couverture_url}')`; preview.innerHTML=''; }
+    chargerPublicationsVitrine();
+  } else {
+    document.getElementById('mes-publications-list').innerHTML = '<div class="empty-state" style="padding:1rem"><p style="font-size:.78rem">Activez votre vitrine pour publier</p></div>';
+  }
+}
+
+function previewCouvertureArtisan(input) {
+  const file = input.files?.[0]; if (!file) return;
+  _artCouvFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('art-couv-preview');
+    preview.style.backgroundImage = `url('${e.target.result}')`;
+    preview.innerHTML = '';
+  };
+  reader.readAsDataURL(file);
+}
+function previewPhotoPost(input) {
+  const file = input.files?.[0]; if (!file) return;
+  _artPostPhotoFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('art-post-photo-preview');
+    preview.style.backgroundImage = `url('${e.target.result}')`;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+function retirerPhotoPost() {
+  _artPostPhotoFile = null;
+  document.getElementById('art-post-photo-input').value = '';
+  const preview = document.getElementById('art-post-photo-preview');
+  preview.style.display = 'none'; preview.style.backgroundImage = '';
+}
+
+async function enregistrerProfilArtisan() {
+  const actif = document.getElementById('art-actif').checked;
+  if (!actif) {
+    await sb.from('profiles').update({ est_artisan: false }).eq('id', currentUser.id);
+    await sb.from('artisans').update({ est_actif: false }).eq('id', currentUser.id);
+    closeModal('modal-mon-artisan');
+    return showToast('Vitrine désactivée', 'ok');
+  }
+  const profSelect = document.getElementById('art-profession').value;
+  const profession = profSelect === 'Autre' ? (document.getElementById('art-profession-autre').value.trim() || 'Autre') : profSelect;
+  const description = document.getElementById('art-description').value.trim();
+  const tarif_indicatif = document.getElementById('art-tarif').value.trim();
+  const zone_intervention = document.getElementById('art-zone').value.trim();
+  if (!profession) return showToast('Choisissez votre métier', 'er');
+
+  let couverture_url = undefined;
+  if (_artCouvFile) {
+    const compressed = await _compresserImageGenerique(_artCouvFile, 1000, 0.82);
+    const path = `${currentUser.id}/couverture_${Date.now()}.jpg`;
+    const { error } = await sb.storage.from('artisan-vitrine').upload(path, compressed, { contentType:'image/jpeg', upsert:true });
+    if (!error) { const { data: ud } = sb.storage.from('artisan-vitrine').getPublicUrl(path); couverture_url = ud.publicUrl; }
+  }
+
+  const payload = { id: currentUser.id, profession, description, tarif_indicatif, zone_intervention, est_actif: true };
+  if (couverture_url) payload.couverture_url = couverture_url;
+  const { error } = await sb.from('artisans').upsert(payload);
+  if (error) return showToast('Erreur : ' + error.message, 'er');
+  await sb.from('profiles').update({ est_artisan: true }).eq('id', currentUser.id);
+  _artCouvFile = null;
+  showToast('Vitrine enregistrée ✓', 'ok');
+}
+
+async function publierSurVitrine() {
+  const { data: a } = await sb.from('artisans').select('id').eq('id', currentUser.id).maybeSingle();
+  if (!a) return showToast('Activez et enregistrez votre vitrine avant de publier', 'er');
+  const contenu = document.getElementById('art-post-contenu').value.trim();
+  if (!contenu && !_artPostPhotoFile) return showToast('Écrivez un message ou ajoutez une photo', 'er');
+
+  let photo_url = null;
+  if (_artPostPhotoFile) {
+    const compressed = await _compresserImageGenerique(_artPostPhotoFile, 1000, 0.8);
+    const path = `${currentUser.id}/posts/${Date.now()}.jpg`;
+    const { error } = await sb.storage.from('artisan-vitrine').upload(path, compressed, { contentType:'image/jpeg' });
+    if (!error) { const { data: ud } = sb.storage.from('artisan-vitrine').getPublicUrl(path); photo_url = ud.publicUrl; }
+  }
+
+  const { error } = await sb.from('publications_artisan').insert({ artisan_id: currentUser.id, contenu: contenu || null, photo_url });
+  if (error) return showToast('Erreur : ' + error.message, 'er');
+  document.getElementById('art-post-contenu').value = '';
+  retirerPhotoPost();
+  showToast('Publié sur votre vitrine ✓', 'ok');
+  chargerPublicationsVitrine();
+}
+
+async function chargerPublicationsVitrine() {
+  const { data: posts } = await sb.from('publications_artisan').select('*').eq('artisan_id', currentUser.id).order('created_at', { ascending:false });
+  const list = posts || [];
+  const el = document.getElementById('mes-publications-list');
+  if (!el) return;
+  el.innerHTML = list.length ? list.map(publicationHTML).join('') : '<div class="empty-state" style="padding:1rem"><p style="font-size:.78rem">Aucune publication pour le moment</p></div>';
+}
+function publicationHTML(p) {
+  const date = fmtDate(p.created_at);
+  const photo = p.photo_url ? `<img src="${p.photo_url}" style="width:100%;border-radius:var(--radius-xs);margin-top:.5rem;max-height:220px;object-fit:cover">` : '';
+  return `<div style="border:1px solid var(--border2);border-radius:var(--radius-sm);padding:.75rem;margin-bottom:.6rem">
+    <div style="display:flex;justify-content:space-between;align-items:start;gap:.5rem">
+      <div style="font-size:.7rem;color:var(--text3)">${date}</div>
+      <button onclick="supprimerPublication('${p.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.9rem"><i class="ti ti-trash"></i></button>
+    </div>
+    ${p.contenu ? `<div style="font-size:.85rem;margin-top:.3rem;white-space:pre-wrap">${escapeHtml(p.contenu)}</div>` : ''}
+    ${photo}
+    <div style="margin-top:.5rem;font-size:.78rem;color:var(--text3)"><i class="ti ti-heart"></i> ${p.nombre_likes||0} j'aime</div>
+  </div>`;
+}
+async function supprimerPublication(id) {
+  await sb.from('publications_artisan').delete().eq('id', id).eq('artisan_id', currentUser.id);
+  chargerPublicationsVitrine();
+}
 function getInitials(p) {
   if (!p) return '?';
   return ((p.prenom||'').charAt(0)+(p.nom||'').charAt(0)).toUpperCase() || '?';
 }
 function getAvatarUrl(p) {
   if (!p?.avatar_url) return null;
-  const { data } = sb.storage.from('avatars').getPublicUrl(p.avatar_url);
+  const raw = p.avatar_url;
+  // Cas legacy : avatar_url contient déjà une URL complète (ancien format) → on l'utilise telle quelle
+  if (/^https?:\/\//i.test(raw)) return raw;
+  // Cas normal : avatar_url est un chemin relatif dans le bucket "avatars" → on résout l'URL publique
+  const { data } = sb.storage.from('avatars').getPublicUrl(raw);
   return data?.publicUrl || null;
 }
 function updateAvatarUI() {
@@ -1120,8 +1364,11 @@ async function sauvegarderVehicule() {
   const plaque = document.getElementById('veh-plaque').value.trim();
   const tarif_base = parseInt(document.getElementById('veh-tarif-base').value) || 500;
   const tarif_km = parseInt(document.getElementById('veh-tarif-km').value) || 200;
-  await sb.from('livreurs').update({ type_vehicule: type, numero_immatriculation: plaque, tarif_base, tarif_km }).eq('id', currentLivreur.id);
-  Object.assign(currentLivreur, { type_vehicule: type, numero_immatriculation: plaque, tarif_base, tarif_km });
+  const est_chauffeur = document.getElementById('veh-est-chauffeur')?.checked || false;
+  const tarif_km_chauffeur = est_chauffeur ? (parseInt(document.getElementById('veh-tarif-km-chauffeur').value) || 250) : null;
+  const tarif_heure_chauffeur = est_chauffeur ? (parseInt(document.getElementById('veh-tarif-heure-chauffeur').value) || 1000) : null;
+  await sb.from('livreurs').update({ type_vehicule: type, numero_immatriculation: plaque, tarif_base, tarif_km, est_chauffeur, tarif_km_chauffeur, tarif_heure_chauffeur }).eq('id', currentLivreur.id);
+  Object.assign(currentLivreur, { type_vehicule: type, numero_immatriculation: plaque, tarif_base, tarif_km, est_chauffeur, tarif_km_chauffeur, tarif_heure_chauffeur });
   closeModal('modal-vehicule');
   showToast('Véhicule mis à jour ✓', 'ok');
 }
@@ -1179,7 +1426,7 @@ function leaveGpsBroadcastChannel() {
 
 function startGPS() {
   if (gpsWatchId) return;
-  if (!navigator.geolocation) return;
+  if (!navigator.geolocation) { showToast('📍 GPS non disponible sur cet appareil', 'er'); return; }
   gpsWatchId = navigator.geolocation.watchPosition(async pos => {
     const lat = pos.coords.latitude, lng = pos.coords.longitude;
     if (!currentLivreur) return;
@@ -1195,7 +1442,16 @@ function startGPS() {
         payload: { uid: currentUser.id, lat, lng, role: 'livreur' }
       }).catch(() => {});
     }
-  }, err => {}, { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 });
+  }, err => {
+    // IMPORTANT : sans cette alerte, le livreur croit être visible alors que sa position
+    // n'est plus partagée (permission refusée, GPS coupé, ou timeout) — le client ne le voit jamais bouger.
+    if (err.code === err.PERMISSION_DENIED) {
+      showToast('📍 Localisation refusée — activez-la dans les réglages de l\'app pour recevoir des courses', 'er');
+    } else if (err.code === err.POSITION_UNAVAILABLE) {
+      showToast('📍 Position GPS indisponible — vérifiez que la localisation est activée', 'wa');
+    }
+    // TIMEOUT (err.code===3) est généralement transitoire (déplacement, signal faible) : pas d'alerte à chaque fois.
+  }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 });
 }
 
 function stopGPS() {
@@ -1280,7 +1536,7 @@ async function loadCourses() {
     .limit(50);
   allCourses = data || [];
   // Trouver course en cours
-  courseEnCours = allCourses.find(c => ['acceptee','en_cours','en_route','livraison_en_cours'].includes(c.statut)) || null;
+  courseEnCours = allCourses.find(c => ['acceptee','en_cours','en_route','prise_en_charge','livraison_en_cours'].includes(c.statut)) || null;
   renderCoursesPC();
   renderCoursesMob();
   renderCourseEnCours();
@@ -1322,13 +1578,14 @@ function courseCardHTML(c, isMob) {
   const imgHtml = url ? `<img src="${url}" style="width:100%;height:100%;object-fit:cover">` : getInitials(client);
   const urgent = c.est_urgent ? '<span style="background:#FEF2F2;color:var(--danger);font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:50px">🔥 URGENT</span>' : '';
   const programmee = c.est_programmee && c.heure_programmee ? `<span style="background:#EFF6FF;color:#1D4ED8;font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:50px">📅 ${new Date(c.heure_programmee).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>` : '';
+  const allerRetour = c.est_aller_retour ? `<span style="background:#EEF2FF;color:#4338CA;font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:50px">🔄 A/R${c.duree_attente_minutes?' · '+c.duree_attente_minutes+'min':''}</span>` : '';
   const dist = c.distance_km ? `${c.distance_km} km` : '—';
   const prix = fcfa(c.prix_final || c.prix_estime || 0);
   return `<div class="${isMob?'demande-card':'course-card'}">
     <div class="${isMob?'demande-head':'course-card-head'}">
       <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:.75rem;flex-shrink:0;border:2px solid var(--border)">${imgHtml}</div>
       <div style="font-weight:600;font-size:.88rem">${nom}</div>
-      ${urgent}${programmee}
+      ${urgent}${programmee}${allerRetour}
       <span style="margin-left:auto;font-weight:700;color:var(--primary)">${prix}</span>
     </div>
     <div class="demande-body">
@@ -1338,7 +1595,7 @@ function courseCardHTML(c, isMob) {
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem">
         <span style="font-size:.75rem;color:var(--text2)"><i class="ti ti-road"></i> ${dist}</span>
         <span style="font-size:.75rem;color:var(--text2)"><i class="ti ti-clock"></i> ${fmtDate(c.created_at)}</span>
-        ${c.type ? `<span class="tag en_attente">${{simple:'📦 Simple',zem:'🛵 Zem',voiture_classique:'🚗 Classique',voiture_confort:'🌟 Confort',voiture_eco:'💚 Éco',transport_enfant:'🏫 Enfant',demenagement:'📦 Déménagt',camionnette:'🚐 Camionnette',avec_marchand:'🏪 Marchand',colis_tiers:'📫 Colis tiers',multi_arrets:'🔀 Multi-arrêts',programmee:'🗓️ Programmée'}[c.type]||c.type}</span>` : ''}
+        ${c.type ? `<span class="tag en_attente">${{simple:'📦 Simple',zem:'🛵 Zem',voiture_classique:'🚗 Classique',voiture_confort:'🌟 Confort',voiture_eco:'💚 Éco',transport_enfant:'🏫 Enfant',demenagement:'📦 Déménagt',camionnette:'🚐 Camionnette',avec_marchand:'🏪 Marchand',colis_tiers:'📫 Colis tiers',multi_arrets:'🔀 Multi-arrêts',programmee:'🗓️ Programmée',tourisme:'🏖️ Tourisme',chauffeur_perso:'🚘 Chauffeur',chauffeur_client:'🔑 Chauffeur (véhicule client)'}[c.type]||c.type}</span>` : ''}
       </div>
     </div>
     <div class="course-action-btns">
@@ -1354,6 +1611,7 @@ function courseHistCardHTML(c) {
   const statusTag = {
     acceptee:'<span class="tag en_attente">Acceptée</span>',
     en_route:'<span class="tag encours">En route</span>',
+    prise_en_charge:'<span class="tag" style="background:#EDE9FE;color:#6D28D9">📦 Colis récupéré</span>',
     livraison_en_cours:'<span class="tag encours">En livraison</span>',
     terminee:'<span class="tag terminee">Terminée</span>',
     annulee:'<span class="tag annulee">Annulée</span>',
@@ -1380,7 +1638,7 @@ function renderCourseEnCours() {
   const client = c.client || {};
   const nom = `${client.prenom||''} ${client.nom||''}`.trim() || 'Client';
   const isAcceptee = c.statut === 'acceptee';
-  const isEnRoute = ['en_cours','en_route','livraison_en_cours'].includes(c.statut);
+  const isEnRoute = ['en_cours','en_route','prise_en_charge','livraison_en_cours'].includes(c.statut);
   const html = `<div class="course-banner">
     <div class="pulse"></div>
     <div style="flex:1;min-width:0">
@@ -1390,7 +1648,7 @@ function renderCourseEnCours() {
     <div style="display:flex;gap:.4rem;flex-shrink:0">
       <button onclick="ouvrirChat_course('${c.id}')" style="padding:.4rem .75rem;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-message-2"></i></button>
       ${isAcceptee
-        ? `<button onclick="marquerEnRoute('${c.id}')" style="padding:.4rem .85rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-bike"></i> En Route</button>`
+        ? (c.statut === 'acceptee' ? `<button onclick="marquerEnRoute('${c.id}')" style="padding:.4rem .85rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-bike"></i> En Route</button>` : (c.statut === 'en_cours' || c.statut === 'en_route' ? `<button onclick="marquerColisRecupere('${c.id}')" style="padding:.4rem .85rem;background:#7C3AED;color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer">📦 Récupéré</button>` : ''))
         : isEnRoute
           ? `<button onclick="ouvrirModalCode('${c.id}')" style="padding:.4rem .75rem;background:var(--success);color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:600;cursor:pointer">✓ Code</button>`
           : ''
@@ -1403,6 +1661,16 @@ function renderCourseEnCours() {
   // Subscribe to client position + rejoindre le canal broadcast GPS
   subscribeCoursePosition(c.id);
   joinGpsBroadcastChannel(c.id);
+}
+
+// ── Détection proximité ────────────────────────────────
+let _proximiteNotifSent = false;
+function _haversineM(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLng = (lng2-lng1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
 async function accepterCourse(courseId) {
@@ -1430,6 +1698,16 @@ async function marquerEnRoute(courseId) {
     navigator.geolocation.getCurrentPosition(async pos => {
       const lat = pos.coords.latitude, lng = pos.coords.longitude;
       await sb.from('livreurs').update({ latitude: lat, longitude: lng, derniere_position_at: new Date().toISOString() }).eq('id', currentLivreur.id);
+      // Détection proximité : notifier client si < 200m de la destination
+      if (courseEnCours && (courseEnCours.statut === 'prise_en_charge' || courseEnCours.statut === 'livraison_en_cours') && courseEnCours.lat_arrivee && courseEnCours.lng_arrivee) {
+        const dist = _haversineM(lat, lng, parseFloat(courseEnCours.lat_arrivee), parseFloat(courseEnCours.lng_arrivee));
+        if (dist < 200 && !_proximiteNotifSent) {
+          _proximiteNotifSent = true;
+          await sb.from('courses').update({ statut: 'proximite' }).eq('id', courseEnCours.id).catch(()=>{});
+          await sb.from('notifications').insert({ utilisateur_id: courseEnCours.client_id, titre: '📍 Votre livreur arrive !', corps: 'Il est à moins de 200 m de chez vous. Préparez-vous à réceptionner votre colis 📦', type: 'course' }).catch(()=>{});
+        }
+        if (dist >= 300) _proximiteNotifSent = false; // Reset si recule
+      }
     });
   }
   // Notifier client
@@ -1438,6 +1716,29 @@ async function marquerEnRoute(courseId) {
     await sb.from('notifications').insert({ utilisateur_id: course.client_id, titre: '🛵 Votre livreur est en route !', corps: `Il arrive. Suivez sa position en temps réel dans l'application.`, type: 'course' });
   }
   showToast('🛵 En route ! Le client est notifié.', 'ok');
+  loadCourses();
+}
+
+async function marquerColisRecupere(courseId) {
+  const { error } = await sb.from('courses').update({ statut: 'prise_en_charge' }).eq('id', courseId);
+  if (error) return showToast('Erreur : ' + error.message, 'er');
+  // Partager la position actuelle
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(async pos => {
+      await sb.from('livreurs').update({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, derniere_position_at: new Date().toISOString() }).eq('id', currentLivreur.id);
+    });
+  }
+  // Notifier le client avec étape claire
+  const course = allCourses.find(c => c.id === courseId);
+  if (course?.client_id) {
+    await sb.from('notifications').insert({
+      utilisateur_id: course.client_id,
+      titre: '📦 Colis récupéré !',
+      corps: 'Votre livreur a récupéré votre colis et est en route vers vous. Suivez en temps réel !',
+      type: 'course'
+    });
+  }
+  showToast('📦 Colis récupéré — Le client est notifié !', 'ok');
   loadCourses();
 }
 
@@ -1621,11 +1922,11 @@ function voirDetailCourse(id) {
   const c = allCourses.find(x => x.id === id); if(!c) return;
   const client = c.client||{};
   const nom = `${client.prenom||''} ${client.nom||''}`.trim() || 'Client';
-  const statLabels = {en_attente:'En attente',acceptee:'Acceptée',en_route:'En route',en_cours:'En cours',livraison_en_cours:'Livraison en cours',livree:'Livrée',annulee:'Annulée'};
-  const statColors = {en_attente:'#6B7280',acceptee:'#2563EB',en_route:'#D97706',en_cours:'#D97706',livraison_en_cours:'#D97706',livree:'#16A34A',annulee:'#DC2626'};
+  const statLabels = {en_attente:'En attente',acceptee:'Acceptée',en_route:'En route',en_cours:'En cours',prise_en_charge:'📦 Colis récupéré',livraison_en_cours:'Livraison en cours',livree:'Livrée',annulee:'Annulée'};
+  const statColors = {en_attente:'#6B7280',acceptee:'#2563EB',en_route:'#D97706',en_cours:'#D97706',prise_en_charge:'#7C3AED',livraison_en_cours:'#D97706',livree:'#16A34A',annulee:'#DC2626'};
   const col = statColors[c.statut]||'#6B7280';
   const clientTel = client.telephone || null;
-  const isActive = ['acceptee','en_route','en_cours','livraison_en_cours'].includes(c.statut);
+  const isActive = ['acceptee','en_route','en_cours','prise_en_charge','livraison_en_cours'].includes(c.statut);
   const arrets = (c.course_arrets||[]).slice().sort((a,b)=>(a.ordre||0)-(b.ordre||0));
   const arretsBlock = arrets.length ? `
       <div style="background:#FFFBEB;border-radius:var(--radius-xs);padding:.6rem .8rem;border:1px solid #FDE68A">
@@ -1640,6 +1941,16 @@ function voirDetailCourse(id) {
       <div style="background:#EFF6FF;border-radius:var(--radius-xs);padding:.6rem .8rem;border:1px solid #BFDBFE;display:flex;align-items:center;gap:.5rem">
         <i class="ti ti-calendar-time" style="color:#1D4ED8;font-size:1.1rem"></i>
         <div><div style="font-size:.65rem;font-weight:700;color:#1D4ED8">COURSE PROGRAMMÉE</div><div style="font-size:.85rem;font-weight:600">${new Date(c.heure_programmee).toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'})}</div></div>
+      </div>` : '';
+  const allerRetourBlock = c.est_aller_retour ? `
+      <div style="background:#EEF2FF;border-radius:var(--radius-xs);padding:.6rem .8rem;border:1px solid #C7D2FE;display:flex;align-items:center;gap:.5rem">
+        <i class="ti ti-arrows-right-left" style="color:#4338CA;font-size:1.1rem"></i>
+        <div><div style="font-size:.65rem;font-weight:700;color:#4338CA">🔄 ALLER-RETOUR — VOUS ATTENDEZ LE CLIENT</div><div style="font-size:.85rem;font-weight:600">Attente prévue : ${c.duree_attente_minutes||0} min, puis retour au point de départ</div></div>
+      </div>` : '';
+  const chauffeurBlock = (c.type==='chauffeur_perso'||c.type==='chauffeur_client') ? `
+      <div style="background:#F0FDF4;border-radius:var(--radius-xs);padding:.6rem .8rem;border:1px solid #BBF7D0;display:flex;align-items:center;gap:.5rem">
+        <i class="ti ti-steering-wheel" style="color:#15803D;font-size:1.1rem"></i>
+        <div><div style="font-size:.65rem;font-weight:700;color:#15803D">🧑‍✈️ SERVICE CHAUFFEUR${c.type==='chauffeur_client'?' — VÉHICULE DU CLIENT':''}</div><div style="font-size:.85rem;font-weight:600">Durée prévue : ${c.duree_prevue_heures||0} h</div></div>
       </div>` : '';
   const el = document.getElementById('detail-course-content');
   if (!el) return showToast(`${nom} → ${c.adresse_arrivee||'—'} · ${fcfa(c.gains_livreur||0)}`);
@@ -1657,6 +1968,8 @@ function voirDetailCourse(id) {
     </div>
     <div style="display:flex;flex-direction:column;gap:.6rem;font-size:.85rem">
       ${programmeeBlock}
+      ${allerRetourBlock}
+      ${chauffeurBlock}
       <div style="background:var(--bg);border-radius:var(--radius-xs);padding:.6rem .8rem;border:1px solid var(--border)">
         <div style="font-size:.65rem;font-weight:700;color:var(--success);margin-bottom:2px">DÉPART</div>
         <div>${c.adresse_depart||'—'}</div>
@@ -1697,10 +2010,12 @@ function voirDetailCourse(id) {
         <button onclick="refuserCourse('${c.id}');closeModal('modal-detail-course')" style="flex:1;padding:.7rem;background:var(--danger);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:600;cursor:pointer">✗ Refuser</button>
       </div>` : ''}
       ${c.statut === 'acceptee' ? `
-      <button onclick="marquerEnRoute('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem"><i class="ti ti-bike"></i> Marquer En Route</button>` : ''}
-      ${(c.statut === 'en_cours' || c.statut === 'en_route' || c.statut === 'livraison_en_cours') ? `
+      <button onclick="marquerEnRoute('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem"><i class="ti ti-bike"></i> 🛵 Je pars récupérer le colis</button>` : ''}
+      ${c.statut === 'en_cours' || c.statut === 'en_route' ? `
+      <button onclick="marquerColisRecupere('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:#7C3AED;color:#fff;border:none;border-radius:var(--radius-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem">📦 Colis récupéré — En route !</button>` : ''}
+      ${(c.statut === 'prise_en_charge' || c.statut === 'livraison_en_cours') ? `
       <button onclick="ouvrirModalCode('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:var(--success);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem"><i class="ti ti-shield-check"></i> Valider code de livraison</button>` : ''}
-      ${['acceptee','en_cours','en_route','livraison_en_cours'].includes(c.statut) ? `
+      ${['acceptee','en_cours','en_route','prise_en_charge','livraison_en_cours'].includes(c.statut) ? `
       <button onclick="ouvrirModalAnnulerLv('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.65rem;background:#FEE2E2;color:var(--danger);border:none;border-radius:var(--radius-xs);font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.4rem"><i class="ti ti-ban"></i> Annuler la course</button>` : ''}
     </div>`;
 
@@ -2031,6 +2346,8 @@ async function _lvLancerAppel(targetId, nomContact, courseId) {
   _lvRtcRole = 'caller'; _lvRtcTargetId = targetId;
 
   try {
+    const mediaErr = checkMediaSupport('audio');
+    if (mediaErr) { showToast(mediaErr, 'er'); return; }
     _lvRtcLocalStream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
     });
@@ -2078,6 +2395,8 @@ async function lvRepondreAppel(payload) {
   _lvRtcRole = 'callee'; _lvRtcTargetId = payload.from;
   if (_lvRtcRinging) { _lvRtcRinging(); _lvRtcRinging = null; }
   try {
+    const mediaErr = checkMediaSupport('audio');
+    if (mediaErr) { showToast(mediaErr, 'er'); return; }
     _lvRtcLocalStream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
     });
@@ -2249,31 +2568,44 @@ async function confirmerRetrait() {
 }
 
 // ═══ SOS ═════════════════════════════════════════════════
+async function _envoyerAlerteSOS(lat, lng) {
+  const statusEl = document.getElementById('sos-status');
+  const posEl = document.getElementById('sos-pos-info');
+  const posTxt = (lat != null && lng != null) ? `Position: ${lat.toFixed(5)},${lng.toFixed(5)}` : 'Position GPS indisponible';
+  if (posEl) posEl.textContent = (lat != null && lng != null) ? `📍 Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}` : '⚠️ Position GPS indisponible — alerte envoyée sans coordonnées';
+  await sb.from('notifications').insert({
+    utilisateur_id: currentUser.id,
+    titre: '🆘 SOS Livreur',
+    corps: `Livreur ${currentProfile?.prenom||''} ${currentProfile?.nom||''} en difficulté — ${posTxt}`,
+    type: 'sos'
+  });
+  const { data: admins } = await sb.from('profiles').select('id').eq('role','admin').limit(5);
+  if (admins) {
+    for (const admin of admins) {
+      await sb.from('notifications').insert({ utilisateur_id: admin.id, titre: '🆘 SOS Livreur', corps: `${currentProfile?.prenom||''} ${currentProfile?.nom||''} a besoin d'aide — ${posTxt}`, type: 'sos' });
+    }
+  }
+  if (statusEl) statusEl.textContent = '✅ Alerte envoyée à l\'administrateur';
+}
 function envoiSOS() {
   openModal('modal-sos');
   const statusEl = document.getElementById('sos-status');
   const posEl = document.getElementById('sos-pos-info');
   statusEl.textContent = 'Envoi de votre position…';
-  if (!navigator.geolocation) { posEl.textContent = 'GPS non disponible'; return; }
+  if (!navigator.geolocation) {
+    // Pas de géoloc disponible : on envoie tout de même l'alerte, avec la dernière position connue si on l'a
+    posEl.textContent = 'GPS non disponible — alerte envoyée sans position précise';
+    _envoyerAlerteSOS(currentLivreur?.latitude ?? null, currentLivreur?.longitude ?? null);
+    return;
+  }
   navigator.geolocation.getCurrentPosition(async pos => {
-    const lat = pos.coords.latitude, lng = pos.coords.longitude;
-    posEl.textContent = `📍 Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
-    // Insérer alerte SOS dans notifications admin
-    await sb.from('notifications').insert({
-      utilisateur_id: currentUser.id,
-      titre: '🆘 SOS Livreur',
-      corps: `Livreur ${currentProfile?.prenom||''} ${currentProfile?.nom||''} en difficulté — Position: ${lat.toFixed(5)},${lng.toFixed(5)}`,
-      type: 'sos'
-    });
-    // Chercher admins et leur notifier
-    const { data: admins } = await sb.from('profiles').select('id').eq('role','admin').limit(5);
-    if (admins) {
-      for(const admin of admins) {
-        await sb.from('notifications').insert({ utilisateur_id: admin.id, titre: '🆘 SOS Livreur', corps: `${currentProfile?.prenom||''} ${currentProfile?.nom||''} a besoin d'aide — ${lat.toFixed(5)},${lng.toFixed(5)}`, type: 'sos' });
-      }
-    }
-    statusEl.textContent = '✅ Alerte envoyée à l\'administrateur';
-  }, () => { posEl.textContent = 'Impossible d\'obtenir la position GPS'; statusEl.textContent = 'Erreur GPS'; });
+    await _envoyerAlerteSOS(pos.coords.latitude, pos.coords.longitude);
+  }, () => {
+    // GPS indisponible/refusé : NE JAMAIS bloquer l'alerte — c'est une urgence.
+    // On retombe sur la dernière position connue du livreur, sinon on envoie sans coordonnées.
+    statusEl.textContent = 'GPS indisponible — envoi de l\'alerte avec dernière position connue…';
+    _envoyerAlerteSOS(currentLivreur?.latitude ?? null, currentLivreur?.longitude ?? null);
+  });
 }
 
 // ═══ MESSAGERIE ══════════════════════════════════════════
@@ -2566,6 +2898,19 @@ async function sendPendingPhoto(side) {
   showToast('Photo envoyée ✓', 'ok');
 }
 
+// ─── Compatibilité APK/WebView : vérification micro/caméra ─────────────
+// getUserMedia exige un contexte sécurisé (https/localhost, jamais file://)
+// + WebChromeClient.onPermissionRequest() côté Android + permissions au Manifest.
+function checkMediaSupport(kind) {
+  if (!window.isSecureContext) {
+    return (kind === 'audio' ? '🎤' : '📷') + ' Indisponible dans cette version de l\'app (contexte non sécurisé). Contactez le support technique.';
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    return (kind === 'audio' ? '🎤 Microphone' : '📷 Caméra') + ' non supporté par cette version de l\'application. Mettez à jour l\'app.';
+  }
+  return null;
+}
+
 // ─── Audio vocal ─────────────────────────────────────────
 const _voiceState = {
   mob:{recorder:null,chunks:[],recording:false,timer:null,startTime:null,mimeType:'audio/webm'},
@@ -2576,6 +2921,8 @@ async function toggleVoiceRecord(side) {
   const vs = _voiceState[side];
   if (!currentConvId) return showToast('Ouvrez une conversation d\'abord', 'wa');
   if (!vs.recording) {
+    const mediaErr = checkMediaSupport('audio');
+    if (mediaErr) return showToast(mediaErr, 'er');
     try {
       const stream = await navigator.mediaDevices.getUserMedia({audio:true,echoCancellation:true,noiseSuppression:true});
       const mimeType = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4'].find(t=>MediaRecorder.isTypeSupported(t))||'audio/webm';
@@ -2597,7 +2944,10 @@ async function toggleVoiceRecord(side) {
         if(el) el.textContent=Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');
         if(elapsed>=180) stopAndSendRecording(side);
       },1000);
-    } catch(e) { showToast('Microphone non disponible', 'er'); }
+    } catch(e) {
+      const msg = e?.name==='NotAllowedError' ? '🎤 Microphone refusé — autorisez l\'accès dans les réglages de l\'app' : 'Microphone non disponible';
+      showToast(msg, 'er');
+    }
   }
 }
 function _showInputRow(side) {
@@ -2861,7 +3211,8 @@ function initAPKBridge() {
   if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
   if(window.Android?.keepAlive){try{window.Android.keepAlive();}catch(e){}}
   if(window.Android?.requestNotificationPermission){try{window.Android.requestNotificationPermission();}catch(e){}}
-  if('serviceWorker' in navigator){
+  // Service Worker — ne fonctionne QUE dans un contexte sécurisé (https/localhost), jamais sur file://
+  if('serviceWorker' in navigator && window.isSecureContext){
     const swSrc=`self.addEventListener('push',e=>{const d=e.data?e.data.json():{};self.registration.showNotification(d.title||'Allô Livreur',{body:d.body||'Nouveau message',icon:'/icon.png',badge:'/icon.png',vibrate:[200,100,200],tag:d.tag||'msg',renotify:true,data:d});});self.addEventListener('notificationclick',e=>{e.notification.close();clients.matchAll({type:'window'}).then(cs=>{if(cs.length)cs[0].focus();else clients.openWindow('/');});});self.addEventListener('message',e=>{if(e.data==='ping')e.source.postMessage('pong');});`;
     const blob=new Blob([swSrc],{type:'application/javascript'});
     const swUrl=URL.createObjectURL(blob);
@@ -2912,8 +3263,11 @@ function loadRetrait() {
 }
 function loadVehiculeForm() {
   if(!currentLivreur) return;
-  const fields={'veh-type':'type_vehicule','veh-plaque':'numero_immatriculation','veh-tarif-base':'tarif_base','veh-tarif-km':'tarif_km'};
+  const fields={'veh-type':'type_vehicule','veh-plaque':'numero_immatriculation','veh-tarif-base':'tarif_base','veh-tarif-km':'tarif_km','veh-tarif-km-chauffeur':'tarif_km_chauffeur','veh-tarif-heure-chauffeur':'tarif_heure_chauffeur'};
   Object.entries(fields).forEach(([elId,key])=>{const el=document.getElementById(elId);if(el)el.value=currentLivreur[key]||'';});
+  const cb=document.getElementById('veh-est-chauffeur');
+  const wrap=document.getElementById('chauffeur-tarifs-wrap');
+  if(cb){ cb.checked=!!currentLivreur.est_chauffeur; if(wrap) wrap.style.display=cb.checked?'block':'none'; }
 }
 function toggleProfileDropdown() { document.getElementById('profile-dropdown').classList.toggle('open'); document.getElementById('notif-panel').classList.remove('open'); }
 document.addEventListener('click',e=>{

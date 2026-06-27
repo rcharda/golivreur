@@ -203,29 +203,110 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 
 .pc-body{display:flex;flex:1;overflow:hidden}
 
-/* PC Sidebar — Compact & Clean */
+/* ── Rail d'icônes — barre étroite verticale style app native ── */
+.pc-icon-rail{
+  width:76px;background:var(--navy);
+  display:flex;flex-direction:column;align-items:center;
+  flex-shrink:0;overflow-y:auto;padding:.6rem 0;
+  scrollbar-width:none;
+}
+.pc-icon-rail::-webkit-scrollbar{display:none}
+.pc-rail-item{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:.3rem;width:60px;min-height:58px;margin:.15rem auto;padding:.4rem .2rem;
+  border-radius:var(--radius-xs);cursor:pointer;border:none;background:transparent;
+  font-family:var(--font);color:rgba(255,255,255,.5);
+  transition:all .15s;position:relative;flex-shrink:0;
+}
+.pc-rail-item i{font-size:1.25rem;transition:color .15s}
+.pc-rail-item span{font-size:.62rem;font-weight:600;line-height:1.1;text-align:center}
+.pc-rail-item:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.85)}
+.pc-rail-item.active{background:var(--primary);color:#fff}
+.pc-rail-item.active i{color:#fff}
+.pc-rail-badge{
+  position:absolute;top:4px;right:10px;min-width:16px;height:16px;padding:0 4px;
+  background:var(--primary);border:2px solid var(--navy);border-radius:50px;
+  font-size:.58rem;font-weight:700;color:#fff;
+  display:none;align-items:center;justify-content:center;
+}
+.pc-rail-item.active .pc-rail-badge{border-color:var(--primary)}
+.pc-rail-badge.show{display:flex}
+.pc-rail-sep{width:36px;height:1px;background:rgba(255,255,255,.12);margin:.5rem auto .55rem;flex-shrink:0}
+
+/* PC Sidebar — panneau de contenu permanent (profil, stats, listes) */
 .pc-sidebar{
-  width:320px;background:var(--surface);
+  width:300px;background:var(--surface);
   border-right:1px solid var(--border);
   display:flex;flex-direction:column;overflow:hidden;
+  flex-shrink:0;
 }
-.sidebar-tabs{
-  display:flex;border-bottom:2px solid var(--border);
-  background:var(--surface);flex-shrink:0;
+
+/* Profil header compact dans la sidebar */
+.pc-sidebar-profile{
+  display:flex;align-items:center;gap:.75rem;
+  padding:.85rem 1rem;
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy3) 100%);
+  flex-shrink:0;cursor:pointer;
+  transition:filter .2s;
 }
-.stab{
-  flex:1;padding:.7rem .3rem .55rem;font-size:.72rem;font-weight:600;
-  border:none;background:transparent;cursor:pointer;
-  color:var(--text3);transition:all .18s;
-  border-bottom:2px solid transparent;margin-bottom:-2px;
-  display:flex;flex-direction:column;align-items:center;gap:3px;
-  text-transform:uppercase;letter-spacing:.4px;
-  position:relative;
+.pc-sidebar-profile:hover{filter:brightness(1.12)}
+.pc-sidebar-ava{
+  width:40px;height:40px;border-radius:50%;overflow:hidden;
+  border:2px solid rgba(255,255,255,.3);flex-shrink:0;
+  background:var(--primary-glow);display:flex;align-items:center;justify-content:center;
+  color:var(--primary);font-weight:700;font-size:.85rem;position:relative;
 }
-.stab i{font-size:1.15rem}
-.stab.active{color:var(--primary);border-bottom-color:var(--primary);background:var(--primary-light)}
-.sidebar-panel{flex:1;overflow-y:auto;display:none}
-.sidebar-panel.active{display:block}
+.pc-sidebar-ava img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%}
+.pc-sidebar-info{flex:1;min-width:0}
+.pc-sidebar-name{font-weight:700;font-size:.88rem;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-sidebar-phone{font-size:.72rem;color:rgba(255,255,255,.55);margin-top:1px}
+.pc-sidebar-wallet{
+  display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;
+}
+.pc-sidebar-wallet-lbl{font-size:.62rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.4px}
+.pc-sidebar-wallet-amt{font-size:.9rem;font-weight:800;color:var(--primary);font-family:var(--font-display)}
+
+/* Stats rapides */
+.pc-sidebar-stats{
+  display:flex;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.pc-stat{
+  flex:1;padding:.6rem .3rem;text-align:center;border-right:1px solid var(--border);
+}
+.pc-stat:last-child{border-right:none}
+.pc-stat-val{font-size:.95rem;font-weight:800;color:var(--primary)}
+.pc-stat-lbl{font-size:.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+
+/* Ancienne nav (texte pleine largeur) — conservée pour compat mais masquée */
+.pc-nav{display:none}
+.pc-nav-item{
+  display:flex;align-items:center;gap:.75rem;
+  padding:.6rem .85rem;
+  border-radius:var(--radius-xs);
+  cursor:pointer;border:none;background:transparent;
+  width:100%;text-align:left;font-family:var(--font);
+  font-size:.84rem;font-weight:600;color:var(--text2);
+  transition:all .15s;position:relative;
+}
+.pc-nav-item i{font-size:1.05rem;width:20px;text-align:center;flex-shrink:0;color:var(--text3);transition:color .15s}
+.pc-nav-item.active{background:var(--primary-light);color:var(--primary);font-weight:700}
+.pc-nav-item.active i{color:var(--primary)}
+.pc-nav-badge{
+  margin-left:auto;min-width:18px;height:18px;padding:0 5px;
+  background:var(--primary);border-radius:50px;
+  font-size:.62rem;font-weight:700;color:#fff;
+  display:none;align-items:center;justify-content:center;
+}
+.pc-nav-badge.show{display:flex}
+.pc-nav-section-lbl{display:none}
+
+/* Contenu panneau scrollable */
+.sidebar-panel{flex:1;overflow-y:auto;display:none;flex-direction:column}
+.sidebar-panel.active{display:flex}
+
+/* Compatibilité ancienne API stab (plus utilisés mais par sécurité) */
+.sidebar-tabs{display:none}
+.stab{display:none}
 
 /* Livreurs liste */
 .section-head{
@@ -390,15 +471,24 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 
 /* Course en cours banner */
 .course-banner{
-  position:absolute;top:1rem;left:50%;transform:translateX(-50%);
+  position:fixed;bottom:1.4rem;left:50%;transform:translateX(-50%);
   background:var(--navy);border-radius:var(--radius-pill);
-  box-shadow:var(--shadow-lg);padding:.6rem 1.25rem;
-  display:flex;align-items:center;gap:.75rem;z-index:20;display:none;
+  box-shadow:0 8px 32px rgba(13,27,42,.28),0 2px 8px rgba(255,76,41,.18);
+  padding:.65rem 1.4rem;
+  display:none;align-items:center;gap:.85rem;z-index:800;
   white-space:nowrap;color:#fff;
+  border:1.5px solid rgba(255,255,255,.10);
+  animation:bannerIn .3s cubic-bezier(.34,1.56,.64,1);
+  min-width:260px;max-width:94vw;
 }
+@keyframes bannerIn{from{opacity:0;transform:translateX(-50%) translateY(18px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 .course-banner.active{display:flex}
 .course-banner .pulse{width:10px;height:10px;border-radius:50%;background:var(--success);animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.3)}}
+/* Toggle switch artisan GPS */
+#art-toggle-gps:checked + span { background:#16A34A !important; }
+#art-toggle-gps:checked + span::before { transform: translateX(20px); }
+#art-toggle-gps + span::before { content:'';position:absolute;width:20px;height:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s; }
 
 /* Profile dropdown */
 .profile-dropdown{
@@ -564,7 +654,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 
 /* Mobile bottom nav — signature: glowing active pill */
 .mob-nav{
-  height:var(--nav-h);background:var(--surface);
+  height:calc(var(--nav-h) + env(safe-area-inset-bottom));
+  box-sizing:border-box;
+  background:var(--surface);
   border-top:1px solid var(--border);
   display:flex;align-items:stretch;flex-shrink:0;
   padding-bottom:env(safe-area-inset-bottom);
@@ -1048,6 +1140,7 @@ input:valid {
   /* Ensure bottom nav always visible */
   .mob-nav{
     flex-shrink:0 !important;
+    box-sizing:border-box !important;
     height:calc(var(--nav-h) + env(safe-area-inset-bottom)) !important;
     min-height:var(--nav-h);
   }
@@ -1115,7 +1208,7 @@ input:valid {
       <button class="btn" onclick="doRegister()">Créer mon compte</button>
     </div>
     <p class="auth-toggle" id="auth-toggle-text">
-      Pas encore de compte ? <a onclick="toggleAuth()">S'inscrire</a>
+      Pas encore de compte ? <a onclick="toggleAuth(false)">S'inscrire</a>
     </p>
   </div>
 </div>
@@ -1140,43 +1233,78 @@ input:valid {
           <div id="notif-list"><div class="empty-state"><i class="ti ti-bell-off"></i><p>Aucune notification</p></div></div>
         </div>
       </div>
-      <button class="icon-btn" onclick="openWalletModal()" title="Wallet" style="flex-shrink:0"><i class="ti ti-wallet"></i></button>
-      <div style="position:relative">
-        <button class="avatar-btn" id="pc-avatar-btn" onclick="toggleProfileDropdown()">
-          <img id="pc-avatar-img" src="" alt="" style="display:none">
-          <span id="pc-avatar-initials">?</span>
-        </button>
-        <div class="profile-dropdown" id="profile-dropdown">
-          <div class="pd-header">
-            <div class="pd-ava"><img id="pd-avatar-img" src="" alt="" style="display:none"><span id="pd-initials">?</span></div>
-            <div>
-              <div class="pd-name" id="pd-name">—</div>
-              <div class="pd-phone" id="pd-phone">—</div>
-            </div>
-          </div>
-          <div class="wallet-info">
-            <span class="label">💰 Solde wallet</span>
-            <span class="amount" id="pd-wallet">0 FCFA</span>
-          </div>
-          <div class="pd-item" onclick="openProfileEdit()"><i class="ti ti-user-edit"></i> Mon profil</div>
-          <div class="pd-item" onclick="openAvatarUpload()"><i class="ti ti-camera"></i> Changer la photo</div>
-          <div class="pd-item" onclick="openFideliteModal()"><i class="ti ti-star"></i> Mes points fidelite</div>
-          <div class="pd-item" onclick="goToTab('abonnement')"><i class="ti ti-crown"></i> Mon abonnement</div>
-          <div class="pd-item danger" onclick="doLogout()"><i class="ti ti-logout"></i> Déconnexion</div>
-        </div>
-      </div>
+      <button class="icon-btn" onclick="openWalletModal()" title="Mon wallet">
+        <i class="ti ti-wallet"></i>
+      </button>
+      <button class="avatar-btn" id="pc-avatar-btn" onclick="openProfileEdit()" title="Mon profil" style="flex-shrink:0">
+        <img id="pc-avatar-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover">
+        <span id="pc-avatar-initials">?</span>
+      </button>
     </div>
   </div>
 
   <!-- Body -->
   <div class="pc-body">
-    <!-- Sidebar -->
+    <!-- Rail d'icônes — navigation principale compacte -->
+    <div class="pc-icon-rail">
+      <button class="pc-rail-item active" id="railnav-livreurs" onclick="switchPCNav('livreurs',this)" title="Livreurs disponibles"><i class="ti ti-motorbike"></i><span>Livreurs</span></button>
+      <button class="pc-rail-item" id="railnav-chauffeur" onclick="switchPCNav('chauffeur',this)" title="Service Chauffeur"><i class="ti ti-steering-wheel"></i><span>Chauffeur</span></button>
+      <button class="pc-rail-item" id="railnav-marketplace" onclick="switchPCNav('marketplace',this)" title="Marché & Artisans"><i class="ti ti-shopping-bag"></i><span>Marché</span></button>
+      <div class="pc-rail-sep"></div>
+      <button class="pc-rail-item" id="railnav-courses" onclick="switchPCNav('courses',this)" title="Mes courses"><i class="ti ti-route"></i><span>Courses</span><span class="pc-rail-badge" id="railnav-courses-badge"></span></button>
+      <button class="pc-rail-item" id="railnav-messages" onclick="switchPCNav('messages',this)" title="Messages"><i class="ti ti-message-2"></i><span>Messages</span><span class="pc-rail-badge" id="railnav-msg-badge"></span></button>
+      <div class="pc-rail-sep"></div>
+      <button class="pc-rail-item" onclick="openFideliteModal()" title="Points fidélité"><i class="ti ti-star"></i><span>Points</span></button>
+      <button class="pc-rail-item" onclick="openParrainageModal()" title="Parrainage & récompenses"><i class="ti ti-gift"></i><span>Parrain.</span></button>
+      <button class="pc-rail-item" onclick="openModal('modal-assurance')" title="Garantie livraison"><i class="ti ti-shield-check"></i><span>Garantie</span></button>
+      <button class="pc-rail-item" onclick="openModal('modal-mon-artisan');chargerMonArtisan()" title="Allô Artisans — Ma vitrine"><i class="ti ti-tools"></i><span>Artisans</span></button>
+      <button class="pc-rail-item" onclick="showAbonnement()" title="Mon abonnement"><i class="ti ti-crown"></i><span>Abonn.</span></button>
+      <div class="pc-rail-sep"></div>
+      <button class="pc-rail-item" style="color:var(--danger)" onclick="doLogout()" title="Déconnexion"><i class="ti ti-logout"></i><span>Sortir</span></button>
+    </div>
+
+    <!-- Sidebar — Navigation latérale permanente -->
     <div class="pc-sidebar">
-      <div class="sidebar-tabs">
-        <button class="stab active" onclick="switchSideTab('livreurs',this)" id="stab-livreurs"><i class="ti ti-motorbike"></i>Livreurs</button>
-        <button class="stab" onclick="switchSideTab('marketplace',this)" id="stab-market"><i class="ti ti-shopping-bag"></i>Marché</button>
-        <button class="stab" onclick="switchSideTab('messages',this)" id="stab-msg" style="position:relative"><i class="ti ti-message-2"></i>Messages<span class="stab-badge" id="stab-msg-badge"></span><span id="pc-msg-badge" style="display:none;width:6px;height:6px;background:var(--primary);border-radius:50%;display:none"></span></button>
-        <button class="stab" onclick="switchSideTab('courses',this)" id="stab-courses"><i class="ti ti-route"></i>Courses</button>
+
+      <!-- Header profil compact -->
+      <div class="pc-sidebar-profile" onclick="closeAllDropdowns();openProfileEdit()">
+        <div class="pc-sidebar-ava">
+          <img id="pc-sb-avatar-img" src="" alt="" style="display:none">
+          <span id="pc-sb-initials">?</span>
+        </div>
+        <div class="pc-sidebar-info">
+          <div class="pc-sidebar-name" id="pc-sb-name">—</div>
+          <div class="pc-sidebar-phone" id="pc-sb-phone">—</div>
+        </div>
+        <div class="pc-sidebar-wallet" onclick="event.stopPropagation();openWalletModal()">
+          <div class="pc-sidebar-wallet-lbl">Wallet</div>
+          <div class="pc-sidebar-wallet-amt" id="pc-sb-wallet">0 FCFA</div>
+        </div>
+      </div>
+
+      <!-- Stats rapides -->
+      <div class="pc-sidebar-stats">
+        <div class="pc-stat"><div class="pc-stat-val" id="pc-sb-stat-courses">0</div><div class="pc-stat-lbl">Courses</div></div>
+        <div class="pc-stat"><div class="pc-stat-val" id="pc-sb-stat-pts">0</div><div class="pc-stat-lbl">Points</div></div>
+        <div class="pc-stat"><div class="pc-stat-val" id="pc-sb-stat-wallet">0</div><div class="pc-stat-lbl">FCFA</div></div>
+      </div>
+
+      <!-- Navigation principale (legacy, masquée — remplacée par le rail d'icônes) -->
+      <div class="pc-nav">
+        <div class="pc-nav-section-lbl">Services</div>
+        <button class="pc-nav-item active" id="pcnav-livreurs" onclick="switchPCNav('livreurs',this)"><i class="ti ti-motorbike"></i>Livreurs disponibles</button>
+        <button class="pc-nav-item" id="pcnav-chauffeur" onclick="switchPCNav('chauffeur',this)"><i class="ti ti-steering-wheel"></i>Service Chauffeur</button>
+        <button class="pc-nav-item" id="pcnav-marketplace" onclick="switchPCNav('marketplace',this)"><i class="ti ti-shopping-bag"></i>Marché &amp; Artisans</button>
+        <div class="pc-nav-section-lbl" style="margin-top:.2rem">Mes activités</div>
+        <button class="pc-nav-item" id="pcnav-courses" onclick="switchPCNav('courses',this)"><i class="ti ti-route"></i>Mes courses<span class="pc-nav-badge" id="pcnav-courses-badge"></span></button>
+        <button class="pc-nav-item" id="pcnav-messages" onclick="switchPCNav('messages',this)"><i class="ti ti-message-2"></i>Messages<span class="pc-nav-badge" id="pcnav-msg-badge"></span></button>
+        <div class="pc-nav-section-lbl" style="margin-top:.2rem">Mon compte</div>
+        <button class="pc-nav-item" onclick="openFideliteModal()"><i class="ti ti-star"></i>Points fidélité<span id="pc-sb-pts-badge" style="margin-left:auto;font-size:.72rem;font-weight:700;color:var(--primary)"></span></button>
+        <button class="pc-nav-item" onclick="openParrainageModal()"><i class="ti ti-gift"></i>Parrainage &amp; récompenses</button>
+        <button class="pc-nav-item" onclick="openModal('modal-assurance')"><i class="ti ti-shield-check"></i>Garantie livraison</button>
+        <button class="pc-nav-item" onclick="openModal('modal-mon-artisan');chargerMonArtisan()"><i class="ti ti-tools"></i>Allô Artisans — Ma vitrine</button>
+        <button class="pc-nav-item" onclick="showAbonnement()"><i class="ti ti-crown"></i>Mon abonnement</button>
+        <button class="pc-nav-item" style="color:var(--danger);margin-top:.2rem" onclick="doLogout()"><i class="ti ti-logout" style="color:var(--danger)"></i>Déconnexion</button>
       </div>
 
       <!-- Livreurs panel -->
@@ -1188,16 +1316,42 @@ input:valid {
         <div id="livreurs-list"><div class="empty-state"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><p>Chargement…</p></div></div>
       </div>
 
+      <!-- Chauffeur panel -->
+      <div class="sidebar-panel" id="panel-chauffeur">
+        <div class="section-head" style="display:flex;align-items:center;justify-content:space-between">
+          <span>🚘 Service Chauffeur</span>
+          <button onclick="switchSideTab('livreurs',document.getElementById('stab-livreurs'))" style="background:#fee2e2;color:#dc2626;border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;flex-shrink:0;transition:background .15s" onmouseenter="this.style.background='#dc2626';this.style.color='#fff'" onmouseleave="this.style.background='#fee2e2';this.style.color='#dc2626'" title="Fermer"><i class="ti ti-x"></i></button>
+        </div>
+        <div style="padding:.6rem .9rem .3rem;font-size:.78rem;color:var(--text2)">
+          Réservez un chauffeur avec sa propre voiture, ou pour conduire <b>votre</b> véhicule.
+        </div>
+        <div style="display:flex;gap:.4rem;padding:.4rem .9rem .6rem">
+          <button class="chauffeur-mode-btn active" id="chaufmode-perso-pc" onclick="switchChauffeurMode('chauffeur_perso','pc')" style="flex:1;padding:.45rem;border:1.5px solid var(--primary);border-radius:var(--radius-pill);background:var(--primary);color:#fff;font-family:var(--font);font-size:.78rem;font-weight:700;cursor:pointer">🚘 Sa voiture</button>
+          <button class="chauffeur-mode-btn" id="chaufmode-client-pc" onclick="switchChauffeurMode('chauffeur_client','pc')" style="flex:1;padding:.45rem;border:1.5px solid var(--border2);border-radius:var(--radius-pill);background:var(--bg);color:var(--text2);font-family:var(--font);font-size:.78rem;font-weight:700;cursor:pointer">🔑 Votre véhicule</button>
+        </div>
+        <div id="chauffeurs-list-pc"><div class="empty-state"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><p>Chargement…</p></div></div>
+      </div>
+
       <!-- Marketplace panel -->
       <div class="sidebar-panel" id="panel-marketplace">
         <div class="section-head" style="display:flex;align-items:center;justify-content:space-between">
           <span>Marketplace</span>
           <button onclick="switchSideTab('livreurs',document.getElementById('stab-livreurs'))" style="background:#fee2e2;color:#dc2626;border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;flex-shrink:0;transition:background .15s" onmouseenter="this.style.background='#dc2626';this.style.color='#fff'" onmouseleave="this.style.background='#fee2e2';this.style.color='#dc2626'" title="Fermer"><i class="ti ti-x"></i></button>
         </div>
+        <div style="display:flex;gap:.4rem;padding:.6rem .9rem 0">
+          <button class="market-mode-btn active" id="mkmode-produits-pc" onclick="switchMarketMode('produits','pc')" style="flex:1;padding:.5rem;border:1.5px solid var(--border2);border-radius:var(--radius-pill);background:var(--primary);color:#fff;font-family:var(--font);font-size:.8rem;font-weight:700;cursor:pointer">🛍️ Produits</button>
+          <button class="market-mode-btn" id="mkmode-artisans-pc" onclick="switchMarketMode('artisans','pc')" style="flex:1;padding:.5rem;border:1.5px solid var(--border2);border-radius:var(--radius-pill);background:var(--bg);color:var(--text2);font-family:var(--font);font-size:.8rem;font-weight:700;cursor:pointer">🛠️ Artisans</button>
+        </div>
         <div class="cat-scroll" id="cat-scroll-pc">
           <div class="cat-chip active" onclick="filterCateg(null,this)">Tout</div>
         </div>
         <div class="prod-grid" id="prod-grid-pc">
+          <div class="empty-state" style="grid-column:1/-1"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><p>Chargement…</p></div>
+        </div>
+        <div class="cat-scroll" id="art-cat-scroll-pc" style="display:none">
+          <div class="cat-chip active" onclick="filterArtisans(null,this)">Tout</div>
+        </div>
+        <div class="prod-grid" id="artisans-grid-pc" style="display:none">
           <div class="empty-state" style="grid-column:1/-1"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><p>Chargement…</p></div>
         </div>
       </div>
@@ -1219,8 +1373,16 @@ input:valid {
       <!-- Courses panel -->
       <div class="sidebar-panel" id="panel-courses">
         <div class="section-head" style="display:flex;align-items:center;justify-content:space-between">
-          <span>Mes courses</span>
-          <button onclick="switchSideTab('livreurs',document.getElementById('stab-livreurs'))" style="background:#fee2e2;color:#dc2626;border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;flex-shrink:0;transition:background .15s" onmouseenter="this.style.background='#dc2626';this.style.color='#fff'" onmouseleave="this.style.background='#fee2e2';this.style.color='#dc2626'" title="Fermer"><i class="ti ti-x"></i></button>
+          <span style="font-weight:700">Mes courses</span>
+          <div style="display:flex;gap:.3rem;align-items:center">
+            <button onclick="loadCourses()" title="Actualiser" style="background:var(--surface2);color:var(--text2);border:none;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.85rem;transition:all .15s" onmouseenter="this.style.background='var(--primary)';this.style.color='#fff'" onmouseleave="this.style.background='var(--surface2)';this.style.color='var(--text2)'"><i class="ti ti-refresh"></i></button>
+            <button onclick="switchSideTab('livreurs',document.getElementById('stab-livreurs'))" style="background:#fee2e2;color:#dc2626;border:none;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;flex-shrink:0;transition:background .15s" onmouseenter="this.style.background='#dc2626';this.style.color='#fff'" onmouseleave="this.style.background='#fee2e2';this.style.color='#dc2626'" title="Fermer"><i class="ti ti-x"></i></button>
+          </div>
+        </div>
+        <div style="display:flex;gap:.35rem;padding:.45rem .9rem .1rem;border-bottom:1px solid var(--border)">
+          <button id="cf-btn-all" onclick="filterCoursesPanel('all')" style="flex:1;padding:.3rem .5rem;border-radius:50px;border:1.5px solid var(--primary);background:var(--primary);color:#fff;font-family:var(--font);font-size:.74rem;font-weight:700;cursor:pointer">Toutes</button>
+          <button id="cf-btn-active" onclick="filterCoursesPanel('active')" style="flex:1;padding:.3rem .5rem;border-radius:50px;border:1.5px solid var(--border2);background:var(--bg);color:var(--text2);font-family:var(--font);font-size:.74rem;font-weight:700;cursor:pointer">🔴 En cours</button>
+          <button id="cf-btn-done" onclick="filterCoursesPanel('done')" style="flex:1;padding:.3rem .5rem;border-radius:50px;border:1.5px solid var(--border2);background:var(--bg);color:var(--text2);font-family:var(--font);font-size:.74rem;font-weight:700;cursor:pointer">✅ Livrées</button>
         </div>
         <div id="courses-list">
           <div class="empty-state"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><p>Chargement…</p></div>
@@ -1295,6 +1457,13 @@ input:valid {
                 <option value="multi_arrets">🔀 Multi-arrêts</option>
                 <option value="programmee">🗓️ Programmée</option>
               </optgroup>
+              <optgroup label="🌍 Personnel / Tourisme">
+                <option value="tourisme">🏖️ Excursion touristique / Voyage personnel</option>
+              </optgroup>
+              <optgroup label="🧑‍✈️ Chauffeur">
+                <option value="chauffeur_perso">🚘 Chauffeur avec sa voiture</option>
+                <option value="chauffeur_client">🔑 Chauffeur pour votre véhicule</option>
+              </optgroup>
             </select>
             <div id="cp-type-hint" style="font-size:.74rem;padding:.4rem .65rem;border-radius:6px;background:var(--primary-light);color:var(--primary-dark);margin-top:.3rem;margin-bottom:.2rem;display:none"></div>
               <option value="false">Normal</option>
@@ -1311,6 +1480,24 @@ input:valid {
           <div id="prog-section" style="display:none;margin-bottom:.6rem">
             <div style="font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:.4rem">Date & heure de livraison</div>
             <input type="datetime-local" id="cp-programmee" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg)">
+          </div>
+          <!-- Tourisme / Aller-retour PC -->
+          <div id="ar-section" style="display:none;margin-bottom:.6rem">
+            <label style="display:flex;align-items:center;gap:.5rem;padding:.6rem .75rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);cursor:pointer;font-size:.84rem;font-weight:600;margin-bottom:.5rem;background:var(--bg)">
+              <input type="checkbox" id="cp-aller-retour" onchange="onArToggle('cp')" style="width:18px;height:18px;accent-color:var(--primary);flex-shrink:0">
+              🔄 Aller-retour (le livreur vous attend sur place et vous ramène)
+            </label>
+            <div id="cp-attente-wrap" style="display:none">
+              <div style="font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:.4rem">⏱️ Durée d'attente sur place (minutes)</div>
+              <input type="number" id="cp-attente" min="0" step="5" value="30" oninput="estimerPrix()" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg)">
+              <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">Les 15 premières minutes sont offertes, puis 300 FCFA par tranche de 30 min.</div>
+            </div>
+          </div>
+          <!-- Chauffeur PC -->
+          <div id="chauf-section" style="display:none;margin-bottom:.6rem">
+            <div style="font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:.4rem">⏱️ Durée prévue (heures)</div>
+            <input type="number" id="cp-duree-chauffeur" min="1" step="0.5" value="2" oninput="estimerPrix()" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg)">
+            <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">Le tarif est fixé par le chauffeur (FCFA/km + FCFA/heure) — sélectionnez un chauffeur pour voir son prix.</div>
           </div>
           <!-- Description / Instructions au livreur -->
           <span class="cp-slabel">💬 Instructions au livreur <span style="font-weight:400;text-transform:none;font-size:.68rem;color:var(--text3)">(envoyé automatiquement)</span></span>
@@ -1493,6 +1680,13 @@ input:valid {
             <option value="multi_arrets">🔀 Multi-arrêts</option>
             <option value="programmee">🗓️ Programmée</option>
           </optgroup>
+          <optgroup label="🌍 Personnel / Tourisme">
+            <option value="tourisme">🏖️ Excursion touristique / Voyage personnel</option>
+          </optgroup>
+          <optgroup label="🧑‍✈️ Chauffeur">
+            <option value="chauffeur_perso">🚘 Chauffeur avec sa voiture</option>
+            <option value="chauffeur_client">🔑 Chauffeur pour votre véhicule</option>
+          </optgroup>
         </select>
         <div id="mob-type-hint" style="font-size:.74rem;padding:.4rem .65rem;border-radius:6px;background:var(--primary-light);color:var(--primary-dark);margin-bottom:.4rem;display:none"></div>
         <select id="mob-urgent" onchange="estimerPrix()" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;margin-bottom:.5rem;background:var(--bg)">
@@ -1509,6 +1703,24 @@ input:valid {
         <div id="mob-prog-section" style="display:none;margin-bottom:.5rem">
           <div style="font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:.4rem">Date & heure de livraison</div>
           <input type="datetime-local" id="mob-programmee" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg);margin-bottom:.5rem">
+        </div>
+        <!-- Tourisme / Aller-retour Mobile -->
+        <div id="mob-ar-section" style="display:none;margin-bottom:.5rem">
+          <label style="display:flex;align-items:center;gap:.5rem;padding:.6rem .75rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);cursor:pointer;font-size:.84rem;font-weight:600;margin-bottom:.5rem;background:var(--bg)">
+            <input type="checkbox" id="mob-aller-retour" onchange="onArToggle('mob')" style="width:18px;height:18px;accent-color:var(--primary);flex-shrink:0">
+            🔄 Aller-retour (le livreur vous attend sur place et vous ramène)
+          </label>
+          <div id="mob-attente-wrap" style="display:none">
+            <div style="font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:.4rem">⏱️ Durée d'attente sur place (minutes)</div>
+            <input type="number" id="mob-attente" min="0" step="5" value="30" oninput="estimerPrix()" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg)">
+            <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">Les 15 premières minutes sont offertes, puis 300 FCFA par tranche de 30 min.</div>
+          </div>
+        </div>
+        <!-- Chauffeur Mobile -->
+        <div id="mob-chauf-section" style="display:none;margin-bottom:.5rem">
+          <div style="font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:.4rem">⏱️ Durée prévue (heures)</div>
+          <input type="number" id="mob-duree-chauffeur" min="1" step="0.5" value="2" oninput="estimerPrix()" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg)">
+          <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">Le tarif est fixé par le chauffeur (FCFA/km + FCFA/heure).</div>
         </div>
         <!-- Description / Instructions -->
         <div style="font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:.35rem">
@@ -1564,16 +1776,41 @@ input:valid {
     </div>
   </div>
 
+  <!-- Page Chauffeur -->
+  <div class="mob-page" id="mob-chauffeur-page">
+    <div class="mob-topbar">
+      <div class="mob-page-title">🚘 Service Chauffeur</div>
+    </div>
+    <div style="padding:.65rem .75rem .3rem;font-size:.78rem;color:var(--text2);flex-shrink:0">Réservez un chauffeur avec sa voiture ou pour conduire la vôtre.</div>
+    <div style="display:flex;gap:.4rem;padding:.4rem .75rem .6rem;flex-shrink:0">
+      <button class="chauffeur-mode-btn active" id="chaufmode-perso-mob" onclick="switchChauffeurMode('chauffeur_perso','mob')" style="flex:1;padding:.5rem;border:1.5px solid var(--primary);border-radius:var(--radius-pill);background:var(--primary);color:#fff;font-family:var(--font);font-size:.8rem;font-weight:700;cursor:pointer">🚘 Sa voiture</button>
+      <button class="chauffeur-mode-btn" id="chaufmode-client-mob" onclick="switchChauffeurMode('chauffeur_client','mob')" style="flex:1;padding:.5rem;border:1.5px solid var(--border2);border-radius:var(--radius-pill);background:var(--bg);color:var(--text2);font-family:var(--font);font-size:.8rem;font-weight:700;cursor:pointer">🔑 Votre véhicule</button>
+    </div>
+    <div class="mob-scroll" id="chauffeurs-list-mob">
+      <div class="empty-state"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><p>Chargement…</p></div>
+    </div>
+  </div>
+
   <!-- Page Marketplace -->
   <div class="mob-page" id="mob-market-page">
     <div class="mob-topbar">
       <div class="mob-page-title">Marketplace</div>
     </div>
+    <div style="display:flex;gap:.4rem;padding:.6rem .75rem 0;flex-shrink:0">
+      <button class="market-mode-btn active" id="mkmode-produits-mob" onclick="switchMarketMode('produits','mob')" style="flex:1;padding:.55rem;border:1.5px solid var(--border2);border-radius:var(--radius-pill);background:var(--primary);color:#fff;font-family:var(--font);font-size:.82rem;font-weight:700;cursor:pointer">🛍️ Produits</button>
+      <button class="market-mode-btn" id="mkmode-artisans-mob" onclick="switchMarketMode('artisans','mob')" style="flex:1;padding:.55rem;border:1.5px solid var(--border2);border-radius:var(--radius-pill);background:var(--bg);color:var(--text2);font-family:var(--font);font-size:.82rem;font-weight:700;cursor:pointer">🛠️ Artisans</button>
+    </div>
     <div class="cat-scroll" id="cat-scroll-mob" style="background:var(--surface);border-bottom:1px solid var(--border);padding:.5rem .75rem;flex-shrink:0">
       <div class="cat-chip active" onclick="filterCateg(null,this)">Tout</div>
     </div>
+    <div class="cat-scroll" id="art-cat-scroll-mob" style="display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:.5rem .75rem;flex-shrink:0">
+      <div class="cat-chip active" onclick="filterArtisans(null,this)">Tout</div>
+    </div>
     <div class="mob-scroll">
       <div class="mob-prod-grid" id="prod-grid-mob">
+        <div class="empty-state" style="grid-column:1/-1"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><p>Chargement…</p></div>
+      </div>
+      <div class="mob-prod-grid" id="artisans-grid-mob" style="display:none">
         <div class="empty-state" style="grid-column:1/-1"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><p>Chargement…</p></div>
       </div>
     </div>
@@ -1678,6 +1915,9 @@ input:valid {
       <div class="mob-menu-item" onclick="openAvatarUpload()"><i class="ti ti-camera"></i> Changer la photo <i class="ti ti-chevron-right chevron"></i></div>
       <div class="mob-menu-item" onclick="switchMobPage('courses')"><i class="ti ti-route"></i> Mes courses <i class="ti ti-chevron-right chevron"></i></div>
       <div class="mob-menu-item" onclick="openFideliteModal()"><i class="ti ti-star"></i> Programme fidelite <i class="ti ti-chevron-right chevron"></i></div>
+      <div class="mob-menu-item" onclick="openParrainageModal()"><i class="ti ti-gift"></i> Parrainage &amp; récompenses <i class="ti ti-chevron-right chevron"></i></div>
+      <div class="mob-menu-item" onclick="openModal('modal-assurance')"><i class="ti ti-shield-check"></i> Garantie livraison <i class="ti ti-chevron-right chevron"></i></div>
+      <div class="mob-menu-item" onclick="openModal('modal-mon-artisan');chargerMonArtisan()"><i class="ti ti-tools"></i> Allô Artisans — Ma vitrine <i class="ti ti-chevron-right chevron"></i></div>
       <div class="mob-menu-item" onclick="showAbonnement()"><i class="ti ti-crown"></i> Mon abonnement <i class="ti ti-chevron-right chevron"></i></div>
       <div class="mob-menu-item" style="color:var(--danger)" onclick="doLogout()"><i class="ti ti-logout" style="color:var(--danger)"></i> Déconnexion <i class="ti ti-chevron-right chevron"></i></div>
     </div>
@@ -1696,6 +1936,7 @@ input:valid {
   <div class="mob-nav">
     <button class="mob-nav-btn active" id="nav-carte" onclick="switchMobPage('carte')"><i class="ti ti-map-2"></i>Carte</button>
     <button class="mob-nav-btn" id="nav-livreurs" onclick="switchMobPage('livreurs')"><i class="ti ti-motorbike"></i>Livreurs</button>
+    <button class="mob-nav-btn" id="nav-chauffeur" onclick="switchMobPage('chauffeur')"><i class="ti ti-steering-wheel"></i>Chauffeur</button>
     <button class="mob-nav-btn" id="nav-marketplace" onclick="switchMobPage('marketplace')"><i class="ti ti-shopping-bag"></i>Marché</button>
     <button class="mob-nav-btn" id="nav-messages" onclick="switchMobPage('messages')"><i class="ti ti-message-2"></i>Messages<span class="nav-badge" id="mob-msg-nav-badge" style="display:none"></span></button>
     <button class="mob-nav-btn" id="nav-profil" onclick="switchMobPage('profil')"><i class="ti ti-user"></i>Profil</button>
@@ -1785,22 +2026,31 @@ input:valid {
       </div>
     </div>
 
-    <!-- Barre de progression -->
-    <div style="padding:.5rem 1.1rem;flex-shrink:0">
-      <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-start;padding-top:1rem">
-        <div style="position:absolute;top:1rem;left:8%;right:8%;height:3px;background:var(--border);border-radius:2px;transform:translateY(-50%)"></div>
-        <div id="suivi-progress-bar" style="position:absolute;top:1rem;left:8%;height:3px;background:var(--primary);border-radius:2px;transform:translateY(-50%);transition:width .6s ease;width:0%"></div>
-        <div id="step-acceptee" class="suivi-step" style="opacity:.35;transition:opacity .3s;display:flex;flex-direction:column;align-items:center;gap:.3rem;position:relative;z-index:1">
-          <div style="width:22px;height:22px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.65rem">✓</div>
-          <div style="font-size:.67rem;font-weight:600;text-align:center">Acceptée</div>
+    <!-- Barre de progression 5 étapes -->
+    <div style="padding:.5rem 1.1rem .3rem;flex-shrink:0">
+      <div id="suivi-step-label" style="text-align:center;font-size:.79rem;font-weight:700;color:var(--primary);margin-bottom:.5rem;min-height:1.1rem;transition:all .3s"></div>
+      <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-start;padding-top:.9rem">
+        <div style="position:absolute;top:.9rem;left:10%;right:10%;height:3px;background:var(--border);border-radius:2px;transform:translateY(-50%)"></div>
+        <div id="suivi-progress-bar" style="position:absolute;top:.9rem;left:10%;height:3px;background:linear-gradient(90deg,var(--primary),#38BDF8);border-radius:2px;transform:translateY(-50%);transition:width .65s cubic-bezier(.4,0,.2,1);width:0%"></div>
+        <div id="step-acceptee" class="suivi-step" style="opacity:.3;transition:opacity .35s;display:flex;flex-direction:column;align-items:center;gap:.28rem;position:relative;z-index:1">
+          <div style="width:26px;height:26px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:.85rem;box-shadow:0 0 0 3px var(--primary-light)">✅</div>
+          <div style="font-size:.59rem;font-weight:700;text-align:center;white-space:nowrap">Acceptée</div>
         </div>
-        <div id="step-en_cours" class="suivi-step" style="opacity:.35;transition:opacity .3s;display:flex;flex-direction:column;align-items:center;gap:.3rem;position:relative;z-index:1">
-          <div style="width:22px;height:22px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.72rem">🛵</div>
-          <div style="font-size:.67rem;font-weight:600;text-align:center">En route</div>
+        <div id="step-prise_en_charge" class="suivi-step" style="opacity:.3;transition:opacity .35s;display:flex;flex-direction:column;align-items:center;gap:.28rem;position:relative;z-index:1">
+          <div style="width:26px;height:26px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:.85rem;box-shadow:0 0 0 3px var(--primary-light)">📦</div>
+          <div style="font-size:.59rem;font-weight:700;text-align:center;white-space:nowrap">Récupéré</div>
         </div>
-        <div id="step-livree" class="suivi-step" style="opacity:.35;transition:opacity .3s;display:flex;flex-direction:column;align-items:center;gap:.3rem;position:relative;z-index:1">
-          <div style="width:22px;height:22px;border-radius:50%;background:var(--success);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.7rem">🎉</div>
-          <div style="font-size:.67rem;font-weight:600;text-align:center">Livré</div>
+        <div id="step-en_cours" class="suivi-step" style="opacity:.3;transition:opacity .35s;display:flex;flex-direction:column;align-items:center;gap:.28rem;position:relative;z-index:1">
+          <div style="width:26px;height:26px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:.85rem;box-shadow:0 0 0 3px var(--primary-light)">🛵</div>
+          <div style="font-size:.59rem;font-weight:700;text-align:center;white-space:nowrap">En route</div>
+        </div>
+        <div id="step-proximite" class="suivi-step" style="opacity:.3;transition:opacity .35s;display:flex;flex-direction:column;align-items:center;gap:.28rem;position:relative;z-index:1">
+          <div style="width:26px;height:26px;border-radius:50%;background:#F59E0B;display:flex;align-items:center;justify-content:center;font-size:.85rem;box-shadow:0 0 0 3px #FEF3C7">📍</div>
+          <div style="font-size:.59rem;font-weight:700;text-align:center;white-space:nowrap">Proche</div>
+        </div>
+        <div id="step-livree" class="suivi-step" style="opacity:.3;transition:opacity .35s;display:flex;flex-direction:column;align-items:center;gap:.28rem;position:relative;z-index:1">
+          <div style="width:26px;height:26px;border-radius:50%;background:var(--success);display:flex;align-items:center;justify-content:center;font-size:.85rem;box-shadow:0 0 0 3px #DCFCE7">🎉</div>
+          <div style="font-size:.59rem;font-weight:700;text-align:center;white-space:nowrap">Livré !</div>
         </div>
       </div>
     </div>
@@ -1830,6 +2080,15 @@ input:valid {
           <button onclick="copierCodeLivraison()" style="background:#F59E0B;color:#fff;border:none;border-radius:var(--radius-xs);padding:.4rem .65rem;font-size:.75rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-copy"></i></button>
         </div>
       </div>
+      <!-- Bannière Assurance -->
+      <div class="assurance-banner" style="margin-top:.5rem" onclick="openModal('modal-assurance')">
+        <span style="font-size:1.3rem;flex-shrink:0">🛡️</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.73rem;font-weight:800;color:#065F46">Livraison 100% assurée</div>
+          <div style="font-size:.65rem;color:#047857">Colis perdu ou endommagé ? Remboursement garanti</div>
+        </div>
+        <i class="ti ti-chevron-right" style="color:#059669;font-size:.85rem;flex-shrink:0"></i>
+      </div>
     </div>
   </div>
 </div>
@@ -1839,24 +2098,395 @@ input:valid {
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-handle"><div class="modal-handle-pill"></div></div>
     <div style="padding:0 1.25rem 1.5rem;text-align:center">
-      <div style="font-size:2.2rem;margin-bottom:.3rem">🛵</div>
-      <div style="font-family:var(--font-display);font-size:1.15rem;font-weight:800;margin-bottom:.15rem">Comment était votre livraison ?</div>
-      <div style="font-size:.82rem;color:var(--text2);margin-bottom:1.1rem">Notez <span id="notation-lv-nom" style="font-weight:700">votre livreur</span></div>
-      <div id="notation-stars" style="display:flex;justify-content:center;gap:.4rem;font-size:2.1rem;margin-bottom:1rem;cursor:pointer">
-        <span class="notation-star" data-n="1" onclick="selectionnerEtoile(1)">☆</span>
-        <span class="notation-star" data-n="2" onclick="selectionnerEtoile(2)">☆</span>
-        <span class="notation-star" data-n="3" onclick="selectionnerEtoile(3)">☆</span>
-        <span class="notation-star" data-n="4" onclick="selectionnerEtoile(4)">☆</span>
-        <span class="notation-star" data-n="5" onclick="selectionnerEtoile(5)">☆</span>
+      <!-- Avatar livreur -->
+      <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#38BDF8);display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto .5rem;box-shadow:0 4px 16px rgba(37,99,235,.25)">🛵</div>
+      <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;margin-bottom:.1rem">Votre avis compte !</div>
+      <div style="font-size:.8rem;color:var(--text2);margin-bottom:.9rem">Notez <span id="notation-lv-nom" style="font-weight:700;color:var(--primary)">votre livreur</span></div>
+      <!-- Étoiles animées -->
+      <div id="notation-stars" style="display:flex;justify-content:center;gap:.5rem;font-size:2.4rem;margin-bottom:.45rem;cursor:pointer">
+        <span class="notation-star" data-n="1" onclick="selectionnerEtoile(1)" style="transition:transform .15s">☆</span>
+        <span class="notation-star" data-n="2" onclick="selectionnerEtoile(2)" style="transition:transform .15s">☆</span>
+        <span class="notation-star" data-n="3" onclick="selectionnerEtoile(3)" style="transition:transform .15s">☆</span>
+        <span class="notation-star" data-n="4" onclick="selectionnerEtoile(4)" style="transition:transform .15s">☆</span>
+        <span class="notation-star" data-n="5" onclick="selectionnerEtoile(5)" style="transition:transform .15s">☆</span>
       </div>
-      <textarea id="notation-commentaire" placeholder="Un commentaire ? (optionnel)" style="width:100%;min-height:70px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);padding:.6rem .75rem;font-family:var(--font);font-size:.85rem;resize:vertical;margin-bottom:1rem"></textarea>
-      <button class="btn-primary" style="width:100%" onclick="envoyerNotation()"><i class="ti ti-star"></i> Envoyer ma note</button>
-      <button onclick="fermerModalNotation()" style="width:100%;margin-top:.5rem;background:none;border:none;color:var(--text3);font-size:.8rem;padding:.5rem;cursor:pointer;font-family:var(--font)">Plus tard</button>
+      <!-- Label dynamique note -->
+      <div id="notation-label" style="font-size:.82rem;font-weight:700;color:var(--text3);margin-bottom:.85rem;min-height:1.1rem;transition:color .2s"></div>
+      <!-- Tags rapides -->
+      <div id="notation-tags" style="display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem;margin-bottom:.85rem">
+        <button class="notag" onclick="toggleNotationTag(this,'Rapide 🚀')">Rapide 🚀</button>
+        <button class="notag" onclick="toggleNotationTag(this,'Soigneux 📦')">Soigneux 📦</button>
+        <button class="notag" onclick="toggleNotationTag(this,'Ponctuel ⏱️')">Ponctuel ⏱️</button>
+        <button class="notag" onclick="toggleNotationTag(this,'Communicatif 💬')">Communicatif 💬</button>
+        <button class="notag" onclick="toggleNotationTag(this,'Professionnel 👍')">Professionnel 👍</button>
+      </div>
+      <textarea id="notation-commentaire" placeholder="Un commentaire libre ? (optionnel)" style="width:100%;min-height:60px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);padding:.6rem .75rem;font-family:var(--font);font-size:.85rem;resize:vertical;margin-bottom:.85rem;box-sizing:border-box"></textarea>
+      <button class="btn-primary" style="width:100%" onclick="envoyerNotation()"><i class="ti ti-star"></i> Envoyer mon avis</button>
+      <button onclick="fermerModalNotation()" style="width:100%;margin-top:.45rem;background:none;border:none;color:var(--text3);font-size:.78rem;padding:.45rem;cursor:pointer;font-family:var(--font)">Plus tard</button>
     </div>
   </div>
 </div>
 
-<!-- ─── MODAL ABONNEMENT ─── -->
+<!-- ─── MODAL ASSURANCE / GARANTIE ─── -->
+<div class="modal-overlay" id="modal-assurance" onclick="closeModal('modal-assurance')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle" onclick="closeModal('modal-assurance')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem">
+      <!-- Header -->
+      <div style="text-align:center;padding:.5rem 0 1rem">
+        <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#ECFDF5,#D1FAE5);border:2px solid #6EE7B7;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto .5rem">🛡️</div>
+        <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800">Garantie Livraison</div>
+        <div style="font-size:.8rem;color:var(--text2);margin-top:4px">Allô Livreur protège chaque colis</div>
+      </div>
+      <!-- Garanties -->
+      <div style="display:grid;gap:.6rem;margin-bottom:1rem">
+        <div style="display:flex;gap:.75rem;align-items:flex-start;padding:.75rem;background:#ECFDF5;border-radius:var(--radius-sm);border:1px solid #A7F3D0">
+          <span style="font-size:1.4rem;flex-shrink:0">📦</span>
+          <div>
+            <div style="font-size:.85rem;font-weight:700;color:#065F46">Colis perdu</div>
+            <div style="font-size:.76rem;color:#047857;margin-top:2px">Remboursement intégral de la valeur déclarée du colis, sous 48h ouvrables.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:.75rem;align-items:flex-start;padding:.75rem;background:#FEF3C7;border-radius:var(--radius-sm);border:1px solid #FDE68A">
+          <span style="font-size:1.4rem;flex-shrink:0">💥</span>
+          <div>
+            <div style="font-size:.85rem;font-weight:700;color:#78350F">Colis endommagé</div>
+            <div style="font-size:.76rem;color:#92400E;margin-top:2px">Prise en charge jusqu'à 50 000 FCFA sur présentation de photos à la réception.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:.75rem;align-items:flex-start;padding:.75rem;background:#EFF6FF;border-radius:var(--radius-sm);border:1px solid #BFDBFE">
+          <span style="font-size:1.4rem;flex-shrink:0">⏱️</span>
+          <div>
+            <div style="font-size:.85rem;font-weight:700;color:#1E40AF">Retard excessif</div>
+            <div style="font-size:.76rem;color:#1D4ED8;margin-top:2px">Bon de réduction de 10% sur votre prochaine course si le délai dépasse 2x l'ETA estimé.</div>
+          </div>
+        </div>
+      </div>
+      <!-- Procédure -->
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:.75rem;margin-bottom:.85rem">
+        <div style="font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">Comment déclarer un problème ?</div>
+        <div style="font-size:.78rem;color:var(--text2);line-height:1.6">
+          1️⃣ Contactez le support via le chat dans l'app<br>
+          2️⃣ Mentionnez votre numéro de course<br>
+          3️⃣ Envoyez des photos si le colis est endommagé<br>
+          4️⃣ Remboursement traité sous <strong>48h</strong>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="closeModal('modal-assurance')">J'ai compris ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL PARRAINAGE ─── -->
+<div class="modal-overlay" id="modal-parrainage" onclick="closeModal('modal-parrainage')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle" onclick="closeModal('modal-parrainage')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem">
+      <div style="text-align:center;padding:.5rem 0 .75rem">
+        <div style="font-size:2.2rem;margin-bottom:.3rem">🎁</div>
+        <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800">Parrainez vos amis</div>
+        <div style="font-size:.8rem;color:var(--text2);margin-top:4px">Gagnez ensemble à chaque livraison !</div>
+      </div>
+      <!-- Avantages -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.85rem">
+        <div style="background:var(--primary-light);border-radius:var(--radius-sm);padding:.75rem;text-align:center;border:1.5px solid var(--primary)">
+          <div style="font-size:1.3rem">🎉</div>
+          <div style="font-size:.78rem;font-weight:700;color:var(--primary-dark);margin-top:4px">Vous recevez</div>
+          <div style="font-size:1rem;font-weight:900;color:var(--primary)">500 FCFA</div>
+          <div style="font-size:.65rem;color:var(--text3)">après 1ère livraison filleul</div>
+        </div>
+        <div style="background:#ECFDF5;border-radius:var(--radius-sm);padding:.75rem;text-align:center;border:1.5px solid #6EE7B7">
+          <div style="font-size:1.3rem">🤝</div>
+          <div style="font-size:.78rem;font-weight:700;color:#065F46;margin-top:4px">Filleul reçoit</div>
+          <div style="font-size:1rem;font-weight:900;color:#059669">300 FCFA</div>
+          <div style="font-size:.65rem;color:var(--text3)">de crédit bienvenue</div>
+        </div>
+      </div>
+      <!-- Code parrainage -->
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:.85rem;margin-bottom:.85rem;border:2px dashed var(--border2)">
+        <div style="font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.35rem">Votre code de parrainage</div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <div style="font-size:1.5rem;font-weight:900;letter-spacing:5px;font-family:monospace;color:var(--primary);flex:1" id="parrain-code">——</div>
+          <button onclick="copierCodeParrain()" style="background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);padding:.45rem .75rem;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem;flex-shrink:0"><i class="ti ti-copy"></i> Copier</button>
+        </div>
+      </div>
+      <!-- Stats parrainage -->
+      <div style="display:flex;gap:.5rem;margin-bottom:.85rem">
+        <div style="flex:1;background:var(--bg2);border-radius:var(--radius-xs);padding:.6rem;text-align:center">
+          <div style="font-size:.65rem;color:var(--text3);font-weight:600">FILLEULS</div>
+          <div style="font-size:1.2rem;font-weight:800;color:var(--primary)" id="parrain-count">0</div>
+        </div>
+        <div style="flex:1;background:var(--bg2);border-radius:var(--radius-xs);padding:.6rem;text-align:center">
+          <div style="font-size:.65rem;color:var(--text3);font-weight:600">GAINS TOTAL</div>
+          <div style="font-size:1.2rem;font-weight:800;color:var(--success)" id="parrain-gains">0 FCFA</div>
+        </div>
+      </div>
+      <!-- Bouton partage -->
+      <button class="btn-primary" onclick="partagerCodeParrain()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:.5rem"><i class="ti ti-share"></i> Partager mon code</button>
+      <div style="font-size:.68rem;color:var(--text3);text-align:center;margin-top:.5rem">Valable pour tout nouvel utilisateur qui s'inscrit avec votre code</div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL : MA VITRINE ARTISAN (gestion) ─── -->
+<div class="modal-overlay" id="modal-mon-artisan" onclick="event.target===this&&closeModal('modal-mon-artisan')">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:480px">
+    <div class="modal-handle" onclick="closeModal('modal-mon-artisan')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem">
+      <div style="text-align:center;padding:.3rem 0 .9rem">
+        <div style="font-size:2rem">🛠️</div>
+        <div style="font-family:var(--font-display);font-size:1.15rem;font-weight:800">Allô Artisans</div>
+        <div style="font-size:.8rem;color:var(--text2);margin-top:2px">Créez votre vitrine et trouvez de nouveaux clients</div>
+      </div>
+
+      <label style="display:flex;align-items:center;gap:.5rem;padding:.65rem .8rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);cursor:pointer;font-size:.86rem;font-weight:700;margin-bottom:.9rem;background:var(--bg)">
+        <input type="checkbox" id="art-actif" onchange="document.getElementById('art-form-wrap').style.display=this.checked?'block':'none'" style="width:18px;height:18px;accent-color:var(--primary);flex-shrink:0">
+        Activer ma vitrine Artisan (visible dans la marketplace)
+      </label>
+
+      <div id="art-form-wrap" style="display:none">
+        <!-- Photo de couverture -->
+        <div class="field" style="margin-bottom:.85rem">
+          <label>Photo de couverture</label>
+          <div id="art-couv-preview" style="margin-top:.4rem;height:90px;border-radius:var(--radius-sm);background:var(--surface2);border:2px dashed var(--border2);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;background-size:cover;background-position:center" onclick="document.getElementById('art-couv-input').click()">
+            <i class="ti ti-camera" style="font-size:1.4rem;color:var(--text3)"></i>
+          </div>
+          <input type="file" id="art-couv-input" accept="image/*" style="display:none" onchange="previewCouvertureArtisan(this)">
+        </div>
+        <div class="field" style="margin-bottom:.75rem">
+          <label>Métier / Profession</label>
+          <select id="art-profession" style="width:100%;padding:.7rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg)" onchange="document.getElementById('art-profession-autre').style.display=this.value==='Autre'?'block':'none'">
+            <option>Électricien</option><option>Plombier</option><option>Menuisier</option><option>Maçon</option>
+            <option>Peintre en bâtiment</option><option>Mécanicien auto/moto</option><option>Couturier / Couturière</option>
+            <option>Coiffeur / Coiffeuse</option><option>Photographe</option><option>Réparation informatique / téléphone</option>
+            <option>Jardinier / Paysagiste</option><option>Soudeur</option><option>Vitrier</option><option>Carreleur</option>
+            <option>Décorateur d'intérieur</option><option>Traiteur / Cuisinier</option><option>Autre</option>
+          </select>
+          <input type="text" id="art-profession-autre" placeholder="Précisez votre métier" style="display:none;width:100%;margin-top:.5rem;padding:.7rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg)">
+        </div>
+        <div class="field" style="margin-bottom:.75rem">
+          <label>Description de vos services</label>
+          <textarea id="art-description" rows="3" placeholder="Ex: Installation et dépannage électrique, devis gratuit…" style="width:100%;padding:.7rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg);resize:vertical"></textarea>
+        </div>
+        <div class="field" style="margin-bottom:.75rem">
+          <label>Tarif indicatif</label>
+          <input type="text" id="art-tarif" placeholder="Ex: À partir de 5 000 FCFA" style="width:100%;padding:.7rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg)">
+        </div>
+        <div class="field" style="margin-bottom:1rem">
+          <label>Zone d'intervention</label>
+          <input type="text" id="art-zone" placeholder="Ex: Cotonou et environs" style="width:100%;padding:.7rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg)">
+        </div>
+        <div class="field" style="margin-bottom:1rem">
+          <label>📍 Ma position sur la carte <span style="font-weight:400;font-size:.72rem;color:var(--text3)">(pour apparaître sur la carte clients)</span></label>
+          <button type="button" onclick="localisermArtisan()" style="display:flex;align-items:center;gap:.4rem;padding:.5rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-pill);background:var(--bg);color:var(--text2);font-family:var(--font);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .18s" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">
+            <i class="ti ti-map-pin"></i> Utiliser ma position GPS
+          </button>
+          <div id="art-gps-status" style="font-size:.72rem;color:var(--text3);margin-top:.3rem"></div>
+          <input type="hidden" id="art-lat" value="">
+          <input type="hidden" id="art-lng" value="">
+        </div>
+        <button class="btn-primary" onclick="enregistrerProfilArtisan()" style="width:100%;margin-bottom:.6rem">💾 Enregistrer ma vitrine</button>
+
+        <!-- Toggle GPS en ligne -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.65rem .9rem;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius-sm);margin-bottom:1.1rem">
+          <div>
+            <div style="font-weight:700;font-size:.84rem">📍 Partager ma position GPS</div>
+            <div style="font-size:.71rem;color:var(--text3)">Apparaît en ligne sur la carte clients</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0">
+            <input type="checkbox" id="art-toggle-gps" onchange="togglePositionArtisan(this.checked)" style="opacity:0;width:0;height:0">
+            <span onclick="document.getElementById('art-toggle-gps').click()" style="position:absolute;cursor:pointer;inset:0;background:var(--border2);border-radius:26px;transition:.3s" id="art-gps-thumb"></span>
+          </label>
+        </div>
+
+        <hr style="border:none;border-top:1px solid var(--border2);margin:0 0 1rem">
+
+        <div style="font-size:.85rem;font-weight:700;margin-bottom:.6rem">📣 Publier sur ma vitrine</div>
+        <textarea id="art-post-contenu" rows="2" placeholder="Quoi de neuf ? Partagez une réalisation, une promo…" style="width:100%;padding:.7rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.86rem;outline:none;background:var(--bg);resize:vertical;margin-bottom:.5rem"></textarea>
+        <div id="art-post-photo-preview" style="display:none;height:110px;border-radius:var(--radius-xs);background-size:cover;background-position:center;margin-bottom:.5rem;position:relative">
+          <button onclick="retirerPhotoPost()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer"><i class="ti ti-x"></i></button>
+        </div>
+        <div style="display:flex;gap:.5rem;margin-bottom:1.1rem">
+          <button onclick="document.getElementById('art-post-photo-input').click()" style="display:flex;align-items:center;gap:.35rem;padding:.5rem .8rem;border:1.5px solid var(--border2);border-radius:var(--radius-pill);background:var(--bg);color:var(--text2);font-family:var(--font);font-size:.78rem;font-weight:600;cursor:pointer"><i class="ti ti-photo"></i> Photo</button>
+          <input type="file" id="art-post-photo-input" accept="image/*" style="display:none" onchange="previewPhotoPost(this)">
+          <button class="btn-primary" onclick="publierSurVitrine()" style="flex:1;padding:.5rem">Publier</button>
+        </div>
+
+        <div style="font-size:.85rem;font-weight:700;margin-bottom:.6rem">Mes publications</div>
+        <div id="mes-publications-list"><div class="empty-state" style="padding:1rem"><p style="font-size:.78rem">Aucune publication pour le moment</p></div></div>
+
+        <hr style="border:none;border-top:1px solid var(--border2);margin:1rem 0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
+          <div style="font-size:.85rem;font-weight:700">📬 Missions reçues</div>
+          <button onclick="chargerMessMissionsArtisan()" style="background:none;border:none;cursor:pointer;color:var(--primary);font-size:.75rem;font-weight:700;padding:.2rem .5rem;border-radius:20px;background:var(--primary-light)"><i class="ti ti-refresh"></i> Actualiser</button>
+        </div>
+        <div id="mes-missions-artisan-list"><div class="empty-state" style="padding:1rem"><p style="font-size:.78rem">Aucune mission pour le moment</p></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL : VITRINE ARTISAN (vue publique) ─── -->
+<div class="modal-overlay" id="modal-vitrine-artisan" onclick="event.target===this&&closeModal('modal-vitrine-artisan')">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:480px;padding-top:0">
+    <div class="modal-handle" onclick="closeModal('modal-vitrine-artisan')" style="position:absolute;top:0;left:0;right:0;z-index:5"><div class="modal-handle-pill" style="background:rgba(255,255,255,.7)"></div></div>
+    <div id="vit-couverture" style="height:130px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));background-size:cover;background-position:center;border-radius:24px 24px 0 0;position:relative">
+      <div id="vit-avatar" style="position:absolute;left:1.25rem;bottom:-32px;width:68px;height:68px;border-radius:50%;border:3px solid #fff;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--primary);font-size:1.3rem;overflow:hidden;background-size:cover;background-position:center"></div>
+    </div>
+    <div style="padding:2.2rem 1.25rem 1.5rem">
+      <div style="display:flex;align-items:start;justify-content:space-between;gap:.5rem">
+        <div>
+          <div style="font-family:var(--font-display);font-size:1.05rem;font-weight:800" id="vit-nom">—</div>
+          <div style="font-size:.8rem;color:var(--primary);font-weight:700" id="vit-profession">—</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:.85rem;font-weight:800;color:#F59E0B" id="vit-note">⭐ —</div>
+          <div style="font-size:.65rem;color:var(--text3)" id="vit-nb-avis">0 avis</div>
+        </div>
+      </div>
+      <div style="font-size:.78rem;color:var(--text3);margin-top:.4rem" id="vit-zone"><i class="ti ti-map-pin"></i> —</div>
+      <div style="font-size:.85rem;color:var(--text2);margin-top:.7rem;line-height:1.5" id="vit-description"></div>
+      <div style="background:var(--bg);border-radius:var(--radius-xs);padding:.6rem .8rem;margin-top:.7rem;font-size:.82rem;font-weight:700;color:var(--text)" id="vit-tarif"></div>
+      <button class="btn-primary" id="vit-contact-btn" style="width:100%;margin-top:1rem;display:flex;align-items:center;justify-content:center;gap:.5rem"><i class="ti ti-message-circle"></i> Contacter</button>
+      <button id="vit-book-btn" onclick="ouvrirReservationArtisan()" style="width:100%;margin-top:.55rem;padding:.75rem;background:var(--success,#16a34a);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-weight:700;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem"><i class="ti ti-calendar-check"></i> Réserver / Commander</button>
+      <button id="vit-suivi-btn" onclick="ouvrirSuiviMissionArtisan(currentVitrineArtisanId)" style="display:none;width:100%;margin-top:.4rem;padding:.6rem;background:#EFF6FF;border:1.5px solid #2563EB;border-radius:var(--radius-sm);font-family:var(--font);font-weight:700;font-size:.82rem;cursor:pointer;color:#2563EB;align-items:center;justify-content:center;gap:.4rem"><i class="ti ti-map-2"></i> Suivre l'artisan en temps réel</button>
+
+      <hr style="border:none;border-top:1px solid var(--border2);margin:1.2rem 0">
+      <div style="font-size:.85rem;font-weight:700;margin-bottom:.7rem">📰 Publications</div>
+      <div id="vit-publications-list"><div class="empty-state" style="padding:1rem"><p style="font-size:.78rem">Aucune publication pour le moment</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL : RÉSERVATION ARTISAN ─── -->
+<div class="modal-overlay" id="modal-reservation-artisan" onclick="event.target===this&&closeModal('modal-reservation-artisan')">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:460px">
+    <div class="modal-handle" onclick="closeModal('modal-reservation-artisan')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:1.25rem 1.25rem .5rem">
+      <div style="font-family:var(--font-display);font-size:1.05rem;font-weight:800;margin-bottom:.2rem">📋 Réserver un artisan</div>
+      <div style="font-size:.78rem;color:var(--text2)" id="res-artisan-nom-label">—</div>
+    </div>
+    <div style="padding:.5rem 1.25rem 1.5rem;display:flex;flex-direction:column;gap:.75rem">
+      <div class="field">
+        <label>Description de la prestation</label>
+        <textarea id="res-description" rows="3" placeholder="Ex: Installation prise électrique dans la cuisine, câblage tableau..." style="width:100%;padding:.7rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.86rem;outline:none;background:var(--bg);resize:vertical"></textarea>
+      </div>
+      <div class="field">
+        <label>Montant convenu (FCFA)</label>
+        <input type="number" id="res-montant" placeholder="Ex: 15000" min="500" style="width:100%;padding:.7rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg)">
+      </div>
+      <div class="field">
+        <label>Date souhaitée</label>
+        <input type="datetime-local" id="res-date" style="width:100%;padding:.7rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.88rem;outline:none;background:var(--bg)">
+      </div>
+      <div>
+        <div style="font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:.5rem">💳 Mode de paiement</div>
+        <div style="display:flex;gap:.5rem">
+          <label id="res-lbl-fedapay" style="flex:1;display:flex;align-items:center;gap:.45rem;padding:.55rem .7rem;border:1.5px solid var(--primary);border-radius:var(--radius-xs);cursor:pointer;background:var(--primary-light);font-size:.8rem;font-weight:600;color:var(--primary)">
+            <input type="radio" name="res-paiement" value="fedapay" checked onchange="onResPayChange()" style="accent-color:var(--primary)"> 📱 Mobile Money
+          </label>
+          <label id="res-lbl-cash" style="flex:1;display:flex;align-items:center;gap:.45rem;padding:.55rem .7rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);cursor:pointer;background:var(--surface);font-size:.8rem;font-weight:600;color:var(--text2)">
+            <input type="radio" name="res-paiement" value="cash" onchange="onResPayChange()" style="accent-color:var(--primary)"> 💵 Cash
+          </label>
+        </div>
+        <div id="res-cash-notice" style="display:none;margin-top:.4rem;padding:.45rem .7rem;background:#FEF9C3;border-radius:var(--radius-xs);font-size:.73rem;color:#92400E">
+          ⚠️ En cas de paiement cash, l'artisan doit confirmer la réception. Sans confirmation sous 24h, son compte sera bloqué et retiré de la liste.
+        </div>
+        <div id="res-commission-info" style="margin-top:.5rem;padding:.45rem .7rem;background:var(--primary-light);border-radius:var(--radius-xs);font-size:.72rem;color:var(--primary);font-weight:600" ></div>
+      </div>
+      <button id="res-confirm-btn" onclick="confirmerReservationArtisan()" style="width:100%;padding:.82rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-weight:700;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem">
+        <i class="ti ti-check"></i> Confirmer & Payer
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL : SUIVI ARTISAN (navigation temps réel) ─── -->
+<div class="modal-overlay" id="modal-suivi-artisan" onclick="closeModal('modal-suivi-artisan')">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:96vh;display:flex;flex-direction:column">
+    <div class="modal-handle" onclick="closeModal('modal-suivi-artisan')"><div class="modal-handle-pill"></div></div>
+
+    <!-- En-tête artisan -->
+    <div style="padding:.75rem 1.1rem .5rem;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:.7rem;padding:.65rem .85rem;background:var(--bg);border-radius:var(--radius-sm)">
+        <div style="width:42px;height:42px;border-radius:50%;background:#DCFCE7;display:flex;align-items:center;justify-content:center;color:#16A34A;font-size:1.3rem;flex-shrink:0;border:2px solid var(--border)">🔧</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:.92rem;display:flex;align-items:center;gap:.4rem">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--success);animation:pulse 1.5s infinite;flex-shrink:0;display:inline-block"></span>
+            <span id="sart-nom">Artisan</span>
+          </div>
+          <div style="font-size:.76rem;color:var(--text2)" id="sart-meta">En route vers vous</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:.72rem;color:var(--text3)">ETA</div>
+          <div style="font-weight:800;color:var(--success);font-size:1rem" id="sart-eta">—</div>
+          <div style="font-size:.68rem;color:var(--text3)" id="sart-dist"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instruction navigation -->
+    <div id="sart-next-step" style="display:none;align-items:center;gap:.7rem;margin:0 1.1rem .4rem;padding:.55rem .8rem;background:#16A34A;color:#fff;border-radius:var(--radius-sm);font-size:.78rem"></div>
+
+    <!-- CARTE TEMPS RÉEL -->
+    <div style="padding:0 1.1rem;flex-shrink:0">
+      <div id="sart-map" style="width:100%;height:260px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border);position:relative">
+        <div id="sart-map-placeholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);gap:.5rem;z-index:1">
+          <div style="font-size:2rem">🔧</div>
+          <div style="font-size:.78rem;color:var(--text2)">En attente de la position de l'artisan…</div>
+        </div>
+        <button onclick="if(sartMap){sartMap.setView(sartMap.getCenter(),16,{animate:true})}" style="position:absolute;bottom:10px;right:10px;z-index:999;background:#fff;border:none;border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);color:#16A34A;font-size:1rem"><i class="ti ti-current-location"></i></button>
+      </div>
+      <div style="display:flex;align-items:center;gap:.35rem;margin:.35rem 0;font-size:.7rem;color:var(--text3)">
+        <span style="width:10px;height:10px;border-radius:50%;background:#16A34A;flex-shrink:0;display:inline-block"></span>Artisan &nbsp;
+        <span style="width:10px;height:10px;background:#2563EB;flex-shrink:0;display:inline-block;border-radius:2px"></span>Itinéraire OSRM &nbsp;
+        <span style="width:10px;height:10px;border-radius:50%;background:#DC2626;flex-shrink:0;display:inline-block"></span>Votre position
+      </div>
+    </div>
+
+    <!-- Barre de progression artisan -->
+    <div style="padding:.5rem 1.1rem .3rem;flex-shrink:0">
+      <div id="sart-step-label" style="text-align:center;font-size:.79rem;font-weight:700;color:var(--success);margin-bottom:.5rem;min-height:1.1rem;transition:all .3s"></div>
+      <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-start;padding-top:.9rem">
+        <div style="position:absolute;top:.9rem;left:10%;right:10%;height:3px;background:var(--border);border-radius:2px;transform:translateY(-50%)"></div>
+        <div id="sart-progress-bar" style="position:absolute;top:.9rem;left:10%;height:3px;background:linear-gradient(90deg,#16A34A,#38BDF8);border-radius:2px;transform:translateY(-50%);transition:width .65s cubic-bezier(.4,0,.2,1);width:0%"></div>
+        <div id="sart-step-attente" style="opacity:.3;transition:opacity .35s;display:flex;flex-direction:column;align-items:center;gap:.28rem;position:relative;z-index:1">
+          <div style="width:26px;height:26px;border-radius:50%;background:#16A34A;display:flex;align-items:center;justify-content:center;font-size:.85rem;box-shadow:0 0 0 3px #DCFCE7">⏳</div>
+          <div style="font-size:.59rem;font-weight:700;text-align:center;white-space:nowrap">En attente</div>
+        </div>
+        <div id="sart-step-acceptee" style="opacity:.3;transition:opacity .35s;display:flex;flex-direction:column;align-items:center;gap:.28rem;position:relative;z-index:1">
+          <div style="width:26px;height:26px;border-radius:50%;background:#16A34A;display:flex;align-items:center;justify-content:center;font-size:.85rem;box-shadow:0 0 0 3px #DCFCE7">✅</div>
+          <div style="font-size:.59rem;font-weight:700;text-align:center;white-space:nowrap">Acceptée</div>
+        </div>
+        <div id="sart-step-en_route" style="opacity:.3;transition:opacity .35s;display:flex;flex-direction:column;align-items:center;gap:.28rem;position:relative;z-index:1">
+          <div style="width:26px;height:26px;border-radius:50%;background:#16A34A;display:flex;align-items:center;justify-content:center;font-size:.85rem;box-shadow:0 0 0 3px #DCFCE7">🔧</div>
+          <div style="font-size:.59rem;font-weight:700;text-align:center;white-space:nowrap">En route</div>
+        </div>
+        <div id="sart-step-en_cours" style="opacity:.3;transition:opacity .35s;display:flex;flex-direction:column;align-items:center;gap:.28rem;position:relative;z-index:1">
+          <div style="width:26px;height:26px;border-radius:50%;background:#F59E0B;display:flex;align-items:center;justify-content:center;font-size:.85rem;box-shadow:0 0 0 3px #FEF3C7">🛠️</div>
+          <div style="font-size:.59rem;font-weight:700;text-align:center;white-space:nowrap">En cours</div>
+        </div>
+        <div id="sart-step-terminee" style="opacity:.3;transition:opacity .35s;display:flex;flex-direction:column;align-items:center;gap:.28rem;position:relative;z-index:1">
+          <div style="width:26px;height:26px;border-radius:50%;background:var(--success);display:flex;align-items:center;justify-content:center;font-size:.85rem;box-shadow:0 0 0 3px #DCFCE7">🎉</div>
+          <div style="font-size:.59rem;font-weight:700;text-align:center;white-space:nowrap">Terminée !</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Infos mission -->
+    <div style="padding:.7rem 1.1rem 1.2rem;flex-shrink:0">
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:.65rem .85rem;margin-bottom:.5rem">
+        <div style="font-size:.78rem;color:var(--text3);margin-bottom:.3rem;font-weight:600">📋 Mission</div>
+        <div style="font-size:.85rem;color:var(--text)" id="sart-description">—</div>
+        <div style="display:flex;justify-content:space-between;margin-top:.5rem">
+          <div style="font-size:.75rem;color:var(--text2)" id="sart-date">—</div>
+          <div style="font-size:.82rem;font-weight:800;color:var(--success)" id="sart-montant">—</div>
+        </div>
+      </div>
+      <button onclick="closeModal('modal-suivi-artisan')" style="width:100%;padding:.65rem;background:var(--surface2,#F1F5F9);border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font);font-weight:600;font-size:.85rem;cursor:pointer;color:var(--text2)">Fermer</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="modal-abonnement" onclick="closeModal('modal-abonnement')">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-handle" onclick="closeModal('modal-abonnement')"><div class="modal-handle-pill"></div></div>
@@ -2232,12 +2862,26 @@ input:valid {
 </div>
 
 <style>
+/* ── Notation tags ─── */
+.notag{background:var(--bg);border:1.5px solid var(--border2);border-radius:50px;padding:.28rem .65rem;font-size:.72rem;font-weight:600;cursor:pointer;color:var(--text2);transition:all .18s;font-family:var(--font)}
+.notag.sel{background:var(--primary-light);border-color:var(--primary);color:var(--primary)}
+/* ── Assurance banner ─── */
+.assurance-banner{display:flex;align-items:center;gap:.65rem;padding:.6rem .85rem;background:linear-gradient(135deg,#ECFDF5,#D1FAE5);border:1.5px solid #6EE7B7;border-radius:var(--radius-sm);cursor:pointer;transition:opacity .2s}
+.assurance-banner:hover{opacity:.85}
+@keyframes stepPulse{0%,100%{box-shadow:0 0 0 3px rgba(37,99,235,.25)}50%{box-shadow:0 0 0 6px rgba(37,99,235,.08)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 .msg-bubble{padding:.55rem .85rem;border-radius:16px;max-width:72%;font-size:.88rem;line-height:1.4}
 .msg-bubble.mine{background:var(--primary);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
 .msg-bubble.other{background:var(--surface2);color:var(--text);align-self:flex-start;border-bottom-left-radius:4px}
-.course-item{padding:.85rem 1rem;border-bottom:1px solid var(--border);cursor:pointer}
-.course-item:hover{background:var(--bg)}
+.course-item{
+  padding:.9rem 1rem;
+  border-bottom:1px solid var(--border);
+  cursor:pointer;
+  transition:background .15s,box-shadow .15s;
+  position:relative;
+}
+.course-item:hover{background:var(--surface2);box-shadow:inset 3px 0 0 var(--primary)}
+.course-item:active{background:var(--surface3)}
 .course-status{display:inline-block;padding:2px 8px;border-radius:50px;font-size:.72rem;font-weight:600;margin-top:4px}
 .course-status.livree{background:#DCFCE7;color:#15803D}
 .course-status.terminee{background:#DCFCE7;color:#15803D}
@@ -2398,7 +3042,24 @@ input:valid {
 // ══════════════════════════════════════════════════════════════
 const SUPABASE_URL = 'https://kathcclodsceifbyygzk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_9m78hZ7BUe9jYykJ1w3kZw_Q_yig4J3';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// ── Vérification localStorage (essentiel pour garder la session connectée dans l'APK) ──
+// Si WebSettings.setDomStorageEnabled(true) n'est pas activé côté Android WebView,
+// localStorage échoue silencieusement et l'utilisateur doit se reconnecter à chaque ouverture.
+function _isStorageAvailable() {
+  try {
+    const k = '__storage_test__';
+    window.localStorage.setItem(k, '1');
+    window.localStorage.removeItem(k);
+    return true;
+  } catch (e) { return false; }
+}
+const _storageOk = _isStorageAvailable();
+if (!_storageOk) {
+  console.warn('⚠️ localStorage indisponible — la session ne persistera pas. Activez WebSettings.setDomStorageEnabled(true) côté Android.');
+}
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: _storageOk, autoRefreshToken: true, detectSessionInUrl: false }
+});
 
 // FEDAPAY (public key uniquement pour initier le widget)
 const FEDAPAY_PK = 'pk_live_1i7UkFPVn-pUhhO1OnoKQncy';
@@ -2494,20 +3155,38 @@ async function initApp() {
   subscribeRealtime();
   startRTCListener();
   initAPKBridge();
+  // Vérifier les artisans avec paiements cash expirés
+  verifierBlockageArtisans().catch(() => {});
   document.dispatchEvent(new Event('allo-ready'));
 }
 
 // ══════════════════════════════════════════════════════════════
 //  AUTH
 // ══════════════════════════════════════════════════════════════
-function toggleAuth() {
-  const isLogin = document.getElementById('login-form').style.display !== 'none';
-  document.getElementById('login-form').style.display = isLogin ? 'none' : '';
-  document.getElementById('register-form').style.display = isLogin ? '' : 'none';
-  document.getElementById('auth-title').textContent = isLogin ? "Créer un compte" : "Connexion";
-  document.getElementById('auth-toggle-text').innerHTML = isLogin
-    ? 'Déjà un compte ? <a onclick="toggleAuth()">Se connecter</a>'
-    : 'Pas encore de compte ? <a onclick="toggleAuth()">S\'inscrire</a>';
+function toggleAuth(forceLogin) {
+  // forceLogin=true  → forcer le formulaire connexion
+  // forceLogin=false → forcer le formulaire inscription
+  // forceLogin=undefined → bascule (comportement original)
+  const isLogin = typeof forceLogin === 'boolean'
+    ? !forceLogin          // si forceLogin=true on veut afficher login (isLogin deviendra true)
+    : (document.getElementById('login-form').style.display !== 'none');
+  // Après forceLogin=true  : isLogin=true  → on passe à register... non
+  // Raisonnement correct :
+  // - forceLogin=true  → on veut AFFICHER login → loginVisible=true → registerVisible=false
+  // - forceLogin=false → on veut AFFICHER register → loginVisible=false → registerVisible=true
+  // - undefined → on toggle
+  let showLogin;
+  if (typeof forceLogin === 'boolean') {
+    showLogin = forceLogin; // true=montrer login, false=montrer register
+  } else {
+    showLogin = (document.getElementById('login-form').style.display === 'none'); // toggle
+  }
+  document.getElementById('login-form').style.display = showLogin ? '' : 'none';
+  document.getElementById('register-form').style.display = showLogin ? 'none' : '';
+  document.getElementById('auth-title').textContent = showLogin ? "Connexion" : "Créer un compte";
+  document.getElementById('auth-toggle-text').innerHTML = showLogin
+    ? 'Pas encore de compte ? <a onclick="toggleAuth(false)">S\'inscrire</a>'
+    : 'Déjà un compte ? <a onclick="toggleAuth(true)">Se connecter</a>';
   clearAuthError();
 }
 
@@ -2528,8 +3207,22 @@ async function doLogin() {
   btn.disabled = true;
   btn.textContent = 'Connexion…';
   try {
-    const { error } = await sb.auth.signInWithPassword({ email, password });
-    if (error) showAuthError(error.message);
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      showAuthError(error.message === 'Invalid login credentials'
+        ? 'Email ou mot de passe incorrect.'
+        : error.message);
+    } else if (data?.session) {
+      // Lancer initApp directement sans attendre onAuthStateChange
+      // (évite le blocage sur PC où l'event peut tarder)
+      if (!isInitializing) {
+        isInitializing = true;
+        currentUser = data.user;
+        document.getElementById('auth-screen').style.display = 'none';
+        await initApp();
+        isInitializing = false;
+      }
+    }
   } catch(e) {
     showAuthError('Erreur réseau. Vérifiez votre connexion.');
   } finally {
@@ -2641,6 +3334,14 @@ async function doRegister() {
         showAuthError('Compte créé mais erreur profil : ' + pe.message);
       } else {
         showToast('Bienvenue ' + prenom + ' !', 'ok');
+        // Lancer l'app directement sans attendre onAuthStateChange
+        // (le profil est déjà écrit, loadProfile() trouvera les données)
+        if (!isInitializing) {
+          isInitializing = true;
+          currentUser = data.user;
+          await initApp();
+          isInitializing = false;
+        }
       }
     }
 
@@ -2683,7 +3384,11 @@ function getInitials(p) {
 
 function getAvatarUrl(p) {
   if (!p || !p.avatar_url) return null;
-  const { data } = sb.storage.from('avatars').getPublicUrl(p.avatar_url);
+  const raw = p.avatar_url;
+  // Cas legacy : avatar_url contient déjà une URL complète (ancien format) → on l'utilise telle quelle
+  if (/^https?:\/\//i.test(raw)) return raw;
+  // Cas normal : avatar_url est un chemin relatif dans le bucket "avatars" → on résout l'URL publique
+  const { data } = sb.storage.from('avatars').getPublicUrl(raw);
   return data?.publicUrl || null;
 }
 
@@ -2693,36 +3398,49 @@ function updateAvatarUI() {
   const url = getAvatarUrl(p);
   const name = `${p.prenom||''} ${p.nom||''}`.trim();
 
-  // PC topbar
-  const pcAvBtn = document.getElementById('pc-avatar-btn');
+  // PC topbar avatar
   const pcAvImg = document.getElementById('pc-avatar-img');
   const pcAvInit = document.getElementById('pc-avatar-initials');
-  if (url) { pcAvImg.src = url; pcAvImg.style.display = ''; pcAvInit.style.display = 'none'; }
-  else { pcAvImg.style.display = 'none'; pcAvInit.style.display = ''; pcAvInit.textContent = initials; }
+  if (pcAvImg && pcAvInit) {
+    if (url) { pcAvImg.src = url; pcAvImg.style.display = ''; pcAvInit.style.display = 'none'; }
+    else { pcAvImg.style.display = 'none'; pcAvInit.style.display = ''; pcAvInit.textContent = initials; }
+  }
 
-  // PC dropdown
-  ['pd-avatar-img','mob-avatar-img','mob-profile-img'].forEach(id => {
+  // PC sidebar
+  const sbAvImg = document.getElementById('pc-sb-avatar-img');
+  const sbAvInit = document.getElementById('pc-sb-initials');
+  if (sbAvImg && sbAvInit) {
+    if (url) { sbAvImg.src = url; sbAvImg.style.display = ''; sbAvInit.style.display = 'none'; }
+    else { sbAvImg.style.display = 'none'; sbAvInit.style.display = ''; sbAvInit.textContent = initials; }
+  }
+  const sbName = document.getElementById('pc-sb-name');
+  const sbPhone = document.getElementById('pc-sb-phone');
+  if (sbName) sbName.textContent = name || '—';
+  if (sbPhone) sbPhone.textContent = p.telephone || '—';
+
+  // Mobile avatars
+  ['mob-avatar-img','mob-profile-img'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     if (url) { el.src = url; el.style.display = ''; }
     else el.style.display = 'none';
   });
-  ['pd-initials','mob-avatar-initials','mob-profile-initials'].forEach(id => {
+  ['mob-avatar-initials','mob-profile-initials'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     if (url) el.style.display = 'none';
     else { el.style.display = ''; el.textContent = initials; }
   });
 
-  document.getElementById('pd-name').textContent = name || '—';
-  document.getElementById('pd-phone').textContent = p.telephone || '—';
-  document.getElementById('mob-profile-name').textContent = name || '—';
-  document.getElementById('mob-profile-phone').textContent = p.telephone || '—';
+  const mobPN = document.getElementById('mob-profile-name');
+  if (mobPN) mobPN.textContent = name || '—';
+  const mobPPh = document.getElementById('mob-profile-phone');
+  if (mobPPh) mobPPh.textContent = p.telephone || '—';
 }
 
 function openAvatarUpload() {
   document.getElementById('avatar-input').click();
-  document.getElementById('profile-dropdown').classList.remove('open');
+  const pd = document.getElementById('profile-dropdown'); if(pd) pd.classList.remove('open');
 }
 
 async function uploadAvatar(input) {
@@ -2746,15 +3464,30 @@ async function uploadAvatar(input) {
 async function updateWalletUI() {
   const { data } = await sb.from('wallets').select('solde').eq('utilisateur_id', currentUser.id).single();
   const solde = data ? data.solde : 0;
-  const fmt = new Intl.NumberFormat('fr-BJ').format(Math.round(solde)) + ' FCFA';
-  const pdW = document.getElementById('pd-wallet');
-  if (pdW) pdW.textContent = fmt;
+  const soldeRd = Math.round(solde);
+  const fmt = new Intl.NumberFormat('fr-BJ').format(soldeRd) + ' FCFA';
+  const fmtShort = soldeRd >= 1000 ? (soldeRd/1000).toFixed(1).replace('.0','') + 'k' : soldeRd.toString();
+
+  // Mobile
   const mW = document.getElementById('mob-wallet-amount');
   if (mW) mW.textContent = fmt;
+  // PC sidebar wallet amount (format court)
+  const sbW = document.getElementById('pc-sb-wallet');
+  if (sbW) sbW.textContent = fmtShort + ' FCFA';
+  // PC sidebar stats FCFA
+  const sbSW = document.getElementById('pc-sb-stat-wallet');
+  if (sbSW) sbSW.textContent = fmtShort;
 
   const { data: pts } = await sb.from('points_fidelite').select('solde_points').eq('client_id', currentUser.id).single();
+  const nPts = pts ? pts.solde_points : 0;
   const mp = document.getElementById('mob-points');
-  if (mp) mp.textContent = (pts ? pts.solde_points : 0) + ' points';
+  if (mp) mp.innerHTML = `<i class="ti ti-star" style="font-size:.9rem"></i><span>${nPts} points</span>`;
+  // PC sidebar stats points
+  const sbSP = document.getElementById('pc-sb-stat-pts');
+  if (sbSP) sbSP.textContent = nPts;
+  // Badge points nav
+  const ptsBadge = document.getElementById('pc-sb-pts-badge');
+  if (ptsBadge && nPts > 0) ptsBadge.textContent = nPts + ' pts';
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -3149,6 +3882,9 @@ async function passerCommande() {
   const urgent = document.getElementById('cp-urgent').value === 'true';
   const programmee = document.getElementById('cp-programmee')?.value || null;
   if (type === 'programmee' && !programmee) return showToast('Choisissez une date/heure', 'wa');
+  const allerRetour = type === 'tourisme' && document.getElementById('cp-aller-retour')?.checked;
+  const dureeAttente = document.getElementById('cp-attente')?.value || 0;
+  const dureeChauffeur = (type === 'chauffeur_perso' || type === 'chauffeur_client') ? (document.getElementById('cp-duree-chauffeur')?.value || 2) : 0;
 
   const modePaiement = document.querySelector('input[name="cp-paiement"]:checked')?.value || 'fedapay';
   const description = document.getElementById('cp-description')?.value?.trim() || '';
@@ -3165,7 +3901,7 @@ async function passerCommande() {
   }
   if (btn) btn.innerHTML = origText || 'Confirmer';
 
-  await passerCommandeCore(depart, arrivee, type, urgent, programmee, modePaiement, description, audioBlob);
+  await passerCommandeCore(depart, arrivee, type, urgent, programmee, modePaiement, description, audioBlob, allerRetour, dureeAttente, dureeChauffeur);
   if (btn) { btn.disabled = false; btn.innerHTML = origText; }
   closeCommandePanel();
 }
@@ -3179,6 +3915,9 @@ async function passerCommandeMob() {
   const urgent = document.getElementById('mob-urgent')?.value === 'true';
   const programmee = document.getElementById('mob-programmee')?.value || null;
   if (type === 'programmee' && !programmee) return showToast('Choisissez une date/heure de livraison');
+  const allerRetour = type === 'tourisme' && document.getElementById('mob-aller-retour')?.checked;
+  const dureeAttente = document.getElementById('mob-attente')?.value || 0;
+  const dureeChauffeur = (type === 'chauffeur_perso' || type === 'chauffeur_client') ? (document.getElementById('mob-duree-chauffeur')?.value || 2) : 0;
 
   const modePaiement = document.querySelector('input[name="mob-paiement"]:checked')?.value || 'fedapay';
   const description = document.getElementById('mob-description')?.value?.trim() || '';
@@ -3202,7 +3941,7 @@ async function passerCommandeMob() {
   document.getElementById('cp-arrivee').value = arrivee;
   document.getElementById('cp-type').value = type;
   document.getElementById('cp-urgent').value = urgent ? 'true' : 'false';
-  await passerCommandeCore(depart, arrivee, type, urgent, programmee, modePaiement, description, audioBlob);
+  await passerCommandeCore(depart, arrivee, type, urgent, programmee, modePaiement, description, audioBlob, allerRetour, dureeAttente, dureeChauffeur);
   hideMobSheet();
 }
 
@@ -3280,8 +4019,938 @@ function prodCardMob(p) {
 function voirProduit(id){ voirProduitModal(id); }
 
 // ══════════════════════════════════════════════════════════════
-//  CONVERSATIONS & MESSAGES
+//  ALLÔ ARTISANS — Marketplace, vitrine & publications (façon page FB)
 // ══════════════════════════════════════════════════════════════
+let allArtisans = [];
+let currentArtisanFilter = null;
+let currentVitrineArtisanId = null;
+let _artCouvFile = null, _artPostPhotoFile = null;
+
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+// Compression canvas générique (réutilisée pour couverture vitrine + photos de publication)
+async function _compresserImageGenerique(file, maxSize=900, quality=0.82) {
+  return new Promise(res => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxSize || h > maxSize) { if (w >= h) { h = Math.round(h * maxSize / w); w = maxSize; } else { w = Math.round(w * maxSize / h); h = maxSize; } }
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        c.toBlob(b => res(b), 'image/jpeg', quality);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── Switch Produits / Artisans dans le panneau Marketplace (PC + mobile) ──
+function switchMarketMode(mode, ctx) {
+  const sfx = ctx === 'pc' ? '-pc' : '-mob';
+  ['produits','artisans'].forEach(m=>{
+    const b=document.getElementById('mkmode-'+m+sfx); if(!b) return;
+    const on = m===mode;
+    b.style.background = on ? 'var(--primary)' : 'var(--bg)';
+    b.style.color = on ? '#fff' : 'var(--text2)';
+  });
+  const dispProd = mode==='produits' ? '' : 'none';
+  const dispArt = mode==='artisans' ? '' : 'none';
+  const c1=document.getElementById('cat-scroll'+sfx); if(c1) c1.style.display=dispProd;
+  const g1=document.getElementById('prod-grid'+sfx); if(g1) g1.style.display=dispProd;
+  const c2=document.getElementById('art-cat-scroll'+sfx); if(c2) c2.style.display=dispArt;
+  const g2=document.getElementById('artisans-grid'+sfx); if(g2) g2.style.display=dispArt;
+  if (mode==='artisans' && !allArtisans.length) chargerArtisans();
+}
+
+let _artisanMarkers = []; // Marqueurs artisans sur la carte
+
+async function chargerArtisans() {
+  const { data } = await sb.from('artisans')
+    .select('*, profiles(id,nom,prenom,avatar_url,statut_compte)')
+    .eq('est_actif', true)
+    .order('note_moyenne', { ascending: false });
+  // Exclure les artisans bloqués
+  allArtisans = (data || []).filter(a => a.profiles?.statut_compte !== 'bloque');
+  renderArtisansChips();
+  renderArtisans(allArtisans);
+  afficherArtisansSurCarte(allArtisans);
+}
+
+// ── Artisans sur la carte principale ─────────────────────────
+function afficherArtisansSurCarte(list) {
+  // Nettoyer les anciens marqueurs
+  _artisanMarkers.forEach(m => { try { pcMap?.removeLayer(m); mobMap?.removeLayer(m); } catch(e){} });
+  _artisanMarkers = [];
+  list.forEach(a => {
+    if (!a.latitude || !a.longitude) return; // ignorer si pas de coords
+    const nom = ((a.profiles?.prenom||'')+' '+(a.profiles?.nom||'')).trim() || 'Artisan';
+    const enLigne = !!a.est_en_ligne;
+    const couleur = enLigne ? '#16A34A' : '#64748B'; // vert = en ligne, gris = hors ligne
+    const statusDot = enLigne
+      ? `<span style="position:absolute;bottom:0;right:0;width:10px;height:10px;background:#16A34A;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 2px rgba(22,163,74,.35);animation:pulse 1.5s infinite"></span>`
+      : `<span style="position:absolute;bottom:0;right:0;width:10px;height:10px;background:#94A3B8;border-radius:50%;border:2px solid #fff"></span>`;
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="position:relative;width:38px;height:38px">
+        <div style="background:${couleur};color:#fff;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;box-shadow:0 2px 10px rgba(0,0,0,.3);border:2.5px solid #fff">🔧</div>
+        ${statusDot}
+      </div>`,
+      iconSize: [38, 38], iconAnchor: [19, 19]
+    });
+    const statusLabel = enLigne ? '<span style="background:#DCFCE7;color:#15803D;border-radius:20px;padding:1px 7px;font-size:.68rem;font-weight:700">● En ligne</span>' : '<span style="background:#F1F5F9;color:#64748B;border-radius:20px;padding:1px 7px;font-size:.68rem">○ Hors ligne</span>';
+    const popup = `<div style="min-width:150px"><b>${escapeHtml(nom)}</b><br><span style="color:#2563EB;font-size:.78rem">${escapeHtml(a.profession)}</span><br>${statusLabel}<br><button onclick="ouvrirVitrine('${a.id}')" style="margin-top:.4rem;padding:.3rem .7rem;background:#2563EB;color:#fff;border:none;border-radius:20px;font-size:.75rem;cursor:pointer;width:100%">Voir vitrine</button></div>`;
+    [pcMap, mobMap].forEach(map => {
+      if (!map) return;
+      const mk = L.marker([a.latitude, a.longitude], { icon }).addTo(map).bindPopup(popup);
+      _artisanMarkers.push(mk);
+    });
+  });
+}
+
+// ── SERVICE CHAUFFEUR ─────────────────────────────────────────
+let _chauffeurMode = 'chauffeur_perso'; // mode actif
+let _allChauffeurs = [];
+
+function switchChauffeurMode(mode, sfx) {
+  _chauffeurMode = mode;
+  // Mettre à jour les boutons
+  ['pc','mob'].forEach(s => {
+    const p = document.getElementById(`chaufmode-perso-${s}`);
+    const c = document.getElementById(`chaufmode-client-${s}`);
+    if (!p || !c) return;
+    const activeStyle = { borderColor:'var(--primary)', background:'var(--primary)', color:'#fff' };
+    const inactiveStyle = { borderColor:'var(--border2)', background:'var(--bg)', color:'var(--text2)' };
+    const isPerso = mode === 'chauffeur_perso';
+    Object.assign(p.style, isPerso ? activeStyle : inactiveStyle);
+    Object.assign(c.style, isPerso ? inactiveStyle : activeStyle);
+  });
+  renderChauffeurs(_allChauffeurs, sfx);
+}
+
+async function chargerChauffeurs(sfx) {
+  const listId = sfx === 'mob' ? 'chauffeurs-list-mob' : 'chauffeurs-list-pc';
+  const el = document.getElementById(listId);
+  if (!el) return;
+  el.innerHTML = '<div class="empty-state"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><p>Chargement…</p></div>';
+  const { data } = await sb.from('livreurs')
+    .select('*, profiles(id,nom,prenom,avatar_url,statut_compte)')
+    .eq('est_chauffeur', true)
+    .eq('est_en_ligne', true);
+  _allChauffeurs = (data || []).filter(lv => lv.profiles?.statut_compte !== 'bloque');
+  renderChauffeurs(_allChauffeurs, sfx);
+}
+
+function renderChauffeurs(list, sfx) {
+  const listId = sfx === 'mob' ? 'chauffeurs-list-mob' : 'chauffeurs-list-pc';
+  const el = document.getElementById(listId);
+  if (!el) return;
+  if (!list.length) { el.innerHTML = '<div class="empty-state"><i class="ti ti-steering-wheel"></i><p>Aucun chauffeur disponible</p></div>'; return; }
+  el.innerHTML = list.map(lv => {
+    const nom = ((lv.profiles?.prenom||'')+' '+(lv.profiles?.nom||'')).trim() || 'Chauffeur';
+    const tarifKm = lv.tarif_km_chauffeur || 250;
+    const tarifH  = lv.tarif_heure_chauffeur || 1000;
+    const veh = lv.type_vehicule || 'voiture';
+    const emoji = veh.includes('voiture') || veh.includes('car') ? '🚗' : veh.includes('van')||veh.includes('camion') ? '🚐' : '🚗';
+    return `<div class="livreur-card" style="cursor:pointer" onclick="selectLivreur_byId('${lv.id}');selectCourseType('${_chauffeurMode}');${sfx==='mob'?'switchMobPage(\'carte\');setTimeout(()=>showMobSheet(),80)':'switchSideTab(\'livreurs\',document.getElementById(\'stab-livreurs\'))'}">
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <div style="width:40px;height:40px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">${emoji}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:.88rem">${escapeHtml(nom)}</div>
+          <div style="font-size:.75rem;color:var(--text2)">${escapeHtml(lv.type_vehicule||'Voiture')}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:.78rem;font-weight:700;color:var(--primary)">${tarifKm} F/km</div>
+          <div style="font-size:.72rem;color:var(--text3)">${tarifH} F/h</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectCourseType(type) {
+  // Sélectionner le type dans le panneau commande PC et mobile
+  const pcSel = document.getElementById('cp-type');
+  const mobSel = document.getElementById('mob-type');
+  if (pcSel) { pcSel.value = type; pcSel.dispatchEvent(new Event('change')); }
+  if (mobSel) { mobSel.value = type; mobSel.dispatchEvent(new Event('change')); }
+  estimerPrix();
+}
+
+
+
+function renderArtisansChips() {
+  const professions = [...new Set(allArtisans.map(a=>a.profession).filter(Boolean))];
+  const html = professions.map(p=>`<div class="cat-chip" onclick="filterArtisans('${p.replace(/'/g,"\\'")}',this)">${escapeHtml(p)}</div>`).join('');
+  ['art-cat-scroll-pc','art-cat-scroll-mob'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML = '<div class="cat-chip active" onclick="filterArtisans(null,this)">Tout</div>' + html;
+  });
+}
+
+function filterArtisans(profession, el) {
+  document.querySelectorAll('#art-cat-scroll-pc .cat-chip, #art-cat-scroll-mob .cat-chip').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('#art-cat-scroll-pc .cat-chip, #art-cat-scroll-mob .cat-chip').forEach(c=>{ if(c.textContent.trim()===el.textContent.trim()) c.classList.add('active'); });
+  currentArtisanFilter = profession;
+  renderArtisans(profession ? allArtisans.filter(a=>a.profession===profession) : allArtisans);
+}
+
+function artisanCardPC(a) {
+  const nom = ((a.profiles?.prenom||'')+' '+(a.profiles?.nom||'')).trim() || 'Artisan';
+  const img = a.couverture_url ? `<img src="${a.couverture_url}" class="prod-img" onerror="this.style.display='none'">` : `<div class="prod-img"><i class="ti ti-tools"></i></div>`;
+  const note = a.note_moyenne>0 ? `⭐ ${a.note_moyenne}` : '✨ Nouveau';
+  const enLigne = !!a.est_en_ligne;
+  const statusBadge = enLigne
+    ? `<span style="display:inline-flex;align-items:center;gap:3px;background:#DCFCE7;color:#15803D;border-radius:20px;padding:1px 6px;font-size:.65rem;font-weight:700"><span style="width:6px;height:6px;background:#16A34A;border-radius:50%;animation:pulse 1.5s infinite;display:inline-block"></span>En ligne</span>`
+    : `<span style="display:inline-flex;align-items:center;gap:3px;background:#F1F5F9;color:#94A3B8;border-radius:20px;padding:1px 6px;font-size:.65rem"><span style="width:6px;height:6px;background:#94A3B8;border-radius:50%;display:inline-block"></span>Hors ligne</span>`;
+  return `<div class="prod-card" onclick="ouvrirVitrine('${a.id}')">
+    <div style="position:relative">${img}<div style="position:absolute;top:6px;right:6px">${statusBadge}</div></div>
+    <div class="prod-body">
+      <div class="prod-name">${escapeHtml(nom)}</div>
+      <div style="font-size:.78rem;color:var(--primary);font-weight:700">${escapeHtml(a.profession)}</div>
+      <div class="prod-shop">${note}${a.zone_intervention?' · '+escapeHtml(a.zone_intervention):''}</div>
+    </div>
+  </div>`;
+}
+function artisanCardMob(a) {
+  const nom = ((a.profiles?.prenom||'')+' '+(a.profiles?.nom||'')).trim() || 'Artisan';
+  const img = a.couverture_url ? `<img src="${a.couverture_url}" style="width:100%;height:120px;object-fit:cover;background:var(--surface2)" onerror="this.style.display='none'">` : `<div class="mob-prod-img"><i class="ti ti-tools"></i></div>`;
+  const note = a.note_moyenne>0 ? `⭐ ${a.note_moyenne}` : '✨ Nouveau';
+  const enLigne = !!a.est_en_ligne;
+  const dot = enLigne
+    ? `<span style="display:inline-block;width:7px;height:7px;background:#16A34A;border-radius:50%;animation:pulse 1.5s infinite;margin-right:3px"></span><span style="color:#15803D;font-size:.62rem;font-weight:700">En ligne</span>`
+    : `<span style="display:inline-block;width:7px;height:7px;background:#94A3B8;border-radius:50%;margin-right:3px"></span><span style="color:#94A3B8;font-size:.62rem">Hors ligne</span>`;
+  return `<div class="mob-prod-card" onclick="ouvrirVitrine('${a.id}')">
+    <div style="position:relative">${img}</div>
+    <div class="mob-prod-body">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:.3rem">
+        <div style="font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(nom)}</div>
+        <div style="display:flex;align-items:center;flex-shrink:0">${dot}</div>
+      </div>
+      <div style="font-size:.78rem;font-weight:700;color:var(--primary);margin-top:2px">${escapeHtml(a.profession)}</div>
+      <div style="font-size:.72rem;color:var(--text2);margin-top:2px">${note}${a.zone_intervention?' · '+escapeHtml(a.zone_intervention):''}</div>
+    </div>
+  </div>`;
+}
+function renderArtisans(list) {
+  const empty = '<div class="empty-state" style="grid-column:1/-1"><i class="ti ti-tools"></i><p>Aucun artisan pour le moment</p></div>';
+  const pc = document.getElementById('artisans-grid-pc');
+  const mob = document.getElementById('artisans-grid-mob');
+  if (pc) pc.innerHTML = list.length ? list.map(artisanCardPC).join('') : empty;
+  if (mob) mob.innerHTML = list.length ? list.map(artisanCardMob).join('') : empty;
+}
+
+// ── VITRINE PUBLIQUE D'UN ARTISAN ──────────────────────────────
+async function ouvrirVitrine(artisanId) {
+  const { data: a } = await sb.from('artisans').select('*, profiles(id,nom,prenom,avatar_url,statut_compte)').eq('id', artisanId).single();
+  if (!a) return showToast('Artisan introuvable','er');
+  currentVitrineArtisanId = artisanId;
+  const nom = ((a.profiles?.prenom||'')+' '+(a.profiles?.nom||'')).trim() || 'Artisan';
+  document.getElementById('vit-nom').textContent = nom;
+  document.getElementById('vit-profession').textContent = a.profession;
+  document.getElementById('vit-note').textContent = a.note_moyenne>0 ? `⭐ ${a.note_moyenne}` : '✨ Nouveau';
+  document.getElementById('vit-nb-avis').textContent = `${a.nombre_avis||0} avis`;
+  document.getElementById('vit-zone').innerHTML = `<i class="ti ti-map-pin"></i> ${escapeHtml(a.zone_intervention || 'Zone non précisée')}`;
+  document.getElementById('vit-description').textContent = a.description || '';
+  const tarifEl = document.getElementById('vit-tarif');
+  if (a.tarif_indicatif) { tarifEl.textContent = '💰 ' + a.tarif_indicatif; tarifEl.style.display='block'; } else tarifEl.style.display='none';
+  const couv = document.getElementById('vit-couverture');
+  couv.style.backgroundImage = a.couverture_url ? `url('${a.couverture_url}')` : '';
+  const ava = document.getElementById('vit-avatar');
+  if (a.profiles?.avatar_url) {
+    const { data: urlData } = sb.storage.from('avatars').getPublicUrl(a.profiles.avatar_url);
+    ava.style.backgroundImage = `url('${urlData.publicUrl}')`; ava.textContent = '';
+  } else {
+    ava.style.backgroundImage = ''; ava.textContent = (nom[0]||'?').toUpperCase();
+  }
+  const btn = document.getElementById('vit-contact-btn');
+  btn.onclick = () => { closeModal('modal-vitrine-artisan'); ouvrirOuCreerConv(artisanId); };
+
+  // Bouton réserver : masquer si c'est sa propre vitrine
+  const bookBtn = document.getElementById('vit-book-btn');
+  if (bookBtn) bookBtn.style.display = artisanId === currentUser?.id ? 'none' : 'flex';
+
+  // Bouton suivi : masqué par défaut
+  const suiviBtn = document.getElementById('vit-suivi-btn');
+  if (suiviBtn) suiviBtn.style.display = 'none';
+
+  // Vérifier si ce client a une mission cash en attente avec cet artisan
+  try {
+    const { data: missionEnAttente } = await sb.from('missions_artisan')
+      .select('id,statut,methode_paiement,est_paye,deadline_paiement_cash')
+      .eq('artisan_id', artisanId)
+      .eq('client_id', currentUser.id)
+      .in('statut', ['en_attente','acceptee','en_cours','en_route'])
+      .limit(1);
+    if (missionEnAttente?.length) {
+      const m = missionEnAttente[0];
+      const badge = m.methode_paiement === 'cash' && !m.est_paye
+        ? `<div style="margin-top:.5rem;padding:.4rem .7rem;background:#FEF9C3;border-radius:var(--radius-xs);font-size:.74rem;color:#92400E;font-weight:600">⏳ Mission cash en attente — paiement à confirmer par l'artisan</div>`
+        : `<div style="margin-top:.5rem;padding:.4rem .7rem;background:var(--primary-light);border-radius:var(--radius-xs);font-size:.74rem;color:var(--primary);font-weight:600">✅ Mission en cours avec cet artisan</div>`;
+      const zoneEl = document.getElementById('vit-zone');
+      const existing = document.getElementById('vit-mission-badge');
+      if (existing) existing.remove();
+      const div = document.createElement('div'); div.id='vit-mission-badge'; div.innerHTML=badge;
+      zoneEl.after(div);
+      // Afficher bouton suivi si mission acceptée/en_route
+      if (suiviBtn && ['acceptee','en_cours','en_route'].includes(m.statut)) {
+        suiviBtn.style.display = 'flex';
+        suiviBtn.onclick = () => ouvrirSuiviMissionArtisan(artisanId, m.id);
+      }
+    } else {
+      document.getElementById('vit-mission-badge')?.remove();
+    }
+  } catch(e) {}
+
+  openModal('modal-vitrine-artisan');
+  chargerPublicationsVitrine(artisanId, false);
+}
+
+async function chargerPublicationsVitrine(artisanId, ownerMode) {
+  const { data: posts } = await sb.from('publications_artisan').select('*').eq('artisan_id', artisanId).order('created_at', { ascending:false });
+  const list = posts || [];
+  let likedSet = new Set();
+  if (list.length) {
+    const { data: likes } = await sb.from('publications_artisan_likes').select('publication_id').eq('utilisateur_id', currentUser.id).in('publication_id', list.map(p=>p.id));
+    likedSet = new Set((likes||[]).map(l=>l.publication_id));
+  }
+  const el = document.getElementById(ownerMode ? 'mes-publications-list' : 'vit-publications-list');
+  if (!el) return;
+  el.innerHTML = list.length ? list.map(p => publicationHTML(p, likedSet.has(p.id), ownerMode)).join('') : '<div class="empty-state" style="padding:1rem"><p style="font-size:.78rem">Aucune publication pour le moment</p></div>';
+}
+
+function publicationHTML(p, liked, ownerMode) {
+  const date = fmtDate(p.created_at);
+  const photo = p.photo_url ? `<img src="${p.photo_url}" style="width:100%;border-radius:var(--radius-xs);margin-top:.5rem;max-height:220px;object-fit:cover">` : '';
+  const delBtn = ownerMode ? `<button onclick="supprimerPublication('${p.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.9rem"><i class="ti ti-trash"></i></button>` : '';
+  return `<div style="border:1px solid var(--border2);border-radius:var(--radius-sm);padding:.75rem;margin-bottom:.6rem">
+    <div style="display:flex;justify-content:space-between;align-items:start;gap:.5rem">
+      <div style="font-size:.7rem;color:var(--text3)">${date}</div>
+      ${delBtn}
+    </div>
+    ${p.contenu ? `<div style="font-size:.85rem;margin-top:.3rem;white-space:pre-wrap">${escapeHtml(p.contenu)}</div>` : ''}
+    ${photo}
+    <button onclick="toggleLikePublication('${p.id}',this)" data-liked="${liked?'1':'0'}" style="margin-top:.55rem;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:.35rem;font-size:.8rem;font-weight:700;color:${liked?'var(--danger)':'var(--text3)'}">
+      <i class="ti ${liked?'ti-heart-filled':'ti-heart'}"></i> <span>${p.nombre_likes||0}</span>
+    </button>
+  </div>`;
+}
+
+async function toggleLikePublication(pubId, btn) {
+  const liked = btn.dataset.liked === '1';
+  const countEl = btn.querySelector('span');
+  let count = parseInt(countEl.textContent)||0;
+  if (liked) {
+    await sb.from('publications_artisan_likes').delete().eq('publication_id', pubId).eq('utilisateur_id', currentUser.id);
+    btn.dataset.liked='0'; btn.style.color='var(--text3)'; btn.querySelector('i').className='ti ti-heart';
+    countEl.textContent = Math.max(0, count-1);
+  } else {
+    await sb.from('publications_artisan_likes').insert({ publication_id: pubId, utilisateur_id: currentUser.id });
+    btn.dataset.liked='1'; btn.style.color='var(--danger)'; btn.querySelector('i').className='ti ti-heart-filled';
+    countEl.textContent = count+1;
+  }
+}
+
+// ── GESTION DE SA PROPRE VITRINE ────────────────────────────────
+async function chargerMonArtisan() {
+  const { data: a } = await sb.from('artisans').select('*').eq('id', currentUser.id).maybeSingle();
+  const cb = document.getElementById('art-actif');
+  const wrap = document.getElementById('art-form-wrap');
+  cb.checked = !!a;
+  wrap.style.display = a ? 'block' : 'none';
+  if (a) {
+    const profSelect = document.getElementById('art-profession');
+    const profOptions = [...profSelect.options].map(o=>o.value);
+    if (profOptions.includes(a.profession)) { profSelect.value = a.profession; document.getElementById('art-profession-autre').style.display='none'; }
+    else { profSelect.value = 'Autre'; document.getElementById('art-profession-autre').style.display='block'; document.getElementById('art-profession-autre').value = a.profession; }
+    document.getElementById('art-description').value = a.description || '';
+    document.getElementById('art-tarif').value = a.tarif_indicatif || '';
+    document.getElementById('art-zone').value = a.zone_intervention || '';
+    if (a.latitude) { document.getElementById('art-lat').value = a.latitude; document.getElementById('art-lng').value = a.longitude; document.getElementById('art-gps-status').textContent = `📍 Position enregistrée (${(+a.latitude).toFixed(4)}, ${(+a.longitude).toFixed(4)})`; }
+    const preview = document.getElementById('art-couv-preview');
+    if (a.couverture_url) { preview.style.backgroundImage = `url('${a.couverture_url}')`; preview.innerHTML=''; }
+    chargerPublicationsVitrine(currentUser.id, true);
+    chargerMessMissionsArtisan(); // ← charger missions reçues
+    // Restaurer état GPS si artisan est en ligne
+    const toggleGps = document.getElementById('art-toggle-gps');
+    if (toggleGps && a.est_en_ligne) toggleGps.checked = true;
+  } else {
+    document.getElementById('mes-publications-list').innerHTML = '<div class="empty-state" style="padding:1rem"><p style="font-size:.78rem">Activez votre vitrine pour publier</p></div>';
+  }
+}
+
+function previewCouvertureArtisan(input) {
+  const file = input.files?.[0]; if (!file) return;
+  _artCouvFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('art-couv-preview');
+    preview.style.backgroundImage = `url('${e.target.result}')`;
+    preview.innerHTML = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function previewPhotoPost(input) {
+  const file = input.files?.[0]; if (!file) return;
+  _artPostPhotoFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('art-post-photo-preview');
+    preview.style.backgroundImage = `url('${e.target.result}')`;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+function retirerPhotoPost() {
+  _artPostPhotoFile = null;
+  document.getElementById('art-post-photo-input').value = '';
+  const preview = document.getElementById('art-post-photo-preview');
+  preview.style.display = 'none'; preview.style.backgroundImage = '';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  GESTION DES MISSIONS ARTISAN (côté artisan)
+// ══════════════════════════════════════════════════════════════
+async function chargerMessMissionsArtisan() {
+  const el = document.getElementById('mes-missions-artisan-list');
+  if (!el || !currentUser) return;
+  el.innerHTML = '<div class="empty-state" style="padding:.8rem"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i></div>';
+  const { data } = await sb.from('missions_artisan')
+    .select('*, profiles!missions_artisan_client_id_fkey(id,nom,prenom,telephone)')
+    .eq('artisan_id', currentUser.id)
+    .order('created_at', { ascending: false })
+    .limit(20);
+  const missions = data || [];
+  if (!missions.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:1rem"><p style="font-size:.78rem">Aucune mission reçue pour le moment</p></div>';
+    return;
+  }
+  el.innerHTML = missions.map(m => {
+    const client = ((m.profiles?.prenom||'')+' '+(m.profiles?.nom||'')).trim() || 'Client';
+    const montant = (m.montant||0).toLocaleString('fr-FR');
+    const gains   = (m.gains_artisan||0).toLocaleString('fr-FR');
+    const d = m.date_souhaitee ? new Date(m.date_souhaitee) : null;
+    const dateFmt = d ? d.toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+    const payBadge = m.methode_paiement === 'cash'
+      ? `<span style="background:#FEF9C3;color:#92400E;border-radius:12px;padding:1px 7px;font-size:.67rem;font-weight:700">💵 Cash</span>`
+      : `<span style="background:#EFF6FF;color:#1D4ED8;border-radius:12px;padding:1px 7px;font-size:.67rem;font-weight:700">📱 Mobile</span>`;
+    const estPaye = m.est_paye;
+    const statutColors = {
+      en_attente: '#F59E0B', acceptee: '#2563EB', en_route: '#7C3AED',
+      en_cours: '#0891B2', terminee: '#16A34A', annulee: '#DC2626'
+    };
+    const statutLabels = {
+      en_attente:'⏳ En attente', acceptee:'✅ Acceptée', en_route:'🚶 En route',
+      en_cours:'🛠️ En cours', terminee:'🎉 Terminée', annulee:'❌ Annulée'
+    };
+    const statut = m.statut || 'en_attente';
+    const couleur = statutColors[statut] || '#64748B';
+    const label = statutLabels[statut] || statut;
+    // Boutons d'action selon statut
+    let actions = '';
+    if (statut === 'en_attente') {
+      actions = `
+        <button onclick="changerStatutMission('${m.id}','acceptee')" style="flex:1;padding:.45rem;background:#2563EB;color:#fff;border:none;border-radius:var(--radius-xs);font-family:var(--font);font-size:.75rem;font-weight:700;cursor:pointer">✅ Accepter</button>
+        <button onclick="changerStatutMission('${m.id}','annulee')" style="flex:1;padding:.45rem;background:#FEE2E2;color:#DC2626;border:none;border-radius:var(--radius-xs);font-family:var(--font);font-size:.75rem;font-weight:700;cursor:pointer">❌ Refuser</button>`;
+    } else if (statut === 'acceptee') {
+      actions = `<button onclick="changerStatutMission('${m.id}','en_route')" style="width:100%;padding:.45rem;background:#7C3AED;color:#fff;border:none;border-radius:var(--radius-xs);font-family:var(--font);font-size:.75rem;font-weight:700;cursor:pointer">🚶 Je suis en route</button>`;
+    } else if (statut === 'en_route') {
+      actions = `<button onclick="changerStatutMission('${m.id}','en_cours')" style="width:100%;padding:.45rem;background:#0891B2;color:#fff;border:none;border-radius:var(--radius-xs);font-family:var(--font);font-size:.75rem;font-weight:700;cursor:pointer">🛠️ Démarrer les travaux</button>`;
+    } else if (statut === 'en_cours') {
+      actions = `<button onclick="terminerMissionArtisan('${m.id}')" style="width:100%;padding:.45rem;background:#16A34A;color:#fff;border:none;border-radius:var(--radius-xs);font-family:var(--font);font-size:.75rem;font-weight:700;cursor:pointer">🎉 Marquer terminée</button>`;
+    }
+    // Alerte paiement cash
+    const cashAlerte = (m.methode_paiement === 'cash' && !m.est_paye && statut !== 'annulee')
+      ? `<div style="background:#FEF9C3;border-radius:var(--radius-xs);padding:.4rem .6rem;font-size:.71rem;color:#92400E;margin-top:.4rem">⚠️ Paiement cash attendu — confirmez la réception pour éviter le blocage de votre compte.</div>`
+      : '';
+    const cashConfirm = (m.methode_paiement === 'cash' && !m.est_paye && ['en_cours','terminee'].includes(statut))
+      ? `<button onclick="confirmerPaiementCashArtisan('${m.id}')" style="width:100%;padding:.4rem;background:#F59E0B;color:#fff;border:none;border-radius:var(--radius-xs);font-family:var(--font);font-size:.74rem;font-weight:700;cursor:pointer;margin-top:.35rem">💵 Confirmer réception paiement cash</button>`
+      : '';
+    return `<div style="border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:.75rem;margin-bottom:.6rem;background:var(--bg)">
+      <div style="display:flex;align-items:start;justify-content:space-between;gap:.5rem;margin-bottom:.45rem">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 ${escapeHtml(client)}</div>
+          <div style="font-size:.75rem;color:var(--text2);margin-top:1px">${escapeHtml(m.description||'—')}</div>
+        </div>
+        <span style="background:${couleur}22;color:${couleur};border-radius:20px;padding:2px 8px;font-size:.67rem;font-weight:700;white-space:nowrap;flex-shrink:0">${label}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.45rem">
+        <span style="font-size:.78rem;font-weight:800;color:var(--success)">${gains} FCFA <span style="font-weight:400;color:var(--text3);font-size:.7rem">/ total ${montant}</span></span>
+        ${payBadge}
+        <span style="font-size:.72rem;color:var(--text3)">${dateFmt}</span>
+      </div>
+      ${cashAlerte}
+      ${actions ? `<div style="display:flex;gap:.4rem;margin-top:.5rem">${actions}</div>` : ''}
+      ${cashConfirm}
+    </div>`;
+  }).join('');
+}
+
+async function changerStatutMission(missionId, nouveauStatut) {
+  if (!currentUser) return;
+  const updates = { statut: nouveauStatut };
+  // Si en_route → démarrer partage GPS automatiquement
+  if (nouveauStatut === 'en_route') {
+    const toggle = document.getElementById('art-toggle-gps');
+    if (toggle && !toggle.checked) { toggle.checked = true; togglePositionArtisan(true); }
+  }
+  const { error } = await sb.from('missions_artisan').update(updates).eq('id', missionId).eq('artisan_id', currentUser.id);
+  if (error) return showToast('Erreur : ' + error.message, 'er');
+  const labels = { acceptee:'Mission acceptée ✅', en_route:'GPS partagé, le client peut vous suivre 📍', en_cours:'Travaux démarrés 🛠️', annulee:'Mission refusée' };
+  showToast(labels[nouveauStatut] || 'Statut mis à jour', 'ok');
+  chargerMessMissionsArtisan();
+}
+
+async function terminerMissionArtisan(missionId) {
+  if (!currentUser) return;
+  // 1. Mettre statut terminée
+  await sb.from('missions_artisan').update({ statut: 'terminee' }).eq('id', missionId).eq('artisan_id', currentUser.id);
+  // 2. Récupérer la mission pour créditer le wallet (si paiement fedapay = déjà payé)
+  const { data: m } = await sb.from('missions_artisan').select('gains_artisan,est_paye,methode_paiement,client_id').eq('id', missionId).single().catch(()=>({data:null}));
+  if (m?.est_paye && m?.gains_artisan > 0) {
+    // Créditer wallet artisan
+    const { data: w } = await sb.from('wallets').select('id,solde').eq('utilisateur_id', currentUser.id).single().catch(()=>({data:null}));
+    if (w) {
+      await sb.from('wallets').update({ solde: w.solde + m.gains_artisan }).eq('id', w.id);
+      await sb.from('transactions').insert({ wallet_id: w.id, type:'credit', montant: m.gains_artisan, motif:'mission_artisan', description:'Gains mission artisan #'+missionId.slice(-6) });
+    }
+  }
+  // 3. Arrêter GPS si c'était partagé
+  const toggle = document.getElementById('art-toggle-gps');
+  if (toggle?.checked) { toggle.checked = false; togglePositionArtisan(false); }
+  showToast('🎉 Mission terminée ! Gains crédités sur votre wallet.', 'ok');
+  chargerMessMissionsArtisan();
+}
+
+async function confirmerPaiementCashArtisan(missionId) {
+  if (!currentUser) return;
+  // Artisan confirme avoir reçu le paiement cash
+  const { error } = await sb.from('missions_artisan').update({ est_paye: true }).eq('id', missionId).eq('artisan_id', currentUser.id);
+  if (error) return showToast('Erreur', 'er');
+  // Lever le blocage en_attente_regularisation
+  await sb.from('profiles').update({ statut_compte: 'actif', date_regularisation_deadline: null }).eq('id', currentUser.id);
+  // Créditer gains artisan
+  const { data: m } = await sb.from('missions_artisan').select('gains_artisan').eq('id', missionId).single().catch(()=>({data:null}));
+  if (m?.gains_artisan > 0) {
+    const { data: w } = await sb.from('wallets').select('id,solde').eq('utilisateur_id', currentUser.id).single().catch(()=>({data:null}));
+    if (w) {
+      await sb.from('wallets').update({ solde: w.solde + m.gains_artisan }).eq('id', w.id);
+      await sb.from('transactions').insert({ wallet_id: w.id, type:'credit', montant: m.gains_artisan, motif:'mission_artisan_cash', description:'Gains cash mission #'+missionId.slice(-6) });
+    }
+  }
+  showToast('✅ Paiement cash confirmé ! Gains crédités.', 'ok');
+  chargerMessMissionsArtisan();
+}
+
+async function enregistrerProfilArtisan() {
+  const actif = document.getElementById('art-actif').checked;
+  if (!actif) {
+    await sb.from('profiles').update({ est_artisan: false }).eq('id', currentUser.id);
+    await sb.from('artisans').update({ est_actif: false }).eq('id', currentUser.id);
+    closeModal('modal-mon-artisan');
+    return showToast('Vitrine désactivée', 'ok');
+  }
+  const profSelect = document.getElementById('art-profession').value;
+  const profession = profSelect === 'Autre' ? (document.getElementById('art-profession-autre').value.trim() || 'Autre') : profSelect;
+  const description = document.getElementById('art-description').value.trim();
+  const tarif_indicatif = document.getElementById('art-tarif').value.trim();
+  const zone_intervention = document.getElementById('art-zone').value.trim();
+  if (!profession) return showToast('Choisissez votre métier','wa');
+
+  let couverture_url = undefined;
+  if (_artCouvFile) {
+    const compressed = await _compresserImageGenerique(_artCouvFile, 1000, 0.82);
+    const path = `${currentUser.id}/couverture_${Date.now()}.jpg`;
+    const { error } = await sb.storage.from('artisan-vitrine').upload(path, compressed, { contentType:'image/jpeg', upsert:true });
+    if (!error) { const { data: ud } = sb.storage.from('artisan-vitrine').getPublicUrl(path); couverture_url = ud.publicUrl; }
+  }
+
+  const payload = { id: currentUser.id, profession, description, tarif_indicatif, zone_intervention, est_actif: true };
+  if (couverture_url) payload.couverture_url = couverture_url;
+  // Coordonnées GPS si définies
+  const artLat = parseFloat(document.getElementById('art-lat')?.value);
+  const artLng = parseFloat(document.getElementById('art-lng')?.value);
+  if (!isNaN(artLat) && !isNaN(artLng)) { payload.latitude = artLat; payload.longitude = artLng; }
+  const { error } = await sb.from('artisans').upsert(payload);
+  if (error) return showToast('Erreur : ' + error.message, 'er');
+  await sb.from('profiles').update({ est_artisan: true }).eq('id', currentUser.id);
+  _artCouvFile = null;
+  showToast('Vitrine enregistrée ✓', 'ok');
+}
+
+async function publierSurVitrine() {
+  const { data: a } = await sb.from('artisans').select('id').eq('id', currentUser.id).maybeSingle();
+  if (!a) return showToast('Activez et enregistrez votre vitrine avant de publier', 'wa');
+  const contenu = document.getElementById('art-post-contenu').value.trim();
+  if (!contenu && !_artPostPhotoFile) return showToast('Écrivez un message ou ajoutez une photo', 'wa');
+
+  let photo_url = null;
+  if (_artPostPhotoFile) {
+    const compressed = await _compresserImageGenerique(_artPostPhotoFile, 1000, 0.8);
+    const path = `${currentUser.id}/posts/${Date.now()}.jpg`;
+    const { error } = await sb.storage.from('artisan-vitrine').upload(path, compressed, { contentType:'image/jpeg' });
+    if (!error) { const { data: ud } = sb.storage.from('artisan-vitrine').getPublicUrl(path); photo_url = ud.publicUrl; }
+  }
+
+  const { error } = await sb.from('publications_artisan').insert({ artisan_id: currentUser.id, contenu: contenu || null, photo_url });
+  if (error) return showToast('Erreur : ' + error.message, 'er');
+  document.getElementById('art-post-contenu').value = '';
+  retirerPhotoPost();
+  showToast('Publié sur votre vitrine ✓', 'ok');
+  chargerPublicationsVitrine(currentUser.id, true);
+}
+
+async function supprimerPublication(id) {
+  await sb.from('publications_artisan').delete().eq('id', id).eq('artisan_id', currentUser.id);
+  chargerPublicationsVitrine(currentUser.id, true);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  GÉOLOCALISATION ARTISAN
+// ══════════════════════════════════════════════════════════════
+function localisermArtisan() {
+  const statusEl = document.getElementById('art-gps-status');
+  if (!navigator.geolocation) { statusEl.textContent = '❌ GPS non disponible'; return; }
+  statusEl.textContent = '⏳ Localisation en cours…';
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude.toFixed(6);
+    const lng = pos.coords.longitude.toFixed(6);
+    document.getElementById('art-lat').value = lat;
+    document.getElementById('art-lng').value = lng;
+    statusEl.textContent = `✅ Position définie (${lat}, ${lng}) — Vous apparaîtrez sur la carte clients`;
+    statusEl.style.color = 'var(--success, #16a34a)';
+  }, err => {
+    statusEl.textContent = '❌ Impossible d\'obtenir la position GPS';
+    statusEl.style.color = 'var(--danger)';
+  }, { timeout: 10000, enableHighAccuracy: true });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RÉSERVATION / PAIEMENT ARTISAN
+// ══════════════════════════════════════════════════════════════
+let _currentReservArtisanId = null;
+
+function ouvrirReservationArtisan() {
+  if (!currentVitrineArtisanId) return;
+  _currentReservArtisanId = currentVitrineArtisanId;
+  const nomEl = document.getElementById('vit-nom');
+  document.getElementById('res-artisan-nom-label').textContent = nomEl?.textContent || 'Artisan';
+  // Pré-remplir date/heure dans 1h
+  const d = new Date(Date.now() + 3600000);
+  d.setSeconds(0,0);
+  document.getElementById('res-date').value = d.toISOString().slice(0,16);
+  document.getElementById('res-montant').value = '';
+  document.getElementById('res-description').value = '';
+  // Reset paiement → fedapay
+  const fedaRadio = document.querySelector('input[name="res-paiement"][value="fedapay"]');
+  if (fedaRadio) { fedaRadio.checked = true; onResPayChange(); }
+  const commPct = parseFloat(configPlateforme.commission_artisan_pct || 0.5);
+  document.getElementById('res-commission-info').textContent = `ℹ️ Commission plateforme : ${commPct}% prélevée sur le montant payé.`;
+  openModal('modal-reservation-artisan');
+}
+
+function onResPayChange() {
+  const val = document.querySelector('input[name="res-paiement"]:checked')?.value || 'fedapay';
+  const notice = document.getElementById('res-cash-notice');
+  const lblFeda = document.getElementById('res-lbl-fedapay');
+  const lblCash = document.getElementById('res-lbl-cash');
+  const btn = document.getElementById('res-confirm-btn');
+  if (val === 'cash') {
+    notice.style.display = 'block';
+    lblCash.style.cssText += ';border-color:var(--warning,#f59e0b);background:#FEF9C3;color:#92400E';
+    lblFeda.style.cssText += ';border-color:var(--border2);background:var(--surface);color:var(--text2)';
+    if (btn) btn.innerHTML = '<i class="ti ti-check"></i> Confirmer (paiement cash)';
+  } else {
+    notice.style.display = 'none';
+    lblFeda.style.cssText += ';border-color:var(--primary);background:var(--primary-light);color:var(--primary)';
+    lblCash.style.cssText += ';border-color:var(--border2);background:var(--surface);color:var(--text2)';
+    if (btn) btn.innerHTML = '<i class="ti ti-credit-card"></i> Confirmer & Payer via FedaPay';
+  }
+}
+
+async function confirmerReservationArtisan() {
+  if (!_currentReservArtisanId || !currentUser) return;
+  const description = document.getElementById('res-description').value.trim();
+  const montantRaw  = parseFloat(document.getElementById('res-montant').value);
+  const dateSouhaitee = document.getElementById('res-date').value;
+  const modePaiement = document.querySelector('input[name="res-paiement"]:checked')?.value || 'fedapay';
+
+  if (!description) return showToast('Décrivez la prestation souhaitée', 'wa');
+  if (!montantRaw || montantRaw < 500) return showToast('Indiquez un montant valide (min 500 FCFA)', 'wa');
+
+  const commPct = parseFloat(configPlateforme.commission_artisan_pct || 0.5);
+  const commission = Math.round(montantRaw * commPct / 100);
+  const montantArtisan = montantRaw - commission;
+
+  const btn = document.getElementById('res-confirm-btn');
+  btn.disabled = true; btn.textContent = 'Traitement…';
+
+  try {
+    let estPaye = false;
+
+    if (modePaiement === 'fedapay') {
+      const paid = await openFedaPay(montantRaw);
+      if (!paid) { showToast('Paiement annulé', 'wa'); btn.disabled=false; onResPayChange(); return; }
+      estPaye = true;
+    }
+
+    // Deadline régularisation cash : 24h
+    const deadline = modePaiement === 'cash'
+      ? new Date(Date.now() + 86400000).toISOString()
+      : null;
+
+    const { error } = await sb.from('missions_artisan').insert({
+      artisan_id: _currentReservArtisanId,
+      client_id: currentUser.id,
+      description,
+      montant: montantRaw,
+      commission_plateforme: commission,
+      gains_artisan: montantArtisan,
+      methode_paiement: modePaiement,
+      est_paye: estPaye,
+      statut: 'en_attente',
+      date_souhaitee: dateSouhaitee || null,
+      deadline_paiement_cash: deadline
+    });
+
+    if (error) { showToast('Erreur : ' + error.message, 'er'); return; }
+
+    // Si paiement cash → marquer artisan en attente régularisation
+    if (modePaiement === 'cash') {
+      await sb.from('profiles').update({
+        statut_compte: 'en_attente_regularisation',
+        date_regularisation_deadline: deadline
+      }).eq('id', _currentReservArtisanId);
+    }
+
+    closeModal('modal-reservation-artisan');
+    closeModal('modal-vitrine-artisan');
+    showToast(modePaiement === 'cash'
+      ? '✅ Mission créée ! L\'artisan dispose de 24h pour confirmer le paiement cash.'
+      : '✅ Mission réservée et payée ! L\'artisan sera notifié.', 'ok');
+
+    // Envoyer notification à l'artisan via conversations
+    await ouvrirOuCreerConv(_currentReservArtisanId);
+
+  } catch(e) {
+    showToast('Erreur réseau', 'er');
+  } finally {
+    btn.disabled = false; onResPayChange();
+  }
+}
+
+// ── Vérifier si artisans ont des missions cash non régularisées > 24h ────
+async function verifierBlockageArtisans() {
+  // Récupérer les missions cash non payées dont la deadline est dépassée
+  const now = new Date().toISOString();
+  const { data: missionsExpires } = await sb
+    .from('missions_artisan')
+    .select('artisan_id')
+    .eq('methode_paiement', 'cash')
+    .eq('est_paye', false)
+    .lte('deadline_paiement_cash', now);
+
+  if (!missionsExpires?.length) return;
+
+  // Bloquer les artisans concernés
+  const artisanIds = [...new Set(missionsExpires.map(m => m.artisan_id))];
+  await Promise.all(artisanIds.map(id =>
+    sb.from('profiles').update({ statut_compte: 'bloque', date_blocage: now }).eq('id', id)
+      .then(() => sb.from('artisans').update({ est_actif: false }).eq('id', id))
+  ));
+}
+
+
+// ══════════════════════════════════════════════════════════════
+//  SUIVI ARTISAN EN TEMPS RÉEL — Google Maps style (OSRM + Leaflet)
+// ══════════════════════════════════════════════════════════════
+let sartMap = null, sartArtisanMarker = null, sartClientMarker = null;
+let _sartRouteLine = null, _sartRouteSteps = [], _sartTrailPoints = [];
+let _sartTrailPolyline = null, _sartPollInterval = null, _sartMissionId = null;
+let _sartArtisanId = null, _sartLastBearing = 0, _sartPrevPos = null;
+
+function initSartMap() {
+  if (sartMap) { sartMap.invalidateSize(); return; }
+  sartMap = L.map('sart-map', { zoomControl: false, attributionControl: false }).setView([6.3654, 2.4183], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(sartMap);
+}
+
+function _sartBearing(lat1, lng1, lat2, lng2) {
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const φ1 = lat1 * Math.PI / 180, φ2 = lat2 * Math.PI / 180;
+  const y = Math.sin(dLng) * Math.cos(φ2);
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(dLng);
+  return ((Math.atan2(y, x) * 180 / Math.PI) + 360) % 360;
+}
+
+function _sartMakeIcon(bearing) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:42px;height:42px;display:flex;align-items:center;justify-content:center;transform:rotate(${bearing}deg);filter:drop-shadow(0 3px 6px rgba(0,0,0,.35));transition:transform .5s ease;font-size:1.6rem">🔧</div>`,
+    iconSize: [42, 42], iconAnchor: [21, 21]
+  });
+}
+
+async function updateSartEtaRoute(artLat, artLng, cliLat, cliLng) {
+  if (!cliLat || !cliLng) return;
+  try {
+    const r = await fetch(`https://router.project-osrm.org/route/v1/driving/${artLng},${artLat};${cliLng},${cliLat}?overview=full&geometries=geojson&steps=true`);
+    const d = await r.json();
+    if (d.code !== 'Ok' || !d.routes?.length) throw new Error();
+    const route = d.routes[0];
+    const distKm = (route.distance / 1000).toFixed(1);
+    const etaMin = Math.max(1, Math.round(route.duration / 60));
+    const etaEl = document.getElementById('sart-eta');
+    const distEl = document.getElementById('sart-dist');
+    if (etaEl) etaEl.textContent = etaMin < 60 ? etaMin + ' min' : Math.floor(etaMin/60) + 'h' + String(etaMin%60).padStart(2,'0');
+    if (distEl) distEl.textContent = distKm + ' km';
+    // Route polyline
+    const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
+    if (_sartRouteLine) _sartRouteLine.setLatLngs(coords);
+    else _sartRouteLine = L.polyline(coords, { color:'#2563EB', weight:5, opacity:.9, lineJoin:'round', lineCap:'round' }).addTo(sartMap);
+    // Prochaine instruction
+    _sartRouteSteps = route.legs?.[0]?.steps || [];
+    _sartAfficherInstruction();
+  } catch(e) {
+    const dist = calcDistKm(artLat, artLng, cliLat, cliLng);
+    const eta = Math.max(1, Math.round(dist / 20 * 60));
+    const etaEl = document.getElementById('sart-eta');
+    if (etaEl) etaEl.textContent = eta + ' min';
+  }
+}
+
+function _sartAfficherInstruction() {
+  const el = document.getElementById('sart-next-step');
+  if (!el || !_sartRouteSteps.length) return;
+  const step = _sartRouteSteps[0];
+  const manType = step.maneuver?.type || '';
+  const manMod  = step.maneuver?.modifier || '';
+  const icons = { turn:{left:'↰',right:'↱','slight left':'↖','slight right':'↗','sharp left':'⬅','sharp right':'➡',straight:'⬆'},arrive:{'':'🏁'},depart:{'':'⬆'},roundabout:{'':'🔄'},merge:{left:'↰',right:'↱','':'⬆'} };
+  const icon = icons[manType]?.[manMod] ?? icons[manType]?.[''] ?? '⬆';
+  const distM = step.distance < 1000 ? Math.round(step.distance) + ' m' : (step.distance/1000).toFixed(1) + ' km';
+  el.innerHTML = `<span style="font-size:1.3rem;flex-shrink:0">${icon}</span><div style="flex:1;min-width:0"><div style="font-size:.8rem;font-weight:700">Dans ${distM}</div><div style="font-size:.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${step.name||'Continuez'}</div></div>`;
+  el.style.display = 'flex';
+}
+
+function _sartUpdateMarker(lat, lng) {
+  const placeholder = document.getElementById('sart-map-placeholder');
+  if (placeholder) placeholder.style.display = 'none';
+  initSartMap();
+  if (_sartPrevPos) _sartLastBearing = _sartBearing(_sartPrevPos.lat, _sartPrevPos.lng, lat, lng);
+  _sartPrevPos = {lat, lng};
+  if (sartArtisanMarker) {
+    sartArtisanMarker.setLatLng([lat, lng]);
+    sartArtisanMarker.setIcon(_sartMakeIcon(_sartLastBearing));
+  } else {
+    sartArtisanMarker = L.marker([lat, lng], { icon: _sartMakeIcon(_sartLastBearing), zIndexOffset: 1000 }).addTo(sartMap).bindPopup('<b>🔧 Artisan</b><br>En route vers vous');
+  }
+  // Trail historique
+  _sartTrailPoints.push([lat, lng]);
+  if (_sartTrailPoints.length >= 2) {
+    if (_sartTrailPolyline) _sartTrailPolyline.setLatLngs(_sartTrailPoints);
+    else _sartTrailPolyline = L.polyline(_sartTrailPoints, { color:'#6EE7B7', weight:3, opacity:.7, dashArray:'6 4' }).addTo(sartMap);
+  }
+  // Recadrage artisan + client
+  if (sartClientMarker) sartMap.fitBounds([[lat,lng], sartClientMarker.getLatLng()], { padding:[50,50], maxZoom:16, animate:true });
+  else sartMap.setView([lat, lng], 15, {animate:true});
+}
+
+function _sartUpdateStatut(statut) {
+  const steps = ['attente','acceptee','en_route','en_cours','terminee'];
+  const labels = { attente:'En attente d\'acceptation', acceptee:'Mission acceptée ✅', en_route:'Artisan en route 🔧', en_cours:'Travaux en cours 🛠️', terminee:'Mission terminée 🎉' };
+  const pcts = { attente:0, acceptee:25, en_route:50, en_cours:75, terminee:100 };
+  const bar = document.getElementById('sart-progress-bar');
+  if (bar) bar.style.width = (pcts[statut] || 0) + '%';
+  const label = document.getElementById('sart-step-label');
+  if (label) label.textContent = labels[statut] || '';
+  steps.forEach(s => {
+    const el = document.getElementById(`sart-step-${s}`);
+    if (el) el.style.opacity = steps.indexOf(s) <= steps.indexOf(statut) ? '1' : '.3';
+  });
+}
+
+async function ouvrirSuiviMissionArtisan(artisanId, missionId) {
+  _sartArtisanId = artisanId;
+  _sartMissionId = missionId;
+  _sartTrailPoints = [];
+  _sartPrevPos = null;
+  _sartLastBearing = 0;
+  // Nettoyer la carte précédente
+  if (_sartRouteLine) { try { sartMap?.removeLayer(_sartRouteLine); } catch(e){} _sartRouteLine = null; }
+  if (_sartTrailPolyline) { try { sartMap?.removeLayer(_sartTrailPolyline); } catch(e){} _sartTrailPolyline = null; }
+  if (sartArtisanMarker) { try { sartMap?.removeLayer(sartArtisanMarker); } catch(e){} sartArtisanMarker = null; }
+  if (sartClientMarker) { try { sartMap?.removeLayer(sartClientMarker); } catch(e){} sartClientMarker = null; }
+  if (_sartPollInterval) clearInterval(_sartPollInterval);
+  document.getElementById('sart-next-step').style.display = 'none';
+  document.getElementById('sart-map-placeholder').style.display = 'flex';
+  // Charger la mission
+  const { data: mission } = await sb.from('missions_artisan').select('*').eq('id', missionId).single().catch(()=>({data:null}));
+  if (mission) {
+    document.getElementById('sart-description').textContent = mission.description || '—';
+    document.getElementById('sart-montant').textContent = (mission.montant||0).toLocaleString('fr-FR') + ' FCFA';
+    const d = mission.date_souhaitee ? new Date(mission.date_souhaitee) : null;
+    document.getElementById('sart-date').textContent = d ? d.toLocaleDateString('fr-FR', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+    _sartUpdateStatut(mission.statut || 'attente');
+  }
+  // Position client (GPS actuel)
+  let cliLat = null, cliLng = null;
+  try {
+    await new Promise((res) => navigator.geolocation.getCurrentPosition(p => { cliLat = p.coords.latitude; cliLng = p.coords.longitude; res(); }, res, {timeout:5000}));
+    if (cliLat && sartMap) {
+      initSartMap();
+      const cliIcon = L.divIcon({ className:'', html:`<div style="background:#DC2626;width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4)"></div>`, iconSize:[14,14], iconAnchor:[7,7] });
+      sartClientMarker = L.marker([cliLat, cliLng], { icon: cliIcon }).addTo(sartMap).bindPopup('<b>📍 Votre position</b>');
+    }
+  } catch(e) {}
+  openModal('modal-suivi-artisan');
+  setTimeout(() => initSartMap(), 100);
+
+  // Polling position artisan (toutes les 5s)
+  const pollArtisan = async () => {
+    const { data: art } = await sb.from('artisans').select('latitude,longitude,est_en_ligne').eq('id', artisanId).single().catch(()=>({data:null}));
+    const { data: m } = await sb.from('missions_artisan').select('statut').eq('id', missionId).single().catch(()=>({data:null}));
+    if (m) _sartUpdateStatut(m.statut || 'attente');
+    if (art?.latitude && art?.longitude) {
+      _sartUpdateMarker(art.latitude, art.longitude);
+      const now = Date.now();
+      if (!pollArtisan._lastOsrm || now - pollArtisan._lastOsrm > 12000) {
+        pollArtisan._lastOsrm = now;
+        updateSartEtaRoute(art.latitude, art.longitude, cliLat, cliLng);
+      }
+    }
+    if (m?.statut === 'terminee') {
+      clearInterval(_sartPollInterval);
+      showToast('🎉 Mission terminée !', 'ok');
+    }
+  };
+  pollArtisan();
+  _sartPollInterval = setInterval(pollArtisan, 5000);
+}
+
+// ── Côté artisan : partager sa position GPS en mission (depuis mon-artisan panel) ──
+let _artGpsInterval = null;
+async function togglePositionArtisan(actif) {
+  if (actif) {
+    if (!navigator.geolocation) return showToast('GPS non disponible', 'er');
+    const updatePos = () => {
+      navigator.geolocation.getCurrentPosition(async p => {
+        const { lat, lng } = { lat: p.coords.latitude, lng: p.coords.longitude };
+        await sb.from('artisans').update({ latitude: lat, longitude: lng, est_en_ligne: true, derniere_position_at: new Date().toISOString() }).eq('id', currentUser.id);
+      }, null, { enableHighAccuracy: true });
+    };
+    updatePos();
+    _artGpsInterval = setInterval(updatePos, 8000);
+    showToast('📍 Position GPS partagée en direct', 'ok');
+  } else {
+    if (_artGpsInterval) clearInterval(_artGpsInterval);
+    await sb.from('artisans').update({ est_en_ligne: false }).eq('id', currentUser.id);
+    showToast('Position GPS arrêtée', 'ok');
+  }
+}
+
 async function loadConversations() {
   // 1. Charger les conversations existantes
   const { data: convs } = await sb.from('conversations')
@@ -3586,6 +5255,24 @@ async function envoyerMessage() {
 // ══════════════════════════════════════════════════════════════
 //  COURSES
 // ══════════════════════════════════════════════════════════════
+let _allCoursesCache = [];
+
+function filterCoursesPanel(mode) {
+  ['all','active','done'].forEach(m => {
+    const btn = document.getElementById(`cf-btn-${m}`);
+    if (!btn) return;
+    const isActive = m === mode;
+    btn.style.background = isActive ? 'var(--primary)' : 'var(--bg)';
+    btn.style.color = isActive ? '#fff' : 'var(--text2)';
+    btn.style.borderColor = isActive ? 'var(--primary)' : 'var(--border2)';
+  });
+  const activeStatuts = ['en_attente','acceptee','en_cours','livraison_en_cours'];
+  let filtered = _allCoursesCache;
+  if (mode === 'active') filtered = _allCoursesCache.filter(c => activeStatuts.includes(c.statut));
+  else if (mode === 'done') filtered = _allCoursesCache.filter(c => c.statut === 'livree' || c.statut === 'terminee');
+  renderCoursesList(filtered, 'courses-list');
+}
+
 async function loadCourses() {
   const { data } = await sb.from('courses')
     .select('*, livreur:livreurs(id,note_moyenne,type_vehicule,numero_immatriculation,profiles(nom,prenom,telephone,avatar_url))')
@@ -3593,6 +5280,7 @@ async function loadCourses() {
     .order('created_at', { ascending: false })
     .limit(30);
 
+  _allCoursesCache = data || [];
   renderCoursesList(data || [], 'courses-list');
   renderCoursesList(data || [], 'mob-courses-list');
 
@@ -3632,23 +5320,28 @@ function renderCoursesList(list, containerId) {
     const lv = c.livreur?.profiles;
     const lvNom = lv ? ((lv.prenom||'')+' '+(lv.nom||'')).trim() : null;
     const paiement = c.methode_paiement === 'cash' ? '💵 Cash' : '📱 Mobile Money';
-    const typeLabel = c.type === 'multi_arrets' ? '🔀 Multi-arrêts' : c.type === 'express' ? '⚡ Express' : '📦 Standard';
-    return `<div class="course-item" onclick="ouvrirDetailCourse('${c.id}')" style="cursor:pointer;transition:background .15s" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background=''">
-      <div style="display:flex;justify-content:space-between;align-items:start">
+    const typeLabel = c.type === 'multi_arrets' ? '🔀 Multi-arrêts' : c.type === 'tourisme' ? ('🏖️ Tourisme'+(c.est_aller_retour?' (A/R)':'')) : c.type === 'chauffeur_perso' ? '🚘 Chauffeur' : c.type === 'chauffeur_client' ? '🔑 Chauffeur (votre véhicule)' : c.type === 'express' ? '⚡ Express' : '📦 Standard';
+    const isActive = ['en_attente','acceptee','en_cours','livraison_en_cours'].includes(c.statut);
+    const activeDot = isActive ? `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${col};animation:pulse 1.5s infinite;margin-right:4px;vertical-align:middle"></span>` : '';
+    return `<div class="course-item" onclick="ouvrirDetailCourse('${c.id}')" style="border-left:3px solid ${isActive ? col : 'transparent'}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem">
         <div style="flex:1;min-width:0">
-          <div style="font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍 ${c.adresse_depart||'—'}</div>
-          <div style="font-size:.82rem;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🏁 ${c.adresse_arrivee||'—'}</div>
+          <div style="display:flex;align-items:center;gap:.3rem;margin-bottom:.18rem">
+            ${activeDot}<span style="display:inline-block;padding:1px 8px;border-radius:50px;font-size:.7rem;font-weight:700;background:${col}18;color:${col}">${label}</span>
+          </div>
+          <div style="font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)">📍 ${c.adresse_depart||'—'}</div>
+          <div style="font-size:.79rem;color:var(--text2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🏁 ${c.adresse_arrivee||'—'}</div>
         </div>
-        <div style="text-align:right;flex-shrink:0;margin-left:.5rem">
-          <div style="font-size:.85rem;font-weight:700;color:var(--primary)">${prixFmt}</div>
-          <div style="font-size:.72rem;color:var(--text3)">${date}</div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:.88rem;font-weight:800;color:var(--primary);font-family:var(--font-display)">${prixFmt}</div>
+          <div style="font-size:.68rem;color:var(--text3);margin-top:2px">${date}</div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.45rem;flex-wrap:wrap;gap:.35rem">
-        <span style="display:inline-block;padding:2px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:${col}18;color:${col}">${label}</span>
-        <span style="font-size:.7rem;color:var(--text3)">${typeLabel} · ${paiement}</span>
+      <div style="display:flex;align-items:center;gap:.4rem;margin-top:.42rem;flex-wrap:wrap">
+        <span style="font-size:.68rem;color:var(--text3);background:var(--surface2);padding:1px 7px;border-radius:50px">${typeLabel}</span>
+        <span style="font-size:.68rem;color:var(--text3)">${paiement}</span>
+        ${lvNom ? `<span style="font-size:.7rem;color:var(--text2);display:flex;align-items:center;gap:.2rem"><i class="ti ti-motorbike" style="color:var(--primary);font-size:.75rem"></i>${lvNom}</span>` : ''}
       </div>
-      ${lvNom ? `<div style="font-size:.75rem;color:var(--text2);margin-top:.3rem;display:flex;align-items:center;gap:.35rem"><i class="ti ti-motorbike" style="color:var(--primary)"></i> ${lvNom}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -3680,9 +5373,10 @@ async function ouvrirDetailCourse(courseId) {
   const dateCreation = new Date(c.created_at).toLocaleDateString('fr-BJ', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
   const dateLivraison = c.date_livraison ? new Date(c.date_livraison).toLocaleDateString('fr-BJ', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' }) : null;
   const code = c.code_confirmation || '';
-  const typeLabel = c.type === 'multi_arrets' ? '🔀 Multi-arrêts' : c.type === 'express' ? '⚡ Express' : '📦 Standard';
+  const typeLabel = c.type === 'multi_arrets' ? '🔀 Multi-arrêts' : c.type === 'tourisme' ? '🏖️ Tourisme' : c.type === 'chauffeur_perso' ? '🚘 Chauffeur' : c.type === 'chauffeur_client' ? '🔑 Chauffeur (votre véhicule)' : c.type === 'express' ? '⚡ Express' : '📦 Standard';
   const distKm = c.distance_km ? parseFloat(c.distance_km).toFixed(1) + ' km' : '—';
   const urgent = c.est_urgent ? '<span style="background:#FEF2F2;color:#DC2626;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:50px;display:inline-block">🔥 URGENT</span>' : '';
+  const allerRetourBadge = c.est_aller_retour ? `<span style="background:#EEF2FF;color:#4338CA;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:50px;display:inline-block">🔄 Aller-retour${c.duree_attente_minutes?' · '+c.duree_attente_minutes+' min':''}</span>` : '';
 
   // Notation : récupérer un éventuel avis déjà laissé pour cette course
   let existingAvis = null;
@@ -3776,7 +5470,7 @@ async function ouvrirDetailCourse(courseId) {
     <div style="background:var(--bg);border-radius:var(--radius-sm);padding:.75rem .9rem;margin-bottom:.75rem;border:1px solid var(--border)">
       <div style="font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">ℹ️ Informations</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem .75rem;font-size:.82rem">
-        <div><span style="font-size:.68rem;color:var(--text3);display:block">Type</span>${typeLabel} ${urgent}</div>
+        <div><span style="font-size:.68rem;color:var(--text3);display:block">Type</span>${typeLabel} ${urgent} ${allerRetourBadge}</div>
         <div><span style="font-size:.68rem;color:var(--text3);display:block">Distance</span>${distKm}</div>
         <div><span style="font-size:.68rem;color:var(--text3);display:block">Paiement</span>${paiement}</div>
         ${dateLivraison ? `<div><span style="font-size:.68rem;color:var(--text3);display:block">Livré le</span>${dateLivraison}</div>` : ''}
@@ -3971,25 +5665,72 @@ function setLivreurMarkerPos(lat, lng, nom) {
   }
 }
 
-// ── Màj barre de progression + statut meta ─────────────
+// ── Màj barre de progression 5 étapes + statut meta ────
 function updateSuiviStep(statut) {
-  const norm = { en_cours:'en_cours', en_route:'en_cours', livraison_en_cours:'en_cours', livree:'livree', terminee:'livree' };
-  const st   = norm[statut] || statut;
-  const steps  = ['acceptee','en_cours','livree'];
-  const pct    = { acceptee:'10%', en_cours:'55%', livree:'100%' };
-  const labels = { acceptee:'✅ Course acceptée', en_cours:'🛵 En route vers vous !', en_route:'🛵 En route vers vous !', livraison_en_cours:'📦 Livraison en cours', livree:'🎉 Livré !' };
+  // Normalisation des statuts legacy
+  const norm = {
+    en_cours: 'en_cours', en_route: 'en_cours',
+    livraison_en_cours: 'en_cours',
+    livree: 'livree', terminee: 'livree',
+    prise_en_charge: 'prise_en_charge'
+  };
+  const st = norm[statut] || statut;
 
-  steps.forEach(s => {
+  // Ordre des 5 étapes
+  const steps = ['acceptee','prise_en_charge','en_cours','proximite','livree'];
+  const stIdx = steps.indexOf(st);
+
+  // Pourcentages barre
+  const pct = { acceptee:'5%', prise_en_charge:'28%', en_cours:'52%', proximite:'76%', livree:'90%' };
+
+  // Labels affichés en haut du tracker
+  const labels = {
+    acceptee:         '✅ Course acceptée — votre livreur se prépare',
+    prise_en_charge:  '📦 Colis récupéré — en route vers vous !',
+    en_cours:         '🛵 Votre livreur est en chemin !',
+    en_route:         '🛵 Votre livreur est en chemin !',
+    livraison_en_cours:'🛵 Votre livreur est en chemin !',
+    proximite:        '📍 Votre livreur est à moins de 100 m !',
+    livree:           '🎉 Colis livré avec succès !',
+    terminee:         '🎉 Colis livré avec succès !'
+  };
+
+  steps.forEach((s, i) => {
     const el = document.getElementById('step-' + s);
-    if (el) el.style.opacity = steps.indexOf(s) <= steps.indexOf(st) ? '1' : '.35';
+    if (!el) return;
+    const active = i <= stIdx;
+    el.style.opacity = active ? '1' : '.3';
+    // Pulse sur l'étape courante
+    const icon = el.querySelector('div');
+    if (icon) {
+      if (i === stIdx && st !== 'livree') {
+        icon.style.animation = 'stepPulse 1.5s ease-in-out infinite';
+      } else {
+        icon.style.animation = '';
+      }
+    }
   });
+
   const bar = document.getElementById('suivi-progress-bar');
-  if (bar) bar.style.width = pct[st] || '10%';
+  if (bar) bar.style.width = pct[st] || '5%';
+
+  const lbl = document.getElementById('suivi-step-label');
+  if (lbl) lbl.textContent = labels[statut] || labels[st] || '';
 
   const meta = document.getElementById('suivi-lv-meta');
   if (meta) meta.textContent = labels[statut] || labels[st] || 'En route';
 
+  // Alerte proximité — toast et vibration
+  if (st === 'proximite' && statut !== _lastProximiteNotif) {
+    _lastProximiteNotif = statut;
+    showToast('📍 Votre livreur est à moins de 100 m !', 'ok');
+    if (navigator.vibrate) navigator.vibrate([200,100,200]);
+  }
+  if (st === 'livree') {
+    _lastProximiteNotif = null;
+  }
 }
+let _lastProximiteNotif = null;
 
 // ── Place / déplace le marqueur livreur ────────────────
 function setLivreurMarkerPos(lat, lng, nom) {
@@ -4033,24 +5774,7 @@ function setLivreurMarkerPos(lat, lng, nom) {
   updateEtaDist(lat, lng);
 }
 
-// ── Màj barre de progression + statut meta ─────────────
-function updateSuiviStep(statut) {
-  const norm = { en_cours:'en_cours', en_route:'en_cours', livraison_en_cours:'en_cours', livree:'livree', terminee:'livree' };
-  const st   = norm[statut] || statut;
-  const steps  = ['acceptee','en_cours','livree'];
-  const pct    = { acceptee:'10%', en_cours:'55%', livree:'100%' };
-  const labels = { acceptee:'✅ Course acceptée', en_cours:'🛵 En route vers vous !', en_route:'🛵 En route vers vous !', livraison_en_cours:'📦 Livraison en cours', livree:'🎉 Livré !' };
-
-  steps.forEach((s, i) => {
-    const el = document.getElementById('step-' + s);
-    if (el) el.style.opacity = steps.indexOf(s) <= steps.indexOf(st) ? '1' : '.35';
-  });
-  const bar = document.getElementById('suivi-progress-bar');
-  if (bar) bar.style.width = pct[st] || '10%';
-
-  const meta = document.getElementById('suivi-lv-meta');
-  if (meta) meta.textContent = labels[statut] || labels[st] || 'En route';
-}
+// updateSuiviStep défini ci-dessus
 
 // ══════════════════════════════════════════════════════════
 //  voirCourseEnCours — ENTRÉE PRINCIPALE
@@ -4224,8 +5948,19 @@ async function voirCourseEnCours() {
       payload => {
         const st = payload.new.statut;
         updateSuiviStep(st);
+        if (st === 'prise_en_charge') {
+          updateSuiviStep('prise_en_charge');
+          showToast('📦 Votre colis a été récupéré ! Le livreur arrive.', 'ok');
+          if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        }
         if (st === 'en_cours' || st === 'livraison_en_cours') {
+          updateSuiviStep('en_cours');
           showToast('🛵 Le livreur est en route vers vous !', 'ok');
+        }
+        if (st === 'proximite') {
+          updateSuiviStep('proximite');
+          showToast('📍 Votre livreur est à moins de 200 m ! Préparez-vous.', 'ok');
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
         }
         if (st === 'livree' || st === 'terminee') {
           updateSuiviStep('livree');
@@ -4311,7 +6046,7 @@ async function marquerLue(id) {
 function toggleNotifs() {
   const p = document.getElementById('notif-panel');
   p.classList.toggle('open');
-  document.getElementById('profile-dropdown').classList.remove('open');
+  const pd = document.getElementById('profile-dropdown'); if(pd) pd.classList.remove('open');
 }
 
 
@@ -4476,6 +6211,10 @@ function subscribeRealtime() {
           notifyAPK(nom, apercu, msg.conversation_id);
           const badge = document.getElementById('mob-msg-nav-badge');
           if (badge) { badge.style.display = 'block'; }
+          const pcBadge = document.getElementById('pcnav-msg-badge');
+          if (pcBadge) { pcBadge.classList.add('show'); pcBadge.textContent = '●'; }
+          const railMsgBadge = document.getElementById('railnav-msg-badge');
+          if (railMsgBadge) { railMsgBadge.classList.add('show'); railMsgBadge.textContent = '●'; }
           // Toast avec lien rapide vers conv
           showToast('💬 ' + nom + ' : ' + apercu.substring(0, 40), 'ok');
         }
@@ -4672,7 +6411,8 @@ function initAPKBridge() {
     try { window.Android.requestNotificationPermission(); } catch(e){}
   }
   // Service Worker pour Chrome WebView (push en background même écran éteint)
-  if ('serviceWorker' in navigator) {
+  // Ne fonctionne QUE dans un contexte sécurisé (https/localhost) — jamais sur file://
+  if ('serviceWorker' in navigator && window.isSecureContext) {
     const swSrc = `
 self.addEventListener('push', e => {
   const d = e.data ? e.data.json() : {};
@@ -4710,10 +6450,22 @@ self.addEventListener('message', e => {
 //  UI HELPERS
 // ══════════════════════════════════════════════════════════════
 function switchSideTab(name, btn) {
-  document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  // Compatibilité ancienne API → rediriger vers switchPCNav
+  switchPCNav(name, document.getElementById('pcnav-' + name) || btn);
+}
+
+function switchPCNav(name, btn) {
+  document.querySelectorAll('.pc-nav-item, .pc-rail-item').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const railBtn = document.getElementById('railnav-' + name);
+  if (railBtn) railBtn.classList.add('active');
+  const oldBtn = document.getElementById('pcnav-' + name);
+  if (oldBtn) oldBtn.classList.add('active');
   document.querySelectorAll('.sidebar-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById(`panel-${name === 'marketplace' ? 'marketplace' : name}`).classList.add('active');
+  const panel = document.getElementById(`panel-${name}`);
+  if (panel) panel.classList.add('active');
+  if (name === 'chauffeur') chargerChauffeurs('pc');
+  if (name === 'courses') loadCourses();
 }
 
 let currentMobPage = 'carte';
@@ -4728,6 +6480,7 @@ function switchMobPage(page) {
   const pageMap = {
     carte: 'mob-map-page',
     livreurs: 'mob-livreurs-page',
+    chauffeur: 'mob-chauffeur-page',
     marketplace: 'mob-market-page',
     messages: 'mob-messages-page',
     chat: 'mob-chat-page',
@@ -4750,6 +6503,7 @@ function switchMobPage(page) {
     setTimeout(() => { mobMap?.invalidateSize(); }, 300);
   }
   if (page === 'messages') loadConversations();
+  if (page === 'chauffeur') chargerChauffeurs('mob');
   if (page === 'profil') { updateWalletUI(); updateStatsMob(); }
   if (page === 'courses') loadCourses();
 }
@@ -4834,7 +6588,12 @@ window.addEventListener('resize', () => {
 
 // ── Modals
 function openModal(id){ const m=document.getElementById(id); if(m) m.classList.add('open'); }
-function closeModal(id){ const m=document.getElementById(id); if(m) m.classList.remove('open'); }
+function closeModal(id){
+  const m=document.getElementById(id);
+  if(m) m.classList.remove('open');
+  // Arrêter le polling suivi artisan si on ferme ce modal
+  if(id==='modal-suivi-artisan' && _sartPollInterval){ clearInterval(_sartPollInterval); _sartPollInterval=null; }
+}
 
 // ══════════════════════════════════════════════════════════════
 //  NOTATION LIVREUR
@@ -4859,12 +6618,39 @@ function selectionnerEtoile(n) {
     const filled = parseInt(s.dataset.n) <= n;
     s.textContent = filled ? '★' : '☆';
     s.style.color = filled ? '#F59E0B' : 'var(--text3)';
+    s.style.transform = parseInt(s.dataset.n) === n ? 'scale(1.25)' : 'scale(1)';
   });
+  // Afficher label
+  const lbl = document.getElementById('notation-label');
+  if (lbl) {
+    const labels = ['', '😞 Très décevant', '😐 Peut mieux faire', '😊 Correct', '😄 Très bien', '🤩 Excellent !'];
+    lbl.textContent = labels[n] || '';
+    lbl.style.color = n >= 4 ? 'var(--success)' : n === 3 ? 'var(--warning,#F59E0B)' : 'var(--danger)';
+  }
 }
+// ── Notation tags toggle ───────────────────────────────
+function toggleNotationTag(btn, tag) {
+  btn.classList.toggle('sel');
+  // Update commentaire placeholder avec tags sélectionnés
+  const tags = [...document.querySelectorAll('#notation-tags .notag.sel')].map(b => b.textContent.trim());
+  const ta = document.getElementById('notation-commentaire');
+  if (ta && tags.length && !ta.value) {
+    ta.placeholder = tags.join(', ');
+  } else if (ta && !tags.length) {
+    ta.placeholder = 'Un commentaire libre ? (optionnel)';
+  }
+}
+
+// ── Labels dynamiques étoiles ───────────────────────────
+const _starLabels = ['', '😞 Très décevant', '😐 Peut mieux faire', '😊 Correct', '😄 Très bien', '🤩 Excellent !'];
+
 async function envoyerNotation() {
   if (!_notationNote) return showToast('Choisissez au moins une étoile', 'wa');
   if (!_notationCourseId || !_notationLivreurId) return fermerModalNotation();
-  const commentaire = document.getElementById('notation-commentaire').value.trim() || null;
+  // Collecter tags rapides sélectionnés
+  const tags = [...document.querySelectorAll('#notation-tags .notag.sel')].map(b => b.textContent.trim());
+  const rawComment = document.getElementById('notation-commentaire').value.trim();
+  const commentaire = [rawComment, ...tags].filter(Boolean).join(' · ') || null;
   try {
     const { error } = await sb.from('avis_livreurs').insert({
       course_id: _notationCourseId, client_id: currentUser.id,
@@ -5045,27 +6831,75 @@ const _typeHints={
   avec_marchand:'🏪 Le livreur achète et livre à votre place',
   colis_tiers:'📫 Récupérer un colis chez une tierce personne',
   multi_arrets:'🔀 Plusieurs points de récupération ou livraison',
-  programmee:'🗓️ Planifiez votre livraison à l\'avance'
+  programmee:'🗓️ Planifiez votre livraison à l\'avance',
+  tourisme:'🏖️ Voyage personnel ou excursion (pas de colis) — cochez "Aller-retour" si le livreur doit vous attendre et vous ramener (×1.6)',
+  chauffeur_perso:'🚘 Le chauffeur vous conduit dans sa propre voiture — tarif fixé par le chauffeur (km + heures)',
+  chauffeur_client:'🔑 Le chauffeur conduit votre propre véhicule — vous fournissez la voiture'
 };
 function onTypeChange(){
   const type=document.getElementById('cp-type').value;
   const sc=document.getElementById('stops-container');
   const ps=document.getElementById('prog-section');
+  const ar=document.getElementById('ar-section');
+  const ch=document.getElementById('chauf-section');
   const hint=document.getElementById('cp-type-hint');
   if(sc) sc.style.display=(type==='multi_arrets')?'block':'none';
   if(ps) ps.style.display=(type==='programmee')?'block':'none';
+  if(ar) ar.style.display=(type==='tourisme')?'block':'none';
+  if(ch) ch.style.display=(type==='chauffeur_perso'||type==='chauffeur_client')?'block':'none';
   if(hint){ const h=_typeHints[type]; if(h){hint.textContent=h;hint.style.display='block';}else{hint.style.display='none';} }
+  filtrerLivreursAffiches(type);
   estimerPrix();
 }
 function onMobTypeChange(){
   const type=document.getElementById('mob-type').value;
   const sc=document.getElementById('mob-stops-container');
   const ps=document.getElementById('mob-prog-section');
+  const ar=document.getElementById('mob-ar-section');
+  const ch=document.getElementById('mob-chauf-section');
   const hint=document.getElementById('mob-type-hint');
   if(sc) sc.style.display=(type==='multi_arrets')?'':'none';
   if(ps) ps.style.display=(type==='programmee')?'':'none';
+  if(ar) ar.style.display=(type==='tourisme')?'':'none';
+  if(ch) ch.style.display=(type==='chauffeur_perso'||type==='chauffeur_client')?'':'none';
   if(hint){ const h=_typeHints[type]; if(h){hint.textContent=h;hint.style.display='block';}else{hint.style.display='none';} }
+  filtrerLivreursAffiches(type);
   estimerPrix();
+}
+// Filtre les livreurs affichés (liste + marqueurs carte) selon le type de course choisi.
+// Pour chauffeur_perso/chauffeur_client : uniquement les livreurs ayant activé est_chauffeur.
+function filtrerLivreursAffiches(type){
+  const estChauffeur = type==='chauffeur_perso'||type==='chauffeur_client';
+  const filtres = estChauffeur ? (allLivreurs||[]).filter(lv=>lv.est_chauffeur) : (allLivreurs||[]);
+  renderLivreursPC(filtres);
+  renderLivreursMob(filtres);
+  const idsVisibles=new Set(filtres.map(lv=>lv.id));
+  Object.entries(livreurMarkers||{}).forEach(([id,m])=>{
+    const visible=idsVisibles.has(id);
+    try{
+      if(m.pc){ if(visible){ if(pcMap && !pcMap.hasLayer(m.pc)) m.pc.addTo(pcMap); } else if(pcMap && pcMap.hasLayer(m.pc)) pcMap.removeLayer(m.pc); }
+      if(m.mob){ if(visible){ if(mobMap && !mobMap.hasLayer(m.mob)) m.mob.addTo(mobMap); } else if(mobMap && mobMap.hasLayer(m.mob)) mobMap.removeLayer(m.mob); }
+    }catch(e){}
+  });
+  // Si le livreur déjà sélectionné n'est plus dans la liste filtrée (ex: pas chauffeur), on réinitialise
+  if(estChauffeur && selectedLivreur && !selectedLivreur.est_chauffeur){
+    selectedLivreur=null; selectedLivreurId=null;
+    const info=document.getElementById('cp-livreur-info');
+    if(info) info.style.opacity='.5';
+    showToast('⚠️ Choisissez un chauffeur disponible pour ce service','wa');
+  }
+}
+// Affiche/masque le champ "durée d'attente" selon la case aller-retour, pour PC ('cp') ou mobile ('mob')
+function onArToggle(ctx){
+  const cb=document.getElementById(ctx+'-aller-retour');
+  const wrap=document.getElementById(ctx+'-attente-wrap');
+  if(wrap) wrap.style.display=cb?.checked?'block':'none';
+  estimerPrix();
+}
+// Calcule les frais d'attente sur place (15 min offertes, puis 300 FCFA / 30 min)
+function calcFraisAttente(dureeMin){
+  const d=Math.max(0,(parseFloat(dureeMin)||0)-15);
+  return d>0?Math.ceil(d/30)*300:0;
 }
 // Stockage coordonnées des arrêts intermédiaires
 const _stopCoords = {}; // id -> {lat, lng}
@@ -5136,10 +6970,22 @@ function calcPrix(lv, distKm, urgent, type){
     simple:1, zem:1,
     voiture_classique:1.5, voiture_confort:2, voiture_eco:1.2,
     transport_enfant:1.8, demenagement:3, camionnette:2.5,
-    avec_marchand:1.1, colis_tiers:1, multi_arrets:1, programmee:1
+    avec_marchand:1.1, colis_tiers:1, multi_arrets:1, programmee:1,
+    tourisme:1.6
   };
   const multi = typeMulti[type] || 1;
   return Math.round((base+km*distKm)*(1+maj)*multi);
+}
+
+// Tarification dédiée Chauffeur : le chauffeur fixe ses propres tarifs (km + heure),
+// distincts de ses tarifs livraison. chauffeur_client (conduit la voiture du client) = -15%
+// car le chauffeur n'use pas son propre véhicule.
+function calcPrixChauffeur(lv, distKm, dureeHeures, urgent, type){
+  const km=parseFloat(lv?.tarif_km_chauffeur||configPlateforme.tarif_km_chauffeur_fcfa||250);
+  const heure=parseFloat(lv?.tarif_heure_chauffeur||configPlateforme.tarif_heure_chauffeur_fcfa||1000);
+  const maj=urgent?parseFloat(configPlateforme.majoration_urgence_pct||30)/100:0;
+  const modeMulti = type==='chauffeur_client' ? 0.85 : 1;
+  return Math.round((km*Math.max(0,distKm) + heure*Math.max(0,dureeHeures)) * (1+maj) * modeMulti);
 }
 
 // Distance livreur → point de départ (si coords dispo)
@@ -5167,21 +7013,39 @@ function estimerPrix(){
 
   const distTrajet = getDistKm(); // départ → arrivée
   const distLivreur = getDistLivreurDepart(); // livreur → départ
-  const distTotale = Math.max(0.5, Math.round((distTrajet + distLivreur) * 10) / 10);
 
   const urgent=(document.getElementById('cp-urgent')?.value==='true')||(document.getElementById('mob-urgent')?.value==='true');
   const stops=document.querySelectorAll('[id^="stop-"]').length;
   const courseType=(document.getElementById('cp-type')?.value||document.getElementById('mob-type')?.value||'simple');
-  const prix=calcPrix(selectedLivreur,distTotale,urgent,courseType)+stops*200;
+
+  // Aller-retour (tourisme uniquement) : le trajet est compté 2x, + frais d'attente sur place
+  const allerRetour = courseType==='tourisme' && ((document.getElementById('cp-aller-retour')?.checked)||(document.getElementById('mob-aller-retour')?.checked));
+  const dureeAttente = allerRetour ? (parseFloat(document.getElementById('cp-attente')?.value ?? document.getElementById('mob-attente')?.value) || 0) : 0;
+  const distTrajetFacture = allerRetour ? distTrajet*2 : distTrajet;
+  const fraisAttente = allerRetour ? calcFraisAttente(dureeAttente) : 0;
+
+  const distTotale = Math.max(0.5, Math.round((distTrajetFacture + distLivreur) * 10) / 10);
+
+  const estChauffeur = courseType==='chauffeur_perso'||courseType==='chauffeur_client';
+  const dureeChauffeur = estChauffeur ? (parseFloat(document.getElementById('cp-duree-chauffeur')?.value ?? document.getElementById('mob-duree-chauffeur')?.value) || 2) : 0;
+
+  const prix = estChauffeur
+    ? calcPrixChauffeur(selectedLivreur, distTotale, dureeChauffeur, urgent, courseType)
+    : calcPrix(selectedLivreur,distTotale,urgent,courseType)+stops*200+fraisAttente;
   const majPct=urgent?parseFloat(configPlateforme.majoration_urgence_pct||30):0;
-  const typeMultiLabels={voiture_classique:'×1.5',voiture_confort:'×2',voiture_eco:'×1.2',transport_enfant:'×1.8',demenagement:'×3',camionnette:'×2.5',zem:'×1'};
+  const typeMultiLabels={voiture_classique:'×1.5',voiture_confort:'×2',voiture_eco:'×1.2',transport_enfant:'×1.8',demenagement:'×3',camionnette:'×2.5',zem:'×1',tourisme:'×1.6'};
 
   // Détail lisible
   let detail = `${distTrajet} km trajet`;
+  if (allerRetour) detail += ` · 🔄 aller-retour (×2 = ${distTrajetFacture} km)`;
   if (distLivreur > 0) detail += ` + ${distLivreur} km (livreur → départ)`;
-  if (typeMultiLabels[courseType]) detail += ` · ${typeMultiLabels[courseType]} (type)`;
+  if (estChauffeur) {
+    detail += ` · ⏱️ ${dureeChauffeur}h (tarif du chauffeur)`;
+    if (courseType==='chauffeur_client') detail += ' · -15% (votre véhicule)';
+  } else if (typeMultiLabels[courseType]) detail += ` · ${typeMultiLabels[courseType]} (type)`;
   if (urgent) detail += ` · ⚡ +${majPct}% urgent`;
   if (stops) detail += ` · +${stops} arrêt(s)`;
+  if (fraisAttente) detail += ` · ⏱️ +${fraisAttente} FCFA attente (${dureeAttente} min)`;
 
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   set('cp-price-est',fcfa(prix)); set('mob-price-est',fcfa(prix));
@@ -5210,13 +7074,22 @@ function openFedaPay(amount){
 }
 
 // ── Passer commande core
-async function passerCommandeCore(depart, arrivee, type, urgent, programmee, modePaiement='fedapay', description='', audioBlob=null){
+async function passerCommandeCore(depart, arrivee, type, urgent, programmee, modePaiement='fedapay', description='', audioBlob=null, allerRetour=false, dureeAttente=0, dureeChauffeur=0){
   if(!selectedLivreur) return showToast('Selectionnez un livreur','wa');
   if(!depart||!arrivee) return showToast('Renseignez le depart et l arrivee','wa');
 
   // ── Sécurité : type ne peut pas être vide (enum PostgreSQL) ──
-  const typesValides = ['simple','zem','voiture_classique','voiture_confort','voiture_eco','transport_enfant','demenagement','camionnette','avec_marchand','colis_tiers','multi_arrets','programmee'];
+  const typesValides = ['simple','zem','voiture_classique','voiture_confort','voiture_eco','transport_enfant','demenagement','camionnette','avec_marchand','colis_tiers','multi_arrets','programmee','tourisme','chauffeur_perso','chauffeur_client'];
   const typeFinal = typesValides.includes(type) ? type : 'simple';
+  const allerRetourFinal = typeFinal==='tourisme' && !!allerRetour;
+  const dureeAttenteFinal = allerRetourFinal ? (parseInt(dureeAttente)||0) : 0;
+  const estChauffeurFinal = typeFinal==='chauffeur_perso'||typeFinal==='chauffeur_client';
+  const dureeChauffeurFinal = estChauffeurFinal ? (parseFloat(dureeChauffeur)||2) : 0;
+
+  // Sécurité : un chauffeur doit avoir activé le service
+  if (estChauffeurFinal && !selectedLivreur.est_chauffeur) {
+    return showToast('⚠️ Ce livreur n\'a pas activé le service Chauffeur','wa');
+  }
 
   // Coordonnées GPS réelles (sélectionnées via Nominatim)
   const depCoords = _coords['cp-depart'] || _coords['mob-depart'] || { lat:6.3703, lng:2.3912 };
@@ -5225,11 +7098,15 @@ async function passerCommandeCore(depart, arrivee, type, urgent, programmee, mod
   // Distance réelle trajet + livreur + arrêts
   const distTrajet = getDistKm();
   const distLivreur = getDistLivreurDepart();
-  const distTotale = Math.max(0.5, Math.round((distTrajet + distLivreur) * 10) / 10);
+  const distTrajetFacture = allerRetourFinal ? distTrajet*2 : distTrajet;
+  const fraisAttente = allerRetourFinal ? calcFraisAttente(dureeAttenteFinal) : 0;
+  const distTotale = Math.max(0.5, Math.round((distTrajetFacture + distLivreur) * 10) / 10);
   const stopEls = [...document.querySelectorAll('[id^="stop-"]')];
   const stops = stopEls.length;
 
-  const prix = calcPrix(selectedLivreur, distTotale, urgent, typeFinal) + stops * 200;
+  const prix = estChauffeurFinal
+    ? calcPrixChauffeur(selectedLivreur, distTotale, dureeChauffeurFinal, urgent, typeFinal)
+    : calcPrix(selectedLivreur, distTotale, urgent, typeFinal) + stops * 200 + fraisAttente;
   const commPct = parseFloat(configPlateforme.commission_livraison_pct||10);
   const comm = Math.round(prix * commPct / 100);
 
@@ -5253,6 +7130,8 @@ async function passerCommandeCore(depart, arrivee, type, urgent, programmee, mod
     taux_commission: commPct, commission_plateforme: comm, gains_livreur: prix - comm,
     est_urgent: urgent, taux_majoration: urgent ? parseFloat(configPlateforme.majoration_urgence_pct||30) : 0,
     est_programmee: !!programmee, heure_programmee: programmee || null,
+    est_aller_retour: allerRetourFinal, duree_attente_minutes: dureeAttenteFinal,
+    duree_prevue_heures: dureeChauffeurFinal,
     methode_paiement: modePaiement, est_paye: estPaye, statut: 'en_attente',
     code_confirmation
   };
@@ -5292,11 +7171,13 @@ async function passerCommandeCore(depart, arrivee, type, urgent, programmee, mod
     }catch(e){}
 
     // 4. Notifier le livreur
-    const typeLabels = { simple:'Course simple', zem:'Go Zem (moto taxi)', voiture_classique:'Voiture classique', voiture_confort:'Voiture confort', voiture_eco:'Voiture Éco', transport_enfant:'Transport enfant (école)', demenagement:'Déménagement', camionnette:'Gros colis / Camionnette', avec_marchand:'Avec marchand', colis_tiers:'Colis tiers', multi_arrets:'Multi-arrêts', programmee:'Programmée' };
+    const typeLabels = { simple:'Course simple', zem:'Go Zem (moto taxi)', voiture_classique:'Voiture classique', voiture_confort:'Voiture confort', voiture_eco:'Voiture Éco', transport_enfant:'Transport enfant (école)', demenagement:'Déménagement', camionnette:'Gros colis / Camionnette', avec_marchand:'Avec marchand', colis_tiers:'Colis tiers', multi_arrets:'Multi-arrêts', programmee:'Programmée', tourisme:'Excursion touristique / Voyage personnel', chauffeur_perso:'Chauffeur (avec sa voiture)', chauffeur_client:'Chauffeur (votre véhicule)' };
+    const mentionAR = allerRetourFinal ? ` 🔄 ALLER-RETOUR (attente ${dureeAttenteFinal} min)` : '';
+    const mentionChauf = estChauffeurFinal ? ` ⏱️ ${dureeChauffeurFinal}h prévues` : '';
     await sb.from('notifications').insert({
       utilisateur_id: selectedLivreurId,
       titre: '🛵 Nouvelle course !',
-      corps: `[${typeLabels[typeFinal]||typeFinal}] De : ${depart} → ${arrivee}${urgent ? ' 🔴 URGENT' : ''} · ${distTrajet} km · Paiement : ${modePaiement === 'cash' ? '💵 Cash à la livraison' : '📱 Mobile Money'}`,
+      corps: `[${typeLabels[typeFinal]||typeFinal}]${mentionAR}${mentionChauf} De : ${depart} → ${arrivee}${urgent ? ' 🔴 URGENT' : ''} · ${distTrajet} km · Paiement : ${modePaiement === 'cash' ? '💵 Cash à la livraison' : '📱 Mobile Money'}`,
       type: 'course'
     });
 
@@ -5438,6 +7319,61 @@ async function openFideliteModal(){
   openModal('modal-fidelite');
 }
 
+
+// ══════════════════════════════════════════════════════════
+//  PARRAINAGE
+// ══════════════════════════════════════════════════════════
+async function openParrainageModal() {
+  openModal('modal-parrainage');
+  try {
+    // Générer/récupérer code parrainage depuis profil
+    const { data: prof } = await sb.from('profiles').select('code_parrainage,prenom,nom').eq('id', currentUser.id).single();
+    let code = prof?.code_parrainage;
+    if (!code) {
+      // Générer un code unique basé sur le prénom + random
+      const base = (prof?.prenom || 'USER').toUpperCase().slice(0,4);
+      code = base + Math.floor(1000 + Math.random() * 9000);
+      await sb.from('profiles').update({ code_parrainage: code }).eq('id', currentUser.id);
+    }
+    const codeEl = document.getElementById('parrain-code');
+    if (codeEl) codeEl.textContent = code;
+    // Stats filleuls
+    const { data: filleuls, count } = await sb.from('profiles').select('id', { count: 'exact', head: false }).eq('parrain_code', code);
+    const countEl = document.getElementById('parrain-count');
+    if (countEl) countEl.textContent = count || 0;
+    // Gains parrainage (500 FCFA par filleul actif)
+    const gainsEl = document.getElementById('parrain-gains');
+    if (gainsEl) gainsEl.textContent = ((count || 0) * 500).toLocaleString('fr-FR') + ' FCFA';
+  } catch(e) {
+    console.warn('Parrainage:', e.message);
+  }
+}
+
+async function copierCodeParrain() {
+  const code = document.getElementById('parrain-code')?.textContent?.trim();
+  if (!code || code === '——') return;
+  try {
+    await navigator.clipboard.writeText(code);
+    showToast('🎁 Code copié : ' + code, 'ok');
+  } catch(e) {
+    showToast('Code : ' + code, 'ok');
+  }
+}
+
+async function partagerCodeParrain() {
+  const code = document.getElementById('parrain-code')?.textContent?.trim();
+  if (!code || code === '——') return;
+  const msg = `🛵 Je livre avec Allô Livreur, c'est rapide et garanti !
+Utilise mon code ${code} à l'inscription et tu reçois 300 FCFA de crédit 🎁
+Télécharge l'app : https://allolivreur.bj`;
+  if (navigator.share) {
+    navigator.share({ title: 'Allô Livreur – Mon code parrainage', text: msg }).catch(()=>{});
+  } else {
+    try { await navigator.clipboard.writeText(msg); showToast('Message copié – partagez-le !', 'ok'); }
+    catch(e) { showToast('Code : ' + code, 'ok'); }
+  }
+}
+
 // ── Profil edit modal
 function openProfileEdit(){
   const p=currentProfile||{};
@@ -5490,6 +7426,24 @@ function choisirLivreurModal(){ closeModal('modal-livreur'); if(selectedLivreur)
 function chatWithLivreurModal(){ closeModal('modal-livreur'); if(selectedLivreur?.profiles?.id) chatWithLivreur(selectedLivreur.profiles.id); else showToast('Messagerie disponible apres commande','wa'); }
 
 // ══════════════════════════════════════════════════════════════
+//  COMPATIBILITÉ APK / WEBVIEW — vérification micro/caméra
+// ══════════════════════════════════════════════════════════════
+// Dans un APK Android, getUserMedia ne fonctionne QUE si :
+//  1. La page est chargée en contexte sécurisé (https:// ou localhost — JAMAIS file://)
+//  2. Le WebView natif implémente WebChromeClient.onPermissionRequest()
+//  3. Les permissions RECORD_AUDIO / CAMERA sont déclarées dans AndroidManifest.xml
+// Si l'une de ces conditions manque, getUserMedia échoue silencieusement ou n'existe pas.
+function checkMediaSupport(kind) {
+  if (!window.isSecureContext) {
+    return (kind === 'audio' ? '🎤' : '📷') + ' Indisponible dans cette version de l\'app (contexte non sécurisé). Contactez le support technique.';
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    return (kind === 'audio' ? '🎤 Microphone' : '📷 Caméra') + ' non supporté par cette version de l\'application. Mettez à jour l\'app.';
+  }
+  return null;
+}
+
+// ══════════════════════════════════════════════════════════════
 //  ENREGISTREMENT VOCAL — Interface complète (mob + pc)
 // ══════════════════════════════════════════════════════════════
 const _voiceState = {
@@ -5506,6 +7460,8 @@ async function toggleVoiceRecord(side) {
   if (!currentConvId) return showToast('Ouvrez une conversation d\'abord', 'wa');
 
   if (!vs.recording) {
+    const mediaErr = checkMediaSupport('audio');
+    if (mediaErr) return showToast(mediaErr, 'er');
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, echoCancellation: true, noiseSuppression: true });
       const mimeType = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4']
@@ -5537,7 +7493,10 @@ async function toggleVoiceRecord(side) {
       }, 1000);
 
     } catch(e) {
-      showToast('Microphone non disponible — vérifiez les permissions', 'er');
+      const msg = e?.name === 'NotAllowedError'
+        ? '🎤 Microphone refusé — autorisez l\'accès dans les réglages de l\'app'
+        : 'Microphone non disponible — vérifiez les permissions';
+      showToast(msg, 'er');
     }
   }
 }
@@ -5823,6 +7782,8 @@ async function _lancerAppel(targetId, nomContact, courseId) {
   _rtcRole = 'caller'; _rtcTargetId = targetId;
 
   try {
+    const mediaErr = checkMediaSupport('audio');
+    if (mediaErr) { showToast(mediaErr, 'er'); return; }
     _rtcLocalStream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
     });
@@ -5874,6 +7835,8 @@ async function repondreAppel(payload) {
   if (_rtcRinging) { _rtcRinging(); _rtcRinging = null; }
 
   try {
+    const mediaErr = checkMediaSupport('audio');
+    if (mediaErr) { showToast(mediaErr, 'er'); return; }
     _rtcLocalStream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
     });
@@ -6052,6 +8015,13 @@ async function updateStatsMob(){
   try{
     const{data:cs}=await sb.from('courses').select('id',{count:'exact'}).eq('client_id',currentUser.id);
     const el=document.getElementById('mob-stat-courses'); if(el) el.textContent=cs?cs.length:0;
+    const pcEl=document.getElementById('pc-sb-stat-courses'); if(pcEl) pcEl.textContent=cs?cs.length:0;
+    // Badge courses actives dans nav
+    const activeCourses=(cs||[]).filter(c=>['en_attente','acceptee','en_cours','livraison_en_cours'].includes(c.statut));
+    const courseBadge=document.getElementById('pcnav-courses-badge');
+    if(courseBadge){courseBadge.textContent=activeCourses.length;courseBadge.classList.toggle('show',activeCourses.length>0);}
+    const railCourseBadge=document.getElementById('railnav-courses-badge');
+    if(railCourseBadge){railCourseBadge.textContent=activeCourses.length;railCourseBadge.classList.toggle('show',activeCourses.length>0);}
   }catch(e){}
 }
 
@@ -6619,6 +8589,8 @@ async function toggleAudioDesc(ctx) {
     return;
   }
   try {
+    const mediaErr = checkMediaSupport('audio');
+    if (mediaErr) { showToast(mediaErr, 'er'); return; }
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     _audioCtxId = ctx;
     _audioChunks = [];

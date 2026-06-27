@@ -2005,6 +2005,19 @@ input:valid {
 
         <!-- ═══ FORMULAIRE LIVRAISON ═══ -->
         <div id="mob-form-livraison">
+          <!-- Header livraison -->
+          <div style="font-size:.8rem;color:var(--text2);margin-bottom:.75rem;padding:.55rem .75rem;background:#EFF6FF;border-radius:10px;border-left:3px solid var(--primary)">
+            🛵 Choisissez un livreur puis renseignez votre trajet.
+          </div>
+
+          <!-- Mini-liste livreurs inline -->
+          <div class="fgroup" style="margin-bottom:.75rem">
+            <div class="fgroup-label"><i class="ti ti-motorbike"></i> Livreur disponible</div>
+            <div id="mob-inline-livreurs-list" style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:12px;background:var(--bg)">
+              <div class="empty-state" style="padding:.75rem"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><p style="font-size:.78rem">Chargement…</p></div>
+            </div>
+          </div>
+
           <!-- Livreur sélectionné -->
           <div id="mob-selected-lv" style="display:none;margin-bottom:.85rem"></div>
 
@@ -2239,16 +2252,25 @@ input:valid {
     </div>
   </div>
 
-  <!-- Page Chauffeur — redirige vers le sheet avec l'onglet chauffeur -->
+  <!-- Page Chauffeur — interface identique au PC -->
   <div class="mob-page" id="mob-chauffeur-page">
     <div class="mob-topbar">
       <div class="mob-page-title">🚘 Service Chauffeur</div>
     </div>
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:1rem;padding:2rem">
-      <div style="font-size:2.5rem">🚘</div>
-      <div style="font-weight:700;font-size:1.1rem;font-family:var(--font-display)">Réserver un chauffeur</div>
-      <div style="font-size:.85rem;color:var(--text2);text-align:center">Choisissez un chauffeur avec sa voiture ou pour conduire la vôtre.</div>
-      <button onclick="showMobSheet();setTimeout(()=>mobSwitchFormTab('chauffeur'),100)" style="padding:.75rem 2rem;background:var(--primary);color:#fff;border:none;border-radius:50px;font-family:var(--font);font-size:.92rem;font-weight:700;cursor:pointer;box-shadow:var(--shadow-primary)"><i class="ti ti-steering-wheel"></i> Réserver maintenant</button>
+    <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;min-height:0">
+      <!-- Description -->
+      <div style="padding:.65rem .9rem .2rem;font-size:.8rem;color:var(--text2)">
+        Réservez un chauffeur avec sa propre voiture, ou pour conduire <b>votre</b> véhicule.
+      </div>
+      <!-- Boutons mode -->
+      <div style="display:flex;gap:.4rem;padding:.4rem .9rem .6rem">
+        <button class="chauffeur-mode-btn active" id="chaufmode-perso-mob2" onclick="switchChauffeurMode('chauffeur_perso','mob2')" style="flex:1;padding:.5rem;border:1.5px solid var(--primary);border-radius:var(--radius-pill);background:var(--primary);color:#fff;font-family:var(--font);font-size:.82rem;font-weight:700;cursor:pointer;touch-action:manipulation">🚘 Sa voiture</button>
+        <button class="chauffeur-mode-btn" id="chaufmode-client-mob2" onclick="switchChauffeurMode('chauffeur_client','mob2')" style="flex:1;padding:.5rem;border:1.5px solid var(--border2);border-radius:var(--radius-pill);background:var(--bg);color:var(--text2);font-family:var(--font);font-size:.82rem;font-weight:700;cursor:pointer;touch-action:manipulation">🔑 Votre véhicule</button>
+      </div>
+      <!-- Liste chauffeurs -->
+      <div id="chauffeurs-list-mob2" style="flex:1;overflow-y:auto">
+        <div class="empty-state"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><p>Chargement…</p></div>
+      </div>
     </div>
   </div>
 
@@ -3611,6 +3633,7 @@ async function initApp() {
   loadLivreurs();
   loadCategories();
   loadProduits();
+  chargerArtisans();
   loadConversations();
   loadCourses();
   loadNotifications();
@@ -4087,6 +4110,8 @@ function renderLivreursMob(list) {
   const el = document.getElementById('mob-livreurs-list');
   if (!list.length) { el.innerHTML = '<div class="empty-state"><i class="ti ti-motorbike"></i><p>Aucun livreur disponible</p></div>'; return; }
   el.innerHTML = list.map(lv => livreurCardMobHTML(lv)).join('');
+  // Rafraîchir aussi la mini-liste dans le sheet si ouvert
+  renderMobInlineLivreurs();
 }
 
 function livreurEstInjoignable(lv) {
@@ -4191,6 +4216,8 @@ function selectLivreur(lv) {
 
   // Mobile : afficher dans sheet
   updateMobSelectedLv(lv);
+  // Rafraîchir la mini-liste pour afficher la sélection
+  renderMobInlineLivreurs();
   estimerPrix();
 }
 
@@ -4392,7 +4419,12 @@ function mobSwitchFormTab(tab) {
   document.getElementById('mob-form-chauffeur').style.display = isLiv ? 'none' : '';
   document.getElementById('mob-tab-livraison').className = 'form-tab' + (isLiv ? ' active' : '');
   document.getElementById('mob-tab-chauffeur').className = 'form-tab' + (!isLiv ? ' active' : '');
-  if (!isLiv) loadChauffeursMob();
+  if (!isLiv) {
+    // Toujours recharger les chauffeurs à chaque fois qu'on ouvre l'onglet
+    chargerChauffeurs('mob');
+  } else {
+    renderMobInlineLivreurs();
+  }
 }
 function mobSwitchChauffeurMode(mode) {
   const isPerso = mode === 'chauffeur_perso';
@@ -4401,8 +4433,7 @@ function mobSwitchChauffeurMode(mode) {
   if (typeof switchChauffeurMode === 'function') switchChauffeurMode(mode, 'mob');
 }
 function loadChauffeursMob() {
-  // Délègue à la fonction existante si disponible
-  if (typeof loadChauffeurs === 'function') loadChauffeurs();
+  chargerChauffeurs('mob');
 }
 async function passerCommandeChauffeurMob() {
   const depart = document.getElementById('mob-chauf-depart')?.value?.trim() || document.getElementById('mob-depart').value.trim();
@@ -4623,7 +4654,7 @@ function switchMarketMode(mode, ctx) {
   const g1=document.getElementById('prod-grid'+sfx); if(g1) g1.style.display=dispProd;
   const c2=document.getElementById('art-cat-scroll'+sfx); if(c2) c2.style.display=dispArt;
   const g2=document.getElementById('artisans-grid'+sfx); if(g2) g2.style.display=dispArt;
-  if (mode==='artisans' && !allArtisans.length) chargerArtisans();
+  if (mode==='artisans' && !allArtisans.length) chargerArtisans(); else if (mode==='artisans') { renderArtisansChips(); renderArtisans(allArtisans); }
 }
 
 let _artisanMarkers = []; // Marqueurs artisans sur la carte
@@ -4631,7 +4662,6 @@ let _artisanMarkers = []; // Marqueurs artisans sur la carte
 async function chargerArtisans() {
   const { data } = await sb.from('artisans')
     .select('*, profiles(id,nom,prenom,avatar_url,statut_compte)')
-    .eq('est_actif', true)
     .order('note_moyenne', { ascending: false });
   // Exclure les artisans bloqués
   allArtisans = (data || []).filter(a => a.profiles?.statut_compte !== 'bloque');
@@ -4678,7 +4708,7 @@ let _allChauffeurs = [];
 function switchChauffeurMode(mode, sfx) {
   _chauffeurMode = mode;
   // Mettre à jour les boutons
-  ['pc','mob'].forEach(s => {
+  ['pc','mob','mob2'].forEach(s => {
     const p = document.getElementById(`chaufmode-perso-${s}`);
     const c = document.getElementById(`chaufmode-client-${s}`);
     if (!p || !c) return;
@@ -4692,20 +4722,33 @@ function switchChauffeurMode(mode, sfx) {
 }
 
 async function chargerChauffeurs(sfx) {
-  const listId = sfx === 'mob' ? 'chauffeurs-list-mob' : 'chauffeurs-list-pc';
+  const listId = sfx === 'mob' ? 'chauffeurs-list-mob' : sfx === 'mob2' ? 'chauffeurs-list-mob2' : 'chauffeurs-list-pc';
   const el = document.getElementById(listId);
   if (!el) return;
   el.innerHTML = '<div class="empty-state"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><p>Chargement…</p></div>';
-  const { data } = await sb.from('livreurs')
-    .select('*, profiles(id,nom,prenom,avatar_url,statut_compte)')
-    .eq('est_chauffeur', true)
-    .eq('est_en_ligne', true);
-  _allChauffeurs = (data || []).filter(lv => lv.profiles?.statut_compte !== 'bloque');
+  try {
+    // 1er essai : livreurs avec est_chauffeur = true
+    const { data: dataChauffeurs } = await sb.from('livreurs')
+      .select('*, profiles(id,nom,prenom,avatar_url,statut_compte)')
+      .eq('est_chauffeur', true)
+      .in('statut', ['disponible', 'en_course']);
+    let liste = (dataChauffeurs || []).filter(lv => lv.profiles?.statut_compte !== 'bloque');
+    // Fallback : si aucun chauffeur marque, prendre tous les livreurs disponibles
+    if (!liste.length) {
+      const { data: dataTous } = await sb.from('livreurs')
+        .select('*, profiles(id,nom,prenom,avatar_url,statut_compte)')
+        .in('statut', ['disponible', 'en_course']);
+      liste = (dataTous || []).filter(lv => lv.profiles?.statut_compte !== 'bloque');
+    }
+    _allChauffeurs = liste;
+  } catch(e) {
+    _allChauffeurs = [];
+  }
   renderChauffeurs(_allChauffeurs, sfx);
 }
 
 function renderChauffeurs(list, sfx) {
-  const listId = sfx === 'mob' ? 'chauffeurs-list-mob' : 'chauffeurs-list-pc';
+  const listId = sfx === 'mob' ? 'chauffeurs-list-mob' : sfx === 'mob2' ? 'chauffeurs-list-mob2' : 'chauffeurs-list-pc';
   const el = document.getElementById(listId);
   if (!el) return;
   if (!list.length) { el.innerHTML = '<div class="empty-state"><i class="ti ti-steering-wheel"></i><p>Aucun chauffeur disponible</p></div>'; return; }
@@ -4715,7 +4758,7 @@ function renderChauffeurs(list, sfx) {
     const tarifH  = lv.tarif_heure_chauffeur || 1000;
     const veh = lv.type_vehicule || 'voiture';
     const emoji = veh.includes('voiture') || veh.includes('car') ? '🚗' : veh.includes('van')||veh.includes('camion') ? '🚐' : '🚗';
-    return `<div class="livreur-card" style="cursor:pointer" onclick="selectLivreur_byId('${lv.id}');selectCourseType('${_chauffeurMode}');${sfx==='mob'?'switchMobPage(\'carte\');setTimeout(()=>showMobSheet(),80)':'switchSideTab(\'livreurs\',document.getElementById(\'stab-livreurs\'))'}">
+    return `<div class="livreur-card" style="cursor:pointer" onclick="selectLivreur_byId('${lv.id}');selectCourseType('${_chauffeurMode}');${(sfx==='mob'||sfx==='mob2')?'switchMobPage(\'carte\');setTimeout(()=>showMobSheet(true),80)':'switchSideTab(\'livreurs\',document.getElementById(\'stab-livreurs\'))'}">
       <div style="display:flex;align-items:center;gap:.75rem">
         <div style="width:40px;height:40px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">${emoji}</div>
         <div style="flex:1;min-width:0">
@@ -7071,18 +7114,54 @@ function switchMobPage(page) {
     setTimeout(() => { mobMap?.invalidateSize(); }, 300);
   }
   if (page === 'messages') loadConversations();
-  if (page === 'chauffeur') chargerChauffeurs('mob');
+  if (page === 'chauffeur') { chargerChauffeurs('mob'); chargerChauffeurs('mob2'); }
   if (page === 'profil') { updateWalletUI(); updateStatsMob(); }
   if (page === 'courses') loadCourses();
 }
 
-function showMobSheet() {
-  if (!selectedLivreur) {
+function renderMobInlineLivreurs() {
+  const el = document.getElementById('mob-inline-livreurs-list');
+  if (!el) return;
+  const list = (allLivreurs || []).filter(lv => lv.statut === 'disponible' || lv.statut === 'en_course');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:.75rem"><i class="ti ti-motorbike"></i><p style="font-size:.78rem">Aucun livreur disponible</p></div>';
+    return;
+  }
+  el.innerHTML = list.map(lv => {
+    const p = lv.profiles || {};
+    const nom = ((p.prenom||'')+' '+(p.nom||'')).trim() || 'Livreur';
+    const injoignable = livreurEstInjoignable(lv);
+    const canSelect = lv.statut === 'disponible' && !injoignable;
+    const isSelected = selectedLivreur?.id === lv.id;
+    const tag = livreurStatusTag(lv.statut, lv);
+    const clickFn = canSelect
+      ? `selectLivreur_byId('${lv.id}')`
+      : `showToast('📵 Livreur hors connexion','wa')`;
+    return `<div onclick="${clickFn}" style="display:flex;align-items:center;gap:.65rem;padding:.6rem .75rem;border-bottom:1px solid var(--border);cursor:${canSelect?'pointer':'not-allowed'};opacity:${canSelect?1:.7};background:${isSelected?'var(--primary-light)':'transparent'};transition:background .15s">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;flex-shrink:0;border:${isSelected?'2px solid var(--primary)':'2px solid var(--border)'}">
+        ${getInitials(p)}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:${isSelected?700:600};font-size:.86rem;color:${isSelected?'var(--primary)':'var(--text)'}">${escapeHtml(nom)}</div>
+        <div style="font-size:.73rem;color:var(--text2)">⭐ ${lv.note_moyenne||0}/5 · ${lv.type_vehicule||'—'}</div>
+        <div style="margin-top:2px">${tag}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:.8rem;font-weight:700;color:var(--primary)">${lv.tarif_base||500} F</div>
+        <div style="font-size:.68rem;color:var(--text3)">${lv.tarif_km||200} F/km</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showMobSheet(skipLivreurCheck) {
+  if (!skipLivreurCheck && !selectedLivreur) {
     switchMobPage('livreurs');
     showToast('Choisissez un livreur d\'abord');
     return;
   }
   document.getElementById('mob-sheet').classList.add('open');
+  renderMobInlineLivreurs();
 }
 function hideMobSheet() { document.getElementById('mob-sheet').classList.remove('open'); }
 

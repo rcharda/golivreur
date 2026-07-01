@@ -2,47 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<script>
-/* ── Détection plein écran / edge-to-edge & fallback safe-area ──────────
-   Quand l'APK (WebView Android) est construit avec l'option "Plein écran"
-   activée, le système peut dessiner le contenu SOUS la barre de statut
-   (horloge, batterie, réseau) au lieu de réserver cet espace. CSS
-   env(safe-area-inset-top) gère ça automatiquement sur la plupart des
-   WebViews récentes (Android 9+ environ), mais certaines versions/WebViews
-   plus anciennes ou personnalisées ne le supportent pas ou ne reçoivent
-   pas les insets correctement. On ajoute donc un filet de sécurité en JS,
-   basé uniquement sur window.screen / window.innerHeight (disponibles
-   depuis toujours), pour rester compatible avec toutes les versions
-   d'Android — y compris quand l'app N'EST PAS installée via l'APK
-   (navigateur normal), où l'écart mesuré sera généralement franc et ne
-   déclenchera pas ce fallback. */
-(function () {
-  function applyStatusBarSafeArea() {
-    try {
-      var screenH = (window.screen && window.screen.height) || 0;
-      var innerH  = window.innerHeight || 0;
-      if (!screenH || !innerH) return;
-      var gap = screenH - innerH;
-      // Écart faible => rien n'a réservé l'espace de la barre de statut :
-      // on est probablement en plein écran / edge-to-edge.
-      var looksEdgeToEdge = gap < 16;
-      var root = document.documentElement;
-      if (looksEdgeToEdge) {
-        var dpr = window.devicePixelRatio || 1;
-        var fallbackPx = Math.round(24 * Math.min(Math.max(dpr, 1), 2)); // borné 24–48px
-        root.style.setProperty('--status-safe-top', fallbackPx + 'px');
-      } else {
-        root.style.setProperty('--status-safe-top', '0px');
-      }
-    } catch (e) { /* CSS env() reste le filet de sécurité principal */ }
-  }
-  applyStatusBarSafeArea();
-  window.addEventListener('resize', applyStatusBarSafeArea);
-  window.addEventListener('orientationchange', applyStatusBarSafeArea);
-  document.addEventListener('visibilitychange', applyStatusBarSafeArea);
-})();
-</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Allô Livreur — Client</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
@@ -83,10 +43,6 @@
   --topbar-h:58px;
   /* Bottom nav */
   --nav-h:68px;
-  /* Zone de sécurité barre de statut (horloge/batterie) — mise à jour en JS
-     quand l'APK tourne en plein écran/edge-to-edge sans réserver cet espace
-     nativement. Reste à 0px sinon (aucun impact visuel). */
-  --status-safe-top:0px;
 }
 
 /* ── Reset & Base ── */
@@ -598,16 +554,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 /* ══════════════════════════════════
    MOBILE LAYOUT
 ══════════════════════════════════ */
-#mobile-layout{display:none;height:100vh;height:100dvh;width:100vw;flex-direction:column;background:var(--bg);overflow:hidden;
-  /* Laisse la place à la barre de statut (horloge/batterie) quand l'app
-     tourne en plein écran sans bordure — voir --status-safe-top plus haut.
-     max() avec env() : compatible avec les WebViews qui exposent
-     correctement safe-area-inset-top (Android 9+ généralement) ET avec le
-     fallback JS pour les cas où ce n'est pas fiable, sur toutes versions
-     Android. Vaut 0px si l'app n'est pas en plein écran (aucun changement
-     visuel dans ce cas, qui est le réglage par défaut du builder). */
-  padding-top:max(env(safe-area-inset-top,0px), var(--status-safe-top,0px));
-}
+#mobile-layout{display:none;height:100vh;height:100dvh;width:100vw;flex-direction:column;background:var(--bg);overflow:hidden}
 
 /* Mobile pages */
 .mob-page{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;max-height:calc(100dvh - var(--topbar-h) - var(--nav-h))}
@@ -8145,59 +8092,15 @@ function chatWithLivreurModal(){ closeModal('modal-livreur'); if(selectedLivreur
 //  1. La page est chargée en contexte sécurisé (https:// ou localhost — JAMAIS file://)
 //  2. Le WebView natif implémente WebChromeClient.onPermissionRequest()
 //  3. Les permissions RECORD_AUDIO / CAMERA sont déclarées dans AndroidManifest.xml
-//  4. android.permission.MODIFY_AUDIO_SETTINGS est déclarée ET AudioManager
-//     a bien le focus audio côté natif — sinon Android refuse de donner le
-//     micro à la WebView même après acceptation (→ NotReadableError, pas
-//     NotAllowedError : c'est un piège classique, ça ressemble à un refus
-//     utilisateur alors que c'est une permission système manquante).
 // Si l'une de ces conditions manque, getUserMedia échoue silencieusement ou n'existe pas.
 function checkMediaSupport(kind) {
-  const label = kind === 'audio' ? '🎤 Microphone' : '📷 Caméra';
-
   if (!window.isSecureContext) {
-    return label + ' indisponible (contexte non sécurisé). L\'app doit être chargée via https:// ou https://appassets.androidplatform.net, jamais en file://. Contactez le support technique.';
+    return (kind === 'audio' ? '🎤' : '📷') + ' Indisponible dans cette version de l\'app (contexte non sécurisé). Contactez le support technique.';
   }
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    return label + ' non supporté par cette version de l\'application. Mettez à jour le composant WebView Android (Google Play).';
+    return (kind === 'audio' ? '🎤 Microphone' : '📷 Caméra') + ' non supporté par cette version de l\'application. Mettez à jour l\'app.';
   }
-
-  // Lecture du diagnostic posé par load_.html lors du pré-chauffage micro,
-  // pour donner un message actionnable plutôt que le message générique.
-  try {
-    const raw = localStorage.getItem('allo_livreur_mic_diagnostic');
-    if (raw) {
-      const diag = JSON.parse(raw);
-      if (diag.status === 'error') {
-        if (diag.errorName === 'NotAllowedError') {
-          return label + ' refusé — autorisez l\'accès micro pour cette app dans les réglages Android (Paramètres > Apps > Allô Livreur > Autorisations).';
-        }
-        if (diag.errorName === 'NotReadableError' || diag.errorName === 'AbortError') {
-          return label + ' détecté mais inaccessible — problème système Android (permission MODIFY_AUDIO_SETTINGS manquante côté app native, ou micro utilisé par une autre app). Contactez le support technique.';
-        }
-        if (diag.errorName === 'NotFoundError') {
-          return label + ' — aucun périphérique audio détecté sur cet appareil.';
-        }
-      }
-    }
-  } catch (e) { /* diagnostic indisponible, on continue sans */ }
-
   return null;
-}
-
-// Message d'erreur unifié pour toutes les erreurs getUserMedia(audio),
-// utilisé par l'enregistrement vocal ET les appels WebRTC.
-function micErrorMessage(e) {
-  const name = e?.name || '';
-  if (name === 'NotAllowedError') {
-    return '🎤 Microphone refusé — autorisez l\'accès dans les réglages de l\'app (Android > Paramètres > Apps > Autorisations)';
-  }
-  if (name === 'NotReadableError' || name === 'AbortError') {
-    return '🎤 Microphone occupé ou inaccessible côté système — réessayez, ou contactez le support si le problème persiste';
-  }
-  if (name === 'NotFoundError') {
-    return '🎤 Aucun microphone détecté sur cet appareil';
-  }
-  return '🎤 Microphone non disponible — vérifiez les permissions';
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -8250,7 +8153,10 @@ async function toggleVoiceRecord(side) {
       }, 1000);
 
     } catch(e) {
-      showToast(micErrorMessage(e), 'er');
+      const msg = e?.name === 'NotAllowedError'
+        ? '🎤 Microphone refusé — autorisez l\'accès dans les réglages de l\'app'
+        : 'Microphone non disponible — vérifiez les permissions';
+      showToast(msg, 'er');
     }
   }
 }
@@ -8541,7 +8447,7 @@ async function _lancerAppel(targetId, nomContact, courseId) {
     _rtcLocalStream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
     });
-  } catch(e) { return showToast(micErrorMessage(e), 'er'); }
+  } catch(e) { return showToast('🎤 Microphone non autorisé', 'er'); }
 
   const chName = 'rtc-call-' + [currentUser.id, targetId].sort().join('-');
   _rtcCallChannel = _buildCallChannel(chName, targetId)
@@ -8594,7 +8500,7 @@ async function repondreAppel(payload) {
     _rtcLocalStream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
     });
-  } catch(e) { return showToast(micErrorMessage(e), 'er'); }
+  } catch(e) { return showToast('🎤 Microphone non autorisé', 'er'); }
 
   const peer = _rtcPeer || _createPeer();
   _rtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _rtcLocalStream));
@@ -9385,7 +9291,7 @@ async function toggleAudioDesc(ctx) {
       if (_audioSec >= 120 && _audioRecorder?.state === 'recording') _audioRecorder.stop();
     }, 1000);
   } catch(e) {
-    showToast(micErrorMessage(e), 'wa');
+    showToast('Microphone non accessible : ' + e.message, 'wa');
   }
 }
 

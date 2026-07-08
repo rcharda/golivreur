@@ -617,12 +617,12 @@ input[type=range]{flex:1;accent-color:var(--primary)}
       <div class="card-body">
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Permis de conduire <span class="req">*</span></label>
+            <label class="form-label">Permis de conduire <span class="req" id="req-permis">*</span> <span id="permis-optionnel-tag" style="display:none;font-weight:400;color:var(--text3);font-size:.78rem">(optionnel pour moto)</span></label>
             <div class="upload-zone" id="uz-permis">
               <input type="file" accept="image/*" onchange="handleUpload(this,'permis','uz-permis','prev-permis')"/>
               <div class="upload-icon"><i class="ti ti-license"></i></div>
               <div class="upload-label">Photo du permis</div>
-              <div class="upload-sub">Recto visible et lisible</div>
+              <div class="upload-sub" id="permis-sub">Recto visible et lisible</div>
               <img id="prev-permis" class="upload-preview" alt="Permis"/>
             </div>
           </div>
@@ -854,7 +854,7 @@ input[type=range]{flex:1;accent-color:var(--primary)}
   <p style="font-size:.75rem;color:var(--text3);text-align:center;margin:-.4rem 0 1rem">
     Installez l'application pour suivre vos courses, gérer votre wallet et recevoir vos notifications en temps réel.
   </p>
-  <a href="https://allolivreur.pages.dev" id="btn-continuer" class="btn btn-primary btn-full">
+  <a href="https://allolivreur.pages.dev/livreur" id="btn-continuer" class="btn btn-primary btn-full">
     <i class="ti ti-arrow-right"></i> Aller sur l'application
   </a>
 </div>
@@ -919,6 +919,7 @@ async function trackPageClic() {
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', async () => {
+  updatePermisRequirement(); // état initial (moto = permis facultatif par défaut)
   trackPageClic(); // on ne bloque pas l'auth en attendant le tracking
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
@@ -1078,7 +1079,8 @@ function validateStep(step) {
     if (!uploadedFiles['cni']) { toast('⚠️ CNI / pièce d\'identité requise'); return false; }
     if (!uploadedFiles['selfie']) { toast('⚠️ Selfie requis'); return false; }
     if (!uploadedFiles['photo_id']) { toast('⚠️ Photo portrait requise'); return false; }
-    if (!uploadedFiles['permis']) { toast('⚠️ Permis de conduire requis'); return false; }
+    // Permis de conduire : facultatif pour les motos, obligatoire pour les autres véhicules.
+    if (selectedVeh !== 'moto' && !uploadedFiles['permis']) { toast('⚠️ Permis de conduire requis pour ce type de véhicule'); return false; }
     if (!uploadedFiles['vehicule']) { toast('⚠️ Photo du véhicule requise'); return false; }
   }
   return true;
@@ -1089,6 +1091,19 @@ function selectVeh(type, el) {
   document.querySelectorAll('.veh-option').forEach(v => v.classList.remove('selected'));
   el.classList.add('selected');
   selectedVeh = type;
+  updatePermisRequirement();
+}
+
+// Le permis de conduire est facultatif pour les motos, obligatoire pour les autres véhicules.
+function updatePermisRequirement() {
+  const reqTag = document.getElementById('req-permis');
+  const optTag = document.getElementById('permis-optionnel-tag');
+  const subTag = document.getElementById('permis-sub');
+  if (!reqTag) return;
+  const facultatif = selectedVeh === 'moto';
+  reqTag.style.display = facultatif ? 'none' : 'inline';
+  optTag.style.display = facultatif ? 'inline' : 'none';
+  if (subTag) subTag.textContent = facultatif ? 'Recto visible et lisible (facultatif pour moto)' : 'Recto visible et lisible';
 }
 
 // ── TARIFS ──

@@ -848,10 +848,32 @@ input[type=range]{flex:1;accent-color:var(--primary)}
     <i class="ti ti-bell"></i>
     <span>Gardez un œil sur vos notifications dans l'application Allô Livreur.</span>
   </div>
-  <a href="https://allolivreur.pages.dev" class="btn btn-primary btn-full">
+  <a href="https://github.com/rcharda/myboxtv/releases/download/v1.0/Allo_Espace_Livreur_1.0_signed.apk" class="btn btn-primary btn-full" style="margin-bottom:.75rem" download>
+    <i class="ti ti-download"></i> Télécharger l'application Livreur (APK)
+  </a>
+  <p style="font-size:.75rem;color:var(--text3);text-align:center;margin:-.4rem 0 1rem">
+    Installez l'application pour suivre vos courses, gérer votre wallet et recevoir vos notifications en temps réel.
+  </p>
+  <a href="https://allolivreur.pages.dev" id="btn-continuer" class="btn btn-primary btn-full">
     <i class="ti ti-arrow-right"></i> Aller sur l'application
   </a>
 </div>
+
+<script>
+// Si cette page est ouverte en iframe (depuis livreur.html), adapter le bouton final
+try {
+  if (window.parent && window.parent !== window) {
+    document.addEventListener('DOMContentLoaded', function () {
+      var b = document.getElementById('btn-continuer');
+      if (b) {
+        b.href = 'javascript:void(0)';
+        b.innerHTML = '<i class="ti ti-check"></i> Fermer';
+        b.onclick = function () { window.parent.postMessage('kyc-envoye', '*'); };
+      }
+    });
+  }
+} catch(e) {}
+</script>
 
 <!-- TOAST -->
 <div id="toast"></div>
@@ -1347,6 +1369,8 @@ function showSuccess() {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('success-screen').style.display = 'block';
   window.scrollTo({top:0,behavior:'smooth'});
+  // Si cette page est ouverte en iframe depuis livreur.html, on le prévient
+  try { if (window.parent && window.parent !== window) window.parent.postMessage('kyc-envoye', '*'); } catch(e) {}
 }
 
 // ── TOAST ──

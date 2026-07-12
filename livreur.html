@@ -2867,6 +2867,18 @@ let _lvRtcPeer = null, _lvRtcLocalStream = null, _lvRtcRemoteStream = null;
 let _lvRtcChannel = null, _lvRtcRole = null, _lvRtcTargetId = null;
 let _lvRtcRinging = null, _lvRtcCallTimer = null, _lvRtcSeconds = 0;
 let _lvRtcMuted = false, _lvRtcSpeaker = false;
+// ── Correctifs fiabilité appels ─────────────────────────
+let _lvRtcPendingIce = [];
+let _lvRtcRemoteSet = false;
+let _lvRtcRingTimeout = null;
+
+async function _lvFlushPendingIce() {
+  if (!_lvRtcPeer || !_lvRtcRemoteSet) return;
+  const queue = _lvRtcPendingIce; _lvRtcPendingIce = [];
+  for (const cand of queue) {
+    try { await _lvRtcPeer.addIceCandidate(new RTCIceCandidate(cand)); } catch(e) { console.warn('ICE flush échoué:', e); }
+  }
+}
 
 // ── Sonnerie téléphonique identique au client ──────────
 function _lvPlayRingtone(loop = true) {
@@ -2927,20 +2939,26 @@ function _lvBuildCallChannel(chName) {
   return sb.channel(chName)
     .on('broadcast', { event: 'ice' }, async ({ payload }) => {
       if (payload.from === currentUser.id) return;
-      try { await _lvRtcPeer?.addIceCandidate(new RTCIceCandidate(payload.candidate)); } catch(e){}
+      if (!_lvRtcRemoteSet) { _lvRtcPendingIce.push(payload.candidate); return; }
+      try { await _lvRtcPeer?.addIceCandidate(new RTCIceCandidate(payload.candidate)); } catch(e){ console.warn('ICE add échoué:', e); }
     })
     .on('broadcast', { event: 'hangup' }, () => lvRaccrocher(false));
 }
 
-// ── Créer PeerConnection (STUN multi-serveurs) ─────────
+// ── Créer PeerConnection (STUN + TURN) ─────────────────
 function _lvCreatePeer() {
   _lvRtcPeer = new RTCPeerConnection({
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:stun.cloudflare.com:3478' }
-    ]
+      { urls: 'stun:stun.cloudflare.com:3478' },
+      { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+    ],
+    iceCandidatePoolSize: 4
   });
+  _lvRtcRemoteSet = false; _lvRtcPendingIce = [];
   _lvRtcPeer.onicecandidate = e => {
     if (e.candidate && _lvRtcChannel) {
       _lvRtcChannel.send({ type: 'broadcast', event: 'ice',
@@ -2995,6 +3013,7 @@ async function lvCallContact() {
 async function _lvLancerAppel(targetId, nomContact, courseId) {
   if (_lvRtcPeer) return showToast('Appel déjà en cours', 'wa');
   _lvRtcRole = 'caller'; _lvRtcTargetId = targetId;
+  _lvRtcRemoteSet = false; _lvRtcPendingIce = [];
 
   try {
     const mediaErr = checkMediaSupport('audio');
@@ -3009,9 +3028,20 @@ async function _lvLancerAppel(targetId, nomContact, courseId) {
     .on('broadcast', { event: 'answer' }, async ({ payload }) => {
       if (payload.to !== currentUser.id) return;
       if (_lvRtcRinging) { _lvRtcRinging(); _lvRtcRinging = null; }
+      clearTimeout(_lvRtcRingTimeout); _lvRtcRingTimeout = null;
       await _lvRtcPeer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+      _lvRtcRemoteSet = true;
+      await _lvFlushPendingIce();
+      _lvRtcPeer.getTransceivers().forEach(tr => {
+        if (tr.receiver?.track?.kind === 'audio' || tr.sender?.track?.kind === 'audio') tr.direction = 'sendrecv';
+      });
       _lvStartCallTimer();
       _lvUpdateCallUI('connected');
+    })
+    .on('broadcast', { event: 'busy' }, ({ payload }) => {
+      if (payload.to !== currentUser.id) return;
+      showToast('📵 Ligne occupée', 'wa');
+      lvRaccrocher(false);
     })
     .on('broadcast', { event: 'hangup' }, () => lvRaccrocher(false))
     .subscribe(async status => {
@@ -3020,14 +3050,21 @@ async function _lvLancerAppel(targetId, nomContact, courseId) {
       _lvRtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _lvRtcLocalStream));
       const offer = await peer.createOffer();
       await peer.setLocalDescription(offer);
+      const offerPayload = { sdp: offer, from: currentUser.id, to: targetId, courseId,
+                              callerName: currentProfile?.prenom || 'Agent de service' };
       // Envoyer l'offer sur le canal commun
-      await _lvRtcChannel.send({ type: 'broadcast', event: 'offer',
-        payload: { sdp: offer, from: currentUser.id, to: targetId, courseId,
-                   callerName: currentProfile?.prenom || 'Agent de service' } });
-      // Canal personnel de la cible (écoute même sans conv ouverte)
-      await sb.channel('rtc-incoming-' + targetId).send({ type: 'broadcast', event: 'offer',
-        payload: { sdp: offer, from: currentUser.id, to: targetId, courseId,
-                   callerName: currentProfile?.prenom || 'Agent de service' } });
+      await _lvRtcChannel.send({ type: 'broadcast', event: 'offer', payload: offerPayload });
+      // Canal personnel de la cible (écoute même sans conv ouverte) — on s'abonne
+      // d'abord pour garantir que le broadcast soit bien livré.
+      try {
+        const incomingCh = sb.channel('rtc-incoming-' + targetId);
+        await new Promise(res => {
+          incomingCh.subscribe(s => { if (s === 'SUBSCRIBED') res(); });
+          setTimeout(res, 2500);
+        });
+        await incomingCh.send({ type: 'broadcast', event: 'offer', payload: offerPayload });
+        setTimeout(() => { try { sb.removeChannel(incomingCh); } catch(e){} }, 4000);
+      } catch(e) { console.warn('Notification canal entrant échouée:', e); }
       // Notification backup
       await sb.from('notifications').insert({
         utilisateur_id: targetId,
@@ -3035,9 +3072,17 @@ async function _lvLancerAppel(targetId, nomContact, courseId) {
         corps: `${currentProfile?.prenom||'Votre agent de service'} vous appelle via Allô Service`,
         type: 'appel_rtc',
         meta: { courseId, callerId: currentUser.id }
-      });
+      }).catch(()=>{});
       _lvRtcRinging = _lvPlayRingtone(true);
       _lvShowCallModal('caller', nomContact);
+
+      clearTimeout(_lvRtcRingTimeout);
+      _lvRtcRingTimeout = setTimeout(() => {
+        if (_lvRtcRole === 'caller' && !_lvRtcCallTimer) {
+          showToast('📵 Pas de réponse', 'wa');
+          lvRaccrocher(true);
+        }
+      }, 35000);
     });
 }
 
@@ -3045,6 +3090,7 @@ async function _lvLancerAppel(targetId, nomContact, courseId) {
 async function lvRepondreAppel(payload) {
   _lvRtcRole = 'callee'; _lvRtcTargetId = payload.from;
   if (_lvRtcRinging) { _lvRtcRinging(); _lvRtcRinging = null; }
+  clearTimeout(_lvRtcRingTimeout); _lvRtcRingTimeout = null;
   try {
     const mediaErr = checkMediaSupport('audio');
     if (mediaErr) { showToast(mediaErr, 'er'); return; }
@@ -3054,7 +3100,15 @@ async function lvRepondreAppel(payload) {
   } catch(e) { return showToast('🎤 Micro non autorisé', 'er'); }
   const peer = _lvRtcPeer || _lvCreatePeer();
   _lvRtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _lvRtcLocalStream));
-  await peer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+  if (!_lvRtcRemoteSet) {
+    await peer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+    _lvRtcRemoteSet = true;
+  }
+  await _lvFlushPendingIce();
+  // Correctif "audio à sens unique" (voir index.html pour l'explication complète)
+  peer.getTransceivers().forEach(tr => {
+    if (tr.receiver?.track?.kind === 'audio' || tr.sender?.track?.kind === 'audio') tr.direction = 'sendrecv';
+  });
   const answer = await peer.createAnswer();
   await peer.setLocalDescription(answer);
   await _lvRtcChannel.send({ type: 'broadcast', event: 'answer',
@@ -3068,12 +3122,16 @@ async function lvRepondreAppel(payload) {
 // ── Raccrocher ─────────────────────────────────────────
 function lvRaccrocher(sendSignal = true) {
   if (!_lvRtcPeer && !_lvRtcChannel && !_lvRtcLocalStream) {
-    closeModal('modal-lv-appel'); return;
+    closeModal('modal-lv-appel');
+    clearTimeout(_lvRtcRingTimeout); _lvRtcRingTimeout = null;
+    return;
   }
   if (sendSignal && _lvRtcChannel)
     _lvRtcChannel.send({ type: 'broadcast', event: 'hangup', payload: { from: currentUser.id } }).catch(()=>{});
   if (_lvRtcRinging) { _lvRtcRinging(); _lvRtcRinging = null; }
   clearInterval(_lvRtcCallTimer); _lvRtcCallTimer = null;
+  clearTimeout(_lvRtcRingTimeout); _lvRtcRingTimeout = null;
+  _lvRtcRemoteSet = false; _lvRtcPendingIce = [];
   const audioEl = document.getElementById('lv-rtc-remote-audio');
   if (audioEl) { audioEl.pause(); audioEl.srcObject = null; }
   if (_lvRtcLocalStream) { _lvRtcLocalStream.getTracks().forEach(t => t.stop()); _lvRtcLocalStream = null; }
@@ -3144,16 +3202,44 @@ function startLvRTCListener() {
   sb.channel('rtc-incoming-' + currentUser.id)
     .on('broadcast', { event: 'offer' }, async ({ payload }) => {
       if (payload.to !== currentUser.id) return;
-      if (_lvRtcPeer) return; // déjà en appel
+      if (_lvRtcPeer) {
+        try {
+          const busyCh = sb.channel('rtc-incoming-' + payload.from);
+          await new Promise(res => { busyCh.subscribe(s => s === 'SUBSCRIBED' && res()); setTimeout(res, 1500); });
+          await busyCh.send({ type: 'broadcast', event: 'busy', payload: { to: payload.from, from: currentUser.id } });
+          setTimeout(() => { try { sb.removeChannel(busyCh); } catch(e){} }, 3000);
+        } catch(e) {}
+        return;
+      }
       const chName = 'rtc-call-' + [payload.from, currentUser.id].sort().join('-');
       _lvRtcChannel = _lvBuildCallChannel(chName)
         .on('broadcast', { event: 'answer' }, () => {}); // géré côté appelant
-      await new Promise(res => _lvRtcChannel.subscribe(s => s === 'SUBSCRIBED' && res()));
+      await new Promise(res => { _lvRtcChannel.subscribe(s => s === 'SUBSCRIBED' && res()); setTimeout(res, 3000); });
       _lvCreatePeer();
+      // Poser la remoteDescription dès l'offre reçue pour laisser l'ICE démarrer
+      // pendant la sonnerie, et ne pas perdre les premiers candidats de l'appelant.
+      try {
+        await _lvRtcPeer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+        _lvRtcRemoteSet = true;
+        await _lvFlushPendingIce();
+      } catch(e) { console.warn('setRemoteDescription (offre) échoué:', e); }
       _lvRtcRinging = _lvPlayRingtone(true);
       const nomAppelant = payload.callerName || 'Client';
       _lvShowCallModal('callee', nomAppelant);
       document.getElementById('lv-call-repondre').onclick = () => lvRepondreAppel(payload);
+
+      clearTimeout(_lvRtcRingTimeout);
+      _lvRtcRingTimeout = setTimeout(() => {
+        if (_lvRtcRole !== 'callee' || !_lvRtcCallTimer) {
+          showToast('📵 Appel manqué de ' + nomAppelant, 'wa');
+          lvRaccrocher(true);
+        }
+      }, 30000);
+    })
+    .on('broadcast', { event: 'busy' }, ({ payload }) => {
+      if (payload.to !== currentUser.id) return;
+      showToast('📵 Ligne occupée', 'wa');
+      lvRaccrocher(false);
     })
     .subscribe();
 }

@@ -2,31 +2,79 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Allô Livreur — Livreur</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<script>
+/* Filet de sécurité pour la barre de statut (horloge/batterie) en mode
+   plein écran / edge-to-edge, quand env(safe-area-inset-top) n'est pas
+   fiable sur certaines WebViews Android. Voir même logique que index.html. */
+(function () {
+  function applyStatusBarSafeArea() {
+    try {
+      var screenH = (window.screen && window.screen.height) || 0;
+      var innerH  = window.innerHeight || 0;
+      if (!screenH || !innerH) return;
+      var gap = screenH - innerH;
+      var looksEdgeToEdge = gap < 16;
+      var root = document.documentElement;
+      if (looksEdgeToEdge) {
+        var dpr = window.devicePixelRatio || 1;
+        var fallbackPx = Math.round(24 * Math.min(Math.max(dpr, 1), 2));
+        root.style.setProperty('--status-safe-top', fallbackPx + 'px');
+      } else {
+        root.style.setProperty('--status-safe-top', '0px');
+      }
+    } catch (e) {}
+  }
+  applyStatusBarSafeArea();
+  window.addEventListener('resize', applyStatusBarSafeArea);
+  window.addEventListener('orientationchange', applyStatusBarSafeArea);
+  document.addEventListener('visibilitychange', applyStatusBarSafeArea);
+})();
+</script>
+<title>Allô Service — Agent de service</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"/>
 <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
 <style>
 :root{
-  --primary:#F97316;--primary-dark:#C2410C;--primary-light:#FFF7ED;
-  --bg:#F8F7F4;--surface:#FFFFFF;--surface2:#F3F2EE;
-  --text:#1A1A18;--text2:#6B6860;--text3:#A8A69F;
-  --border:#E8E6E0;--border2:#D4D0C8;
-  --success:#16A34A;--danger:#DC2626;--info:#2563EB;--warning:#D97706;
-  --radius:12px;--radius-sm:8px;--radius-xs:6px;
-  --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.04);
-  --shadow-lg:0 8px 32px rgba(0,0,0,.12);
+  /* Brand */
+  --primary:#FF4C29;--primary-dark:#CC2900;--primary-light:#FFF1EE;
+  --primary-glow:rgba(255,76,41,.18);
+  --accent:#00C2A8;--accent-light:#E6FAF8;
+  /* Surfaces */
+  --bg:#F5F6FA;--surface:#FFFFFF;--surface2:#EEF0F6;--surface3:#E4E7F0;
+  /* Navy */
+  --navy:#0D1B2A;--navy2:#1A2E42;--navy3:#243B55;
+  /* Text */
+  --text:#0D1B2A;--text2:#4A5568;--text3:#94A3B8;--text-inv:#FFFFFF;
+  /* Borders */
+  --border:#E2E8F0;--border2:#CBD5E1;
+  /* Semantic */
+  --success:#10B981;--danger:#EF4444;--warning:#F59E0B;--info:#3B82F6;
+  /* Dimensions */
+  --radius:16px;--radius-sm:10px;--radius-xs:8px;--radius-pill:50px;
+  /* Shadows */
+  --shadow:0 2px 8px rgba(13,27,42,.06),0 1px 2px rgba(13,27,42,.04);
+  --shadow-md:0 4px 16px rgba(13,27,42,.1);
+  --shadow-lg:0 12px 40px rgba(13,27,42,.15);
+  --shadow-primary:0 4px 20px rgba(255,76,41,.35);
+  /* Fonts */
   --font:'Inter',sans-serif;--font-display:'Poppins',sans-serif;
+  /* Topbar */
+  --topbar-h:58px;
+  /* Bottom nav */
+  --nav-h:68px;
+  --status-safe-top:0px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden;height:100vh;width:100vw}
+html{overflow-x:hidden;max-width:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden;overflow-x:hidden;height:100vh;height:100dvh;width:100vw;max-width:100%}
 
 /* ═══ AUTH SCREEN */
-#auth-screen{position:fixed;inset:0;background:var(--text);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;padding:2rem}
+#auth-screen{position:fixed;inset:0;background:var(--text);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;padding:2rem;padding-top:max(2rem, env(safe-area-inset-top,0px));padding-bottom:max(2rem, env(safe-area-inset-bottom,0px))}
 #auth-screen .logo{font-family:var(--font-display);color:#fff;font-size:2rem;font-weight:800;letter-spacing:-0.5px}
 #auth-screen .logo span{color:var(--primary)}
 #auth-screen .tagline{color:#A8A69F;font-size:.9rem;text-align:center}
@@ -91,17 +139,28 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 .course-card-head{padding:.75rem 1rem;background:var(--bg);display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--border)}
 .course-card-body{padding:.75rem 1rem}
 .course-action-btns{display:flex;gap:.5rem;padding:.75rem 1rem;border-top:1px solid var(--border)}
-.btn-accept{flex:1;padding:.65rem;background:var(--success);color:#fff;border:none;border-radius:var(--radius-xs);font-family:var(--font);font-weight:600;font-size:.88rem;cursor:pointer;transition:background .2s}
+.btn-accept{flex:1;padding:.7rem;background:var(--success);color:#fff;border:none;border-radius:999px;font-family:var(--font);font-weight:700;font-size:.88rem;cursor:pointer;transition:background .2s;box-shadow:0 4px 14px rgba(16,185,129,.35)}
 .btn-accept:hover{background:#15803D}
-.btn-reject{flex:1;padding:.65rem;background:transparent;color:var(--danger);border:1.5px solid var(--danger);border-radius:var(--radius-xs);font-family:var(--font);font-weight:600;font-size:.88rem;cursor:pointer;transition:background .2s}
+.btn-reject{flex:1;padding:.7rem;background:transparent;color:var(--danger);border:1.5px solid var(--danger);border-radius:999px;font-family:var(--font);font-weight:700;font-size:.88rem;cursor:pointer;transition:background .2s}
 .btn-reject:hover{background:#FEF2F2}
 .btn-primary{background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:.75rem 1.25rem;font-family:var(--font);font-weight:600;cursor:pointer;font-size:.9rem;width:100%;transition:background .2s}
 .btn-primary:hover{background:var(--primary-dark)}
 
 /* Wallet card */
 .wallet-hero{background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:var(--radius);padding:1.25rem;color:#fff;margin:.75rem}
+.wallet-hero.row{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:1.1rem 1.25rem}
+.wallet-hero.overlap{margin:-2.75rem .9rem .75rem;position:relative;z-index:2;box-shadow:0 10px 28px rgba(249,115,22,.35)}
 .wallet-hero .label{font-size:.78rem;opacity:.8}
 .wallet-hero .amount{font-size:1.8rem;font-weight:800;font-family:var(--font-display);margin:.2rem 0}
+.wallet-hero.row .amount{font-size:1.5rem;margin:.15rem 0 0}
+.wallet-btn-pill{flex-shrink:0;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:.5rem .95rem;font-size:.76rem;font-weight:700;font-family:var(--font);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:.3rem}
+.wallet-btn-pill:active{background:rgba(255,255,255,.3)}
+/* Gozem-style quick-access icon grid */
+.mob-quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;padding:.1rem .9rem .9rem}
+.mob-quick-item{display:flex;flex-direction:column;align-items:center;gap:.4rem;cursor:pointer;border:none;background:none;font-family:var(--font)}
+.mob-quick-icon{width:50px;height:50px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;color:var(--primary);background:var(--primary-light);box-shadow:var(--shadow);transition:transform .15s}
+.mob-quick-item:active .mob-quick-icon{transform:scale(.93)}
+.mob-quick-lbl{font-size:.64rem;font-weight:700;color:var(--text);text-align:center;line-height:1.15}
 .wallet-btns{display:flex;gap:.5rem;margin-top:.85rem}
 .wallet-btn{flex:1;padding:.6rem;border-radius:var(--radius-xs);font-family:var(--font);font-weight:600;font-size:.82rem;cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;gap:.3rem}
 .wallet-btn.retrait{background:rgba(255,255,255,.18);color:#fff}
@@ -132,26 +191,32 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 .pd-item.danger:hover{background:#FEF2F2}
 
 /* MOBILE LAYOUT */
-#mobile-layout{display:none;height:100vh;width:100vw;flex-direction:column;background:var(--bg)}
-.mob-page{display:none;flex:1;flex-direction:column;overflow:hidden;position:relative}
+#mobile-layout{display:none;height:100vh;height:100dvh;width:100vw;max-width:100%;flex-direction:column;background:var(--bg);overflow:hidden;
+  padding-top:max(env(safe-area-inset-top,0px), var(--status-safe-top,0px));
+}
+.mob-page{display:none;flex:1;flex-direction:column;overflow:hidden;position:relative;min-height:0}
 .mob-page.active{display:flex}
 .mob-topbar{height:56px;background:var(--surface);display:flex;align-items:center;padding:0 1rem;gap:.75rem;border-bottom:1px solid var(--border);flex-shrink:0}
 .mob-topbar .logo{font-family:var(--font-display);font-size:1.1rem;font-weight:800;letter-spacing:-0.3px}
 .mob-topbar .logo span{color:var(--primary)}
 .mob-topbar-right{margin-left:auto;display:flex;gap:.5rem}
-#mob-map{width:100%;height:100%}
+/* Conteneur de la carte : occupe tout l'espace restant, ne pousse jamais la nav du bas */
+.mob-map-wrap{flex:1;min-height:0;position:relative;overflow:hidden}
+#mob-map{position:absolute;inset:0;width:100% !important;height:100% !important;z-index:1}
+.leaflet-container{width:100% !important;height:100% !important}
 .mob-fab{position:absolute;bottom:1rem;right:1rem;width:54px;height:54px;border-radius:50%;background:var(--primary);color:#fff;border:none;display:flex;align-items:center;justify-content:center;font-size:1.4rem;box-shadow:var(--shadow-lg);cursor:pointer;z-index:10}
 .mob-page-head{padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0}
 .mob-back-btn{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2)}
 .mob-page-title{font-weight:700;font-size:1rem}
-.mob-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.mob-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0}
 
-/* Bottom nav */
-.mob-nav{height:64px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:stretch;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom)}
-.mob-nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:.65rem;font-family:var(--font);font-weight:500;transition:color .2s;position:relative}
-.mob-nav-btn i{font-size:1.35rem}
-.mob-nav-btn.active{color:var(--primary)}
-.mob-nav-btn .nav-badge{position:absolute;top:6px;right:calc(50% - 14px);min-width:16px;height:16px;padding:0 4px;background:var(--danger);border-radius:50px;border:2px solid var(--surface);font-size:.6rem;font-weight:700;color:#fff;display:none;align-items:center;justify-content:center}
+/* Bottom nav — hauteur garantie, jamais rognée par la safe-area (encoche/barre de gestes) */
+.mob-nav{height:calc(64px + env(safe-area-inset-bottom,0px));box-sizing:border-box;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:stretch;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0px);width:100%;position:relative;z-index:50}
+.mob-nav-btn{flex:1;min-width:0;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:.62rem;font-family:var(--font);font-weight:600;transition:color .2s;position:relative;padding:6px 2px}
+.mob-nav-btn i{font-size:1.25rem;transition:background .18s,color .18s;width:38px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:999px}
+.mob-nav-btn.active{color:var(--primary);font-weight:800}
+.mob-nav-btn.active i{background:var(--primary-light);color:var(--primary)}
+.mob-nav-btn .nav-badge{position:absolute;top:2px;right:calc(50% - 20px);min-width:16px;height:16px;padding:0 4px;background:var(--danger);border-radius:50px;border:2px solid var(--surface);font-size:.6rem;font-weight:700;color:#fff;display:none;align-items:center;justify-content:center}
 
 /* SOS Button */
 .sos-btn{position:absolute;bottom:1rem;left:1rem;background:#DC2626;color:#fff;border:none;border-radius:50px;padding:.6rem 1.1rem;font-family:var(--font);font-weight:800;font-size:.88rem;cursor:pointer;z-index:10;display:flex;align-items:center;gap:.4rem;box-shadow:0 4px 12px rgba(220,38,38,.5);animation:sosPulse 2s infinite}
@@ -159,7 +224,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 .sos-btn:active{transform:scale(.95)}
 
 /* Course demande card (mobile) */
-.demande-card{margin:.5rem .75rem;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border-left:4px solid var(--primary)}
+.demande-card{margin:.5rem .75rem;background:var(--surface);border-radius:20px;box-shadow:0 8px 28px rgba(13,27,42,.18);overflow:hidden;border-left:4px solid var(--primary)}
+.demande-mini-map{width:100%;height:100px;border-radius:12px;overflow:hidden;background:var(--bg);margin-bottom:.5rem;border:1px solid var(--border)}
+.demande-mini-map .leaflet-container{background:var(--bg)}
 .demande-head{padding:.65rem 1rem;background:var(--primary-light);display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--border)}
 .demande-body{padding:.75rem 1rem;display:flex;flex-direction:column;gap:.5rem}
 .route-row{display:flex;align-items:flex-start;gap:.6rem}
@@ -169,7 +236,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 .route-line{width:1px;height:14px;background:var(--border2);margin-left:4px;margin-right:auto}
 
 /* Cours en cours banner */
-.course-banner{background:var(--surface);border-radius:var(--radius);margin:.5rem .75rem;box-shadow:var(--shadow);padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;border-left:4px solid var(--success)}
+.course-banner{background:var(--surface);border-radius:20px;margin:.5rem .75rem;box-shadow:0 8px 28px rgba(13,27,42,.18);padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;border-left:4px solid var(--success)}
 .pulse{width:10px;height:10px;border-radius:50%;background:var(--success);animation:pulse 1.5s infinite;flex-shrink:0}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.3)}}
 
@@ -228,7 +295,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 .info-val{font-size:.86rem;font-weight:600}
 
 /* Profile hero mob */
-.mob-profile-hero{padding:1.5rem 1rem;background:var(--surface);display:flex;flex-direction:column;align-items:center;gap:.75rem;border-bottom:1px solid var(--border)}
+.mob-profile-hero{padding:1.5rem 1rem 3rem;background:var(--surface);display:flex;flex-direction:column;align-items:center;gap:.75rem;border-bottom:1px solid var(--border)}
 .mob-profile-ava{width:80px;height:80px;border-radius:50%;overflow:hidden;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:1.8rem;border:3px solid var(--border);position:relative}
 .mob-profile-ava img{width:100%;height:100%;object-fit:cover}
 .mob-profile-ava .edit-ava{position:absolute;bottom:0;right:0;width:26px;height:26px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.8rem;border:2px solid #fff}
@@ -239,7 +306,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 .mob-menu-item .chevron{margin-left:auto;font-size:.9rem;color:var(--text3)}
 
 /* WhatsApp Chat */
-#mob-chat-page{position:fixed;inset:0;z-index:300;background:var(--surface);flex-direction:column;overflow:hidden;display:none}
+#mob-chat-page{position:fixed;inset:0;z-index:300;background:var(--surface);flex-direction:column;overflow:hidden;display:none;
+  padding-top:max(env(safe-area-inset-top,0px), var(--status-safe-top,0px));
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
 #mob-chat-page.active{display:flex}
 .wa-bg{background:#e5ddd5}
 .wa-msgs{flex:1;overflow-y:auto;padding:.6rem .75rem;display:flex;flex-direction:column;gap:1px;position:relative;z-index:1;scroll-behavior:smooth;min-width:0}
@@ -362,21 +432,121 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 @media (max-width:768px){
   #pc-layout{display:none !important}
   #mobile-layout{display:flex !important}
+  #mobile-layout{height:100vh;height:100dvh}
+  .mob-map-wrap{flex:1;min-height:0;overflow:hidden}
+  #mob-map{position:absolute !important;inset:0;width:100% !important;height:100% !important}
+  .mob-nav{flex-shrink:0 !important;box-sizing:border-box !important;height:calc(64px + env(safe-area-inset-bottom,0px)) !important}
 }
 @media (min-width:769px){
   #pc-layout{display:flex !important}
   #mobile-layout{display:none !important}
 }
+
+/* ══════════════════════════════════════════════════════════════
+   Icônes — Material Symbols (Google Fonts) en remplacement de Tabler
+   (voir index.html pour l'explication complète)
+   ══════════════════════════════════════════════════════════════ */
+.ti{display:inline-block;line-height:1;vertical-align:-2px}
+[class^="ti-"]:before,[class*=" ti-"]:before{
+  font-family:'Material Symbols Outlined' !important;
+  font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;
+  font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;
+  text-transform:none;white-space:nowrap;word-wrap:normal;direction:ltr;
+  -webkit-font-smoothing:antialiased;
+}
+.ti-alert-triangle:before{content:"warning"}
+.ti-arrow-left:before{content:"arrow_back"}
+.ti-arrows-right-left:before{content:"swap_horiz"}
+.ti-ban:before{content:"block"}
+.ti-bell:before{content:"notifications"}
+.ti-bell-off:before{content:"notifications_off"}
+.ti-bike:before{content:"pedal_bike"}
+.ti-bolt:before{content:"bolt"}
+.ti-brand-whatsapp:before{content:"chat"}
+.ti-calendar:before{content:"calendar_month"}
+.ti-calendar-check:before{content:"event_available"}
+.ti-calendar-time:before{content:"update"}
+.ti-camera:before{content:"photo_camera"}
+.ti-car:before{content:"directions_car"}
+.ti-cash:before{content:"payments"}
+.ti-chart-bar:before{content:"bar_chart"}
+.ti-check:before{content:"check"}
+.ti-chevron-down:before{content:"expand_more"}
+.ti-chevron-right:before{content:"chevron_right"}
+.ti-circle-check-filled:before{content:"check_circle";font-variation-settings:'FILL' 1}
+.ti-clock:before{content:"schedule"}
+.ti-coin:before{content:"paid"}
+.ti-copy:before{content:"content_copy"}
+.ti-credit-card:before{content:"credit_card"}
+.ti-crown:before{content:"workspace_premium"}
+.ti-current-location:before{content:"my_location"}
+.ti-download:before{content:"download"}
+.ti-edit:before{content:"edit"}
+.ti-file-plus:before{content:"note_add"}
+.ti-gift:before{content:"redeem"}
+.ti-heart:before{content:"favorite"}
+.ti-heart-filled:before{content:"favorite";font-variation-settings:'FILL' 1}
+.ti-history:before{content:"history"}
+.ti-home-2:before{content:"home"}
+.ti-loader:before{content:"autorenew"}
+.ti-logout:before{content:"logout"}
+.ti-map-2:before{content:"map"}
+.ti-map-off:before{content:"location_off"}
+.ti-map-pin:before{content:"location_on"}
+.ti-map-pin-bolt:before{content:"near_me"}
+.ti-map-pin-filled:before{content:"location_on";font-variation-settings:'FILL' 1}
+.ti-map-pins:before{content:"pin_drop"}
+.ti-message:before{content:"chat_bubble"}
+.ti-message-2:before{content:"forum"}
+.ti-message-circle:before{content:"chat"}
+.ti-messages:before{content:"forum"}
+.ti-microphone:before{content:"mic"}
+.ti-microphone-off:before{content:"mic_off"}
+.ti-motorbike:before{content:"two_wheeler"}
+.ti-navigation:before{content:"navigation"}
+.ti-package:before{content:"inventory_2"}
+.ti-paperclip:before{content:"attach_file"}
+.ti-pencil:before{content:"edit"}
+.ti-phone:before{content:"call"}
+.ti-phone-call:before{content:"phone_in_talk"}
+.ti-phone-off:before{content:"phone_disabled"}
+.ti-photo:before{content:"image"}
+.ti-player-pause:before{content:"pause"}
+.ti-player-play:before{content:"play_arrow"}
+.ti-plus:before{content:"add"}
+.ti-refresh:before{content:"refresh"}
+.ti-road:before{content:"add_road"}
+.ti-route:before{content:"route"}
+.ti-search:before{content:"search"}
+.ti-send:before{content:"send"}
+.ti-share:before{content:"share"}
+.ti-shield-check:before{content:"verified_user"}
+.ti-shopping-bag:before{content:"shopping_bag"}
+.ti-shopping-cart:before{content:"shopping_cart"}
+.ti-star:before{content:"star"}
+.ti-steering-wheel:before{content:"sports_motorsports"}
+.ti-tools:before{content:"build"}
+.ti-transfer:before{content:"swap_horiz"}
+.ti-trash:before{content:"delete"}
+.ti-upload:before{content:"upload"}
+.ti-urgent:before{content:"emergency"}
+.ti-user:before{content:"person"}
+.ti-user-edit:before{content:"manage_accounts"}
+.ti-user-off:before{content:"person_off"}
+.ti-users:before{content:"group"}
+.ti-volume:before{content:"volume_up"}
+.ti-wallet:before{content:"account_balance_wallet"}
+.ti-x:before{content:"close"}
 </style>
 </head>
 <body>
 
 <!-- ─────────────────── AUTH SCREEN -->
 <div id="auth-screen">
-  <div class="logo">Allô <span>Livreur</span></div>
-  <p class="tagline">Espace Livreur — Bénin 🇧🇯</p>
+  <div class="logo">Allô <span>Service</span></div>
+  <p class="tagline">Espace Agent de service — Bénin 🇧🇯</p>
   <div class="auth-card">
-    <h2>Connexion Livreur</h2>
+    <h2>Connexion Agent de service</h2>
     <p>Accédez à votre espace de travail</p>
     <div class="auth-error" id="auth-error"></div>
     <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="votre@email.com" autocomplete="email"></div>
@@ -386,10 +556,34 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
   </div>
 </div>
 
+<!-- ─────────────────── ÉCRAN STATUT KYC (compte connecté mais pas encore livreur actif) -->
+<div id="kyc-status-screen" style="display:none;position:fixed;inset:0;z-index:9998;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;padding:2rem;padding-top:max(2rem, env(safe-area-inset-top,0px));padding-bottom:max(2rem, env(safe-area-inset-bottom,0px));text-align:center">
+  <div id="kyc-status-icon" style="font-size:3rem;margin-bottom:1rem">⏳</div>
+  <h2 id="kyc-status-title" style="font-family:var(--font-display);font-size:1.25rem;font-weight:800;color:var(--navy);margin-bottom:.6rem">Dossier en cours de vérification</h2>
+  <p id="kyc-status-text" style="font-size:.9rem;color:var(--text2);line-height:1.6;max-width:340px;margin-bottom:1.5rem">
+    Votre dossier a bien été reçu. Notre équipe l'examine sous 24 à 48h. Vous serez notifié dès qu'il sera traité.
+  </p>
+  <button id="kyc-retry-btn" style="display:none;width:100%;max-width:320px;padding:.9rem;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;border-radius:10px;font-family:var(--font);font-weight:700;font-size:.95rem;cursor:pointer;margin-bottom:.75rem" onclick="openKycRetry()">
+    <i class="ti ti-refresh"></i> Réessayer / Renvoyer mon dossier
+  </button>
+  <button style="width:100%;max-width:320px;padding:.75rem;background:transparent;color:var(--text2);border:1.5px solid var(--border2);border-radius:10px;font-family:var(--font);font-size:.88rem;cursor:pointer" onclick="doLogout()">
+    Déconnexion
+  </button>
+</div>
+
+<!-- ─────────────────── OVERLAY : formulaire KYC intégré (go.html en iframe, même session Supabase) -->
+<div id="kyc-embed-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg);flex-direction:column">
+  <div style="height:52px;flex-shrink:0;display:flex;align-items:center;gap:.75rem;padding:0 1rem;background:var(--navy);padding-top:env(safe-area-inset-top,0px)">
+    <button onclick="closeKycRetry()" style="width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer"><i class="ti ti-x"></i></button>
+    <span style="color:#fff;font-weight:700;font-size:.92rem">Mon dossier KYC</span>
+  </div>
+  <iframe id="kyc-embed-iframe" src="about:blank" style="flex:1;border:none;width:100%"></iframe>
+</div>
+
 <!-- ─────────────────── PC LAYOUT -->
 <div id="pc-layout">
   <div class="pc-topbar">
-    <div class="logo">Allô <span>Livreur</span> <span style="font-size:.7rem;background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:50px;font-weight:600;margin-left:.4rem">Livreur</span></div>
+    <div class="logo">Allô <span>Service</span> <span style="font-size:.7rem;background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:50px;font-weight:600;margin-left:.4rem">Agent</span></div>
 
     <!-- Status toggle PC -->
     <div style="display:flex;align-items:center;gap:.6rem;margin-left:1.5rem">
@@ -425,6 +619,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
           <div class="pd-item" onclick="openModal('modal-profil')"><i class="ti ti-user"></i> Mon profil</div>
           <div class="pd-item" onclick="openModal('modal-wallet')"><i class="ti ti-wallet"></i> Wallet & Retraits</div>
           <div class="pd-item" onclick="openModal('modal-vehicule')"><i class="ti ti-car"></i> Mon véhicule & Chauffeur</div>
+          <a class="pd-item" style="text-decoration:none" href="https://github.com/rcharda/myboxtv/releases/download/v1.0/Allo_Espace_Livreur_1.0_signed.apk" download><i class="ti ti-download"></i> Télécharger l'application (APK)</a>
           <div class="pd-item" onclick="openModal('modal-mon-artisan');chargerMonArtisan()"><i class="ti ti-tools"></i> Allô Artisans — Ma vitrine</div>
           <div class="pd-item danger" onclick="declencherSOS()" style="color:var(--danger);font-weight:700"><i class="ti ti-alert-triangle"></i> 🆘 Alerte SOS urgence</div>
           <div class="pd-item danger" onclick="doLogout()"><i class="ti ti-logout"></i> Déconnexion</div>
@@ -534,7 +729,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
   <!-- ═══ PAGE CARTE -->
   <div class="mob-page active" id="mob-map-page">
     <div class="mob-topbar">
-      <div class="logo">Allô <span>Livreur</span></div>
+      <div class="logo">Allô <span>Service</span></div>
       <div style="display:flex;align-items:center;gap:.4rem;margin-left:.75rem">
         <div class="status-dot" id="mob-status-dot"></div>
         <label class="toggle-sw"><input type="checkbox" id="mob-online-toggle" onchange="toggleStatut(this.checked)"><span class="slider"></span></label>
@@ -544,7 +739,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
         <button class="avatar-btn" id="mob-avatar-btn" onclick="switchMobPage('profil')"><img id="mob-avatar-img" style="display:none"><span id="mob-avatar-initials">?</span></button>
       </div>
     </div>
-    <div style="flex:1;position:relative">
+    <div class="mob-map-wrap">
       <div id="mob-map"></div>
       <!-- SOS button -->
       <button class="sos-btn" onclick="envoiSOS()"><i class="ti ti-urgent"></i> SOS</button>
@@ -556,7 +751,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
   <!-- ═══ PAGE COURSES -->
   <div class="mob-page" id="mob-courses-page">
     <div class="mob-topbar">
-      <div class="logo">Allô <span>Livreur</span></div>
+      <div class="logo">Allô <span>Service</span></div>
       <div class="mob-topbar-right">
         <span id="mob-demandes-badge" style="display:none;background:var(--danger);color:#fff;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:50px"></span>
       </div>
@@ -650,17 +845,28 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
         </div>
       </div>
       <!-- Wallet card -->
-      <div class="wallet-hero" style="margin:.75rem">
-        <div class="label">Solde disponible</div>
-        <div class="amount" id="mob-wallet-amount">0 FCFA</div>
-        <div style="font-size:.75rem;opacity:.75">MTN & Moov Money via FedaPay</div>
-        <div class="wallet-btns">
-          <button class="wallet-btn retrait" onclick="openModal('modal-retrait')"><i class="ti ti-cash"></i> Retirer mes gains</button>
+      <div class="wallet-hero row overlap">
+        <div>
+          <div class="label">Solde disponible</div>
+          <div class="amount" id="mob-wallet-amount">0 FCFA</div>
+          <div style="font-size:.72rem;opacity:.75">MTN & Moov Money via FedaPay</div>
         </div>
+        <button type="button" class="wallet-btn-pill" onclick="openModal('modal-retrait')"><i class="ti ti-cash"></i> Retirer</button>
+      </div>
+      <div class="mob-quick-grid">
+        <button type="button" class="mob-quick-item" onclick="switchMobPage('carte')"><div class="mob-quick-icon"><i class="ti ti-map-2"></i></div><span class="mob-quick-lbl">Carte</span></button>
+        <button type="button" class="mob-quick-item" onclick="switchMobPage('courses')"><div class="mob-quick-icon"><i class="ti ti-motorbike"></i></div><span class="mob-quick-lbl">Courses</span></button>
+        <button type="button" class="mob-quick-item" onclick="openModal('modal-wallet')"><div class="mob-quick-icon"><i class="ti ti-wallet"></i></div><span class="mob-quick-lbl">Transactions</span></button>
+        <button type="button" class="mob-quick-item" onclick="openModal('modal-vehicule')"><div class="mob-quick-icon"><i class="ti ti-motorbike"></i></div><span class="mob-quick-lbl">Véhicule</span></button>
+        <button type="button" class="mob-quick-item" onclick="switchMobPage('messages')"><div class="mob-quick-icon"><i class="ti ti-message-2"></i></div><span class="mob-quick-lbl">Messages</span></button>
+        <button type="button" class="mob-quick-item" onclick="openModal('modal-profil')"><div class="mob-quick-icon"><i class="ti ti-user"></i></div><span class="mob-quick-lbl">Profil</span></button>
+        <button type="button" class="mob-quick-item" onclick="declencherSOS()"><div class="mob-quick-icon" style="color:#DC2626;background:#FEE2E2"><i class="ti ti-alert-triangle"></i></div><span class="mob-quick-lbl">SOS</span></button>
+        <a class="mob-quick-item" style="text-decoration:none" href="https://github.com/rcharda/myboxtv/releases/download/v1.0/Allo_Espace_Livreur_1.0_signed.apk" download><div class="mob-quick-icon"><i class="ti ti-download"></i></div><span class="mob-quick-lbl">APK</span></a>
       </div>
       <div class="mob-menu-item" onclick="openModal('modal-profil')"><i class="ti ti-user"></i> Modifier mon profil <i class="ti ti-chevron-right chevron"></i></div>
       <div class="mob-menu-item" onclick="openModal('modal-wallet')"><i class="ti ti-wallet"></i> Transactions <i class="ti ti-chevron-right chevron"></i></div>
       <div class="mob-menu-item" onclick="openModal('modal-vehicule')"><i class="ti ti-motorbike"></i> Mon véhicule <i class="ti ti-chevron-right chevron"></i></div>
+      <a class="mob-menu-item" style="text-decoration:none;color:var(--text)" href="https://github.com/rcharda/myboxtv/releases/download/v1.0/Allo_Espace_Livreur_1.0_signed.apk" download><i class="ti ti-download"></i> Télécharger l'application (APK) <i class="ti ti-chevron-right chevron"></i></a>
       <div class="mob-menu-item" style="color:var(--danger);font-weight:700" onclick="declencherSOS()"><i class="ti ti-alert-triangle" style="color:var(--danger)"></i> 🆘 Alerte SOS urgence <i class="ti ti-chevron-right chevron"></i></div>
       <div class="mob-menu-item" style="color:var(--danger)" onclick="doLogout()"><i class="ti ti-logout" style="color:var(--danger)"></i> Déconnexion</div>
     </div>
@@ -693,7 +899,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
         <button onclick="setUserTab('tous',this)" style="padding:.35rem .85rem;border-radius:50px;border:1.5px solid var(--primary);background:var(--primary);color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font)">Tous</button>
         <button onclick="setUserTab('client',this)" style="padding:.35rem .85rem;border-radius:50px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font)">Clients</button>
         <button onclick="setUserTab('marchand',this)" style="padding:.35rem .85rem;border-radius:50px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font)">Marchands</button>
-        <button onclick="setUserTab('livreur',this)" style="padding:.35rem .85rem;border-radius:50px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font)">Livreurs</button>
+        <button onclick="setUserTab('livreur',this)" style="padding:.35rem .85rem;border-radius:50px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font)">Agents</button>
         <button onclick="setUserTab('admin',this)" style="padding:.35rem .85rem;border-radius:50px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font)">Admin</button>
       </div>
       <div id="user-search-results" style="max-height:320px;overflow-y:auto">
@@ -744,6 +950,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
         <div class="field"><label>Tarif chauffeur par km (FCFA)</label><input type="number" id="veh-tarif-km-chauffeur" placeholder="250" min="50"></div>
         <div class="field"><label>Tarif chauffeur par heure (FCFA)</label><input type="number" id="veh-tarif-heure-chauffeur" placeholder="1000" min="200"></div>
       </div>
+      <hr style="border:none;border-top:1px solid var(--border2);margin:1.1rem 0">
+      <label style="display:flex;align-items:center;gap:.5rem;padding:.6rem .75rem;border:1.5px solid var(--border2);border-radius:var(--radius-xs);cursor:pointer;font-size:.86rem;font-weight:700">
+        <input type="checkbox" id="veh-mode-independant" style="width:18px;height:18px;accent-color:#7C3AED;flex-shrink:0">
+        💰 Mode Indépendant Pilote
+      </label>
+      <div style="font-size:.76rem;color:var(--text2);margin:.4rem 0 .9rem">Plus de prix fixe : le client détaille son lieu (texte/audio) et propose son propre prix. Vous pouvez l'accepter, exiger sa confirmation définitive, ou refuser (la demande passe alors à l'agent de service disponible le plus proche).</div>
       <button class="btn-primary" onclick="sauvegarderVehicule()">Enregistrer</button>
     </div>
   </div>
@@ -969,6 +1181,37 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
 });
 const FEDAPAY_PK = 'pk_live_1i7UkFPVn-pUhhO1OnoKQncy';
 
+// ── FedaPay (paiement de régularisation) ──
+function openFedaPay(amount){
+  return new Promise(resolve=>{
+    let resolved = false;
+    const done = (val) => { if(!resolved){ resolved=true; resolve(val); } };
+    const safetyTimer = setTimeout(() => done(false), 180000);
+    try{
+      if(typeof FedaPay === 'undefined' || !FedaPay.init){
+        // SÉCURITÉ : plus de validation automatique si le SDK ne charge pas.
+        clearTimeout(safetyTimer);
+        showToast('Paiement indisponible (connexion). Réessayez.','er');
+        return done(false);
+      }
+      FedaPay.init({
+        public_key:FEDAPAY_PK,
+        transaction:{amount,description:'Régularisation compte Allô Service'},
+        customer:{email:currentUser?.email||'agent@alloservice.bj'},
+        onComplete:resp=>{
+          clearTimeout(safetyTimer);
+          const success = resp.reason===FedaPay.CHECKOUT_COMPLETE || resp.reason==='checkout.complete';
+          done(success);
+        }
+      }).open();
+    }catch(e){
+      clearTimeout(safetyTimer);
+      showToast('Erreur de paiement : '+(e?.message||'réessayez'),'er');
+      done(false);
+    }
+  });
+}
+
 // ═══ STATE ═══════════════════════════════════════════════
 let currentUser = null;
 let currentProfile = null;
@@ -998,6 +1241,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('auth-screen').style.display = 'flex';
       document.getElementById('pc-layout').style.display = 'none';
       document.getElementById('mobile-layout').style.display = 'none';
+      document.getElementById('kyc-status-screen').style.display = 'none';
+      document.getElementById('kyc-embed-overlay').style.display = 'none';
     }
   });
   // Vérifier session existante (ex: refresh page)
@@ -1013,11 +1258,12 @@ async function initApp() {
   document.getElementById('auth-screen').style.display = 'none';
   await loadProfile();
   if (currentProfile?.role !== 'livreur') {
-    await sb.auth.signOut();
-    showAuthError('Accès réservé aux livreurs');
-    document.getElementById('auth-screen').style.display = 'flex';
+    // Compte pas encore activé comme livreur : on NE déconnecte plus —
+    // on vérifie son dossier KYC pour afficher le bon message.
+    await afficherStatutKYC();
     return;
   }
+  document.getElementById('kyc-status-screen').style.display = 'none';
 
   // ── Vérification blocage 24h (paiements cash non régularisés) ──
   await verifierStatutCompte();
@@ -1041,6 +1287,67 @@ async function initApp() {
   }
 }
 
+// ── Statut du dossier KYC livreur : en attente / refusé / inexistant ──
+async function afficherStatutKYC() {
+  document.getElementById('pc-layout').style.display = 'none';
+  document.getElementById('mobile-layout').style.display = 'none';
+  const { data } = await sb.from('kyc_demandes')
+    .select('id,statut,note_admin')
+    .eq('utilisateur_id', currentUser.id)
+    .eq('type_acteur', 'livreur')
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  const kyc = data && data.length ? data[0] : null;
+  const icon = document.getElementById('kyc-status-icon');
+  const title = document.getElementById('kyc-status-title');
+  const text = document.getElementById('kyc-status-text');
+  const retryBtn = document.getElementById('kyc-retry-btn');
+
+  if (!kyc) {
+    // Aucun dossier envoyé du tout — inviter à s'inscrire
+    icon.textContent = '📋';
+    title.textContent = 'Aucun dossier agent de service trouvé';
+    text.textContent = "Ce compte n'a pas encore de dossier d'inscription agent de service. Complétez votre dossier pour commencer à recevoir des courses.";
+    retryBtn.style.display = 'block';
+    retryBtn.innerHTML = '<i class="ti ti-file-plus"></i> Compléter mon dossier';
+  } else if (kyc.statut === 'rejete') {
+    icon.textContent = '❌';
+    title.textContent = 'Dossier KYC refusé';
+    text.textContent = kyc.note_admin
+      ? 'Votre dossier a été refusé. Raison : ' + kyc.note_admin
+      : "Votre dossier a été refusé par notre équipe. Vous pouvez corriger vos documents et le renvoyer.";
+    retryBtn.style.display = 'block';
+    retryBtn.innerHTML = '<i class="ti ti-refresh"></i> Réessayer / Renvoyer mon dossier';
+  } else {
+    // en_attente (ou tout autre statut intermédiaire)
+    icon.textContent = '⏳';
+    title.textContent = 'Dossier en cours de vérification';
+    text.textContent = "Votre dossier a bien été reçu. Notre équipe l'examine sous 24 à 48h. Vous serez notifié dès qu'il sera traité.";
+    retryBtn.style.display = 'none';
+  }
+  document.getElementById('kyc-status-screen').style.display = 'flex';
+}
+
+// ── Ouvre le formulaire KYC (go.html) intégré directement dans l'app livreur ──
+function openKycRetry() {
+  const frame = document.getElementById('kyc-embed-iframe');
+  frame.src = 'go.html';
+  document.getElementById('kyc-embed-overlay').style.display = 'flex';
+}
+function closeKycRetry() {
+  document.getElementById('kyc-embed-overlay').style.display = 'none';
+  document.getElementById('kyc-embed-iframe').src = 'about:blank';
+  // On revérifie le statut au cas où un nouveau dossier vient d'être envoyé
+  afficherStatutKYC();
+}
+// Écoute un message de go.html signalant l'envoi réussi d'un dossier, pour rafraîchir l'écran de statut
+window.addEventListener('message', (e) => {
+  if (e && e.data === 'kyc-envoye') {
+    closeKycRetry();
+  }
+});
+
 async function verifierStatutCompte() {
   if (!currentProfile) return;
   const statut = currentProfile.statut_compte;
@@ -1051,23 +1358,86 @@ async function verifierStatutCompte() {
     const now = new Date();
     const limit = new Date(deadline);
     if (now > limit) {
-      // Délai dépassé → bloquer le compte
+      // Délai dépassé → bloquer le compte (invisible chez les clients jusqu'à régularisation)
       await sb.from('profiles').update({ statut_compte: 'bloque', date_blocage: now.toISOString() }).eq('id', currentUser.id);
       await sb.from('livreurs').update({ statut: 'hors_ligne' }).eq('id', currentUser.id);
-      await sb.auth.signOut();
-      showAuthError('⛔ Compte bloqué : commission non régularisée après 24h. Contactez le support.');
-      document.getElementById('auth-screen').style.display = 'flex';
+      currentProfile.statut_compte = 'bloque';
+      await ouvrirModalRegularisation();
       return;
     } else {
-      // Délai pas encore dépassé — avertir
+      // Délai pas encore dépassé — avertir mais laisser utiliser l'app
       const heuresRestantes = Math.ceil((limit - now) / 3600000);
       showToast(`⚠️ Régularisez votre solde dans ${heuresRestantes}h pour éviter le blocage`, 'wa');
     }
   } else if (statut === 'bloque') {
-    await sb.auth.signOut();
-    showAuthError('⛔ Compte bloqué. Contactez l\'administrateur.');
-    document.getElementById('auth-screen').style.display = 'flex';
-    return;
+    // Compte bloqué : on n'expulse plus le livreur — on lui propose de régulariser
+    // immédiatement pour être débloqué et redevenir visible chez les clients.
+    await ouvrirModalRegularisation();
+  }
+}
+
+// ── Modal de régularisation : payer la dette pour débloquer le compte immédiatement ──
+async function ouvrirModalRegularisation() {
+  const { data: w } = await sb.from('wallets').select('id,solde').eq('utilisateur_id', currentUser.id).single().catch(()=>({data:null}));
+  const solde = w?.solde || 0;
+  const dette = solde < 0 ? Math.abs(solde) : 0;
+
+  let modal = document.getElementById('modal-regularisation');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modal-regularisation';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:14px;max-width:380px;width:100%;padding:1.5rem;text-align:center">
+      <div style="font-size:2.2rem">⛔</div>
+      <h3 style="margin:.5rem 0;font-size:1.1rem">Compte bloqué</h3>
+      <p style="font-size:.85rem;color:#555;margin-bottom:1rem">
+        Votre compte est bloqué suite à une commission cash non régularisée sous 24h.
+        Vous n'êtes plus visible par les clients.
+        ${dette > 0 ? `<br><br><b>Montant à régulariser : ${fcfa(dette)}</b>` : ''}
+      </p>
+      <button id="btn-regulariser-payer" style="width:100%;padding:.75rem;background:var(--success,#16A34A);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.9rem;cursor:pointer;margin-bottom:.6rem">
+        💳 ${dette > 0 ? 'Payer ' + fcfa(dette) + ' et débloquer' : 'Débloquer mon compte'}
+      </button>
+      <button id="btn-regulariser-support" style="width:100%;padding:.6rem;background:transparent;color:#555;border:1px solid #ddd;border-radius:10px;font-size:.82rem;cursor:pointer">Contacter le support</button>
+    </div>`;
+  modal.style.display = 'flex';
+  document.getElementById('btn-regulariser-payer').onclick = () => regulariserCompteLivreur(dette);
+  document.getElementById('btn-regulariser-support').onclick = () => { showToast('Contactez le support via WhatsApp ou l\'assistance de l\'application.', 'wa'); };
+}
+
+async function regulariserCompteLivreur(dette) {
+  const btn = document.getElementById('btn-regulariser-payer');
+  if (btn) { btn.disabled = true; btn.textContent = 'Traitement…'; }
+  try {
+    if (dette > 0) {
+      const paid = await openFedaPay(dette);
+      if (!paid) {
+        showToast('Paiement annulé', 'wa');
+        if (btn) { btn.disabled = false; btn.textContent = `💳 Payer ${fcfa(dette)} et débloquer`; }
+        return;
+      }
+      // SÉCURITÉ : crédit du wallet + déblocage du compte en une seule
+      // transaction atomique côté serveur (voir regulariser_compte_livreur()
+      // dans SECURITE_PAIEMENTS_supabase.sql).
+      const { error: regErr } = await sb.rpc('regulariser_compte_livreur', { p_montant: dette });
+      if (regErr) throw regErr;
+    } else {
+      // Pas de dette : simple déblocage du compte
+      await sb.from('profiles').update({ statut_compte: 'actif', date_blocage: null, date_regularisation_deadline: null }).eq('id', currentUser.id);
+    }
+    await sb.from('livreurs').update({ statut: 'disponible' }).eq('id', currentUser.id);
+    currentProfile.statut_compte = 'actif';
+    if (currentLivreur) currentLivreur.statut = 'disponible';
+    document.getElementById('modal-regularisation').style.display = 'none';
+    showToast('✅ Compte régularisé et débloqué ! Vous êtes de nouveau visible.', 'ok');
+    loadWallet();
+    updateStatusUI('disponible');
+  } catch(e) {
+    showToast('Erreur : ' + e.message, 'er');
+    if (btn) { btn.disabled = false; btn.textContent = dette > 0 ? `💳 Payer ${fcfa(dette)} et débloquer` : 'Débloquer mon compte'; }
   }
 }
 
@@ -1099,7 +1469,7 @@ async function doLogout() {
 let _sosEnvoiEnCours = false;
 async function declencherSOS() {
   if (_sosEnvoiEnCours) return;
-  if (!confirm('🆘 Déclencher une alerte SOS urgence ?\n\nL\'équipe d\'assistance Allô Livreur sera notifiée immédiatement avec votre position GPS.')) return;
+  if (!confirm('🆘 Déclencher une alerte SOS urgence ?\n\nL\'équipe d\'assistance Allô Service sera notifiée immédiatement avec votre position GPS.')) return;
   document.getElementById('profile-dropdown')?.classList.remove('open');
   _sosEnvoiEnCours = true;
   showToast('Localisation en cours…', 'wa');
@@ -1331,7 +1701,7 @@ function updateAvatarUI() {
   ['pd-phone','mob-profile-phone'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=p.telephone||'—'; });
   if (p.badge_verifie) {
     const b = document.getElementById('mob-profile-badge');
-    if(b) b.innerHTML='<span style="font-size:.72rem;background:#EFF6FF;color:#1D4ED8;padding:2px 8px;border-radius:50px;font-weight:600"><i class="ti ti-circle-check-filled"></i> Livreur vérifié</span>';
+    if(b) b.innerHTML='<span style="font-size:.72rem;background:#EFF6FF;color:#1D4ED8;padding:2px 8px;border-radius:50px;font-weight:600"><i class="ti ti-circle-check-filled"></i> Agent de service vérifié</span>';
   }
   if (document.getElementById('prof-prenom')) document.getElementById('prof-prenom').value = p.prenom||'';
   if (document.getElementById('prof-nom')) document.getElementById('prof-nom').value = p.nom||'';
@@ -1362,16 +1732,17 @@ async function sauvegarderProfil() {
   showToast('Profil mis à jour ✓', 'ok');
 }
 async function sauvegarderVehicule() {
-  if (!currentLivreur) return showToast('Profil livreur introuvable', 'er');
+  if (!currentLivreur) return showToast('Profil agent de service introuvable', 'er');
   const type = document.getElementById('veh-type').value;
   const plaque = document.getElementById('veh-plaque').value.trim();
   const tarif_base = parseInt(document.getElementById('veh-tarif-base').value) || 500;
   const tarif_km = parseInt(document.getElementById('veh-tarif-km').value) || 200;
   const est_chauffeur = document.getElementById('veh-est-chauffeur')?.checked || false;
+  const mode_independant = document.getElementById('veh-mode-independant')?.checked || false;
   const tarif_km_chauffeur = est_chauffeur ? (parseInt(document.getElementById('veh-tarif-km-chauffeur').value) || 250) : null;
   const tarif_heure_chauffeur = est_chauffeur ? (parseInt(document.getElementById('veh-tarif-heure-chauffeur').value) || 1000) : null;
-  await sb.from('livreurs').update({ type_vehicule: type, numero_immatriculation: plaque, tarif_base, tarif_km, est_chauffeur, tarif_km_chauffeur, tarif_heure_chauffeur }).eq('id', currentLivreur.id);
-  Object.assign(currentLivreur, { type_vehicule: type, numero_immatriculation: plaque, tarif_base, tarif_km, est_chauffeur, tarif_km_chauffeur, tarif_heure_chauffeur });
+  await sb.from('livreurs').update({ type_vehicule: type, numero_immatriculation: plaque, tarif_base, tarif_km, est_chauffeur, tarif_km_chauffeur, tarif_heure_chauffeur, mode_independant }).eq('id', currentLivreur.id);
+  Object.assign(currentLivreur, { type_vehicule: type, numero_immatriculation: plaque, tarif_base, tarif_km, est_chauffeur, tarif_km_chauffeur, tarif_heure_chauffeur, mode_independant });
   closeModal('modal-vehicule');
   showToast('Véhicule mis à jour ✓', 'ok');
 }
@@ -1516,15 +1887,27 @@ function updateMyMarker(lat, lng) {
 
 // ═══ MAPS ════════════════════════════════════════════════
 function initMaps() {
-  const tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-  const tileAttrib = 'Tiles © Esri';
+  const COTONOU = [6.3654, 2.4183];
+  // Tile layers — identiques à index.html (même design de carte pour client & livreur)
+  const _tileSat = () => L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '© Esri World Imagery', maxZoom: 19 });
+  const _tileOsm = () => L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:20 });
+  const _tileTopo = () => L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { attribution: '© OpenTopoMap', maxZoom: 17 });
+
   if (document.getElementById('pc-map') && !pcMap) {
-    pcMap = L.map('pc-map').setView([6.3654, 2.4183], 13);
-    L.tileLayer(tileUrl, { attribution: tileAttrib, maxZoom: 19 }).addTo(pcMap);
+    pcMap = L.map('pc-map').setView(COTONOU, 13);
+    const pcPlan = _tileOsm(); pcPlan.addTo(pcMap);
+    L.control.layers(
+      { '🗺 Plan': pcPlan, '🛰 Satellite': _tileSat(), '🏔 Terrain': _tileTopo() },
+      {}, { position: 'topright', collapsed: false }
+    ).addTo(pcMap);
   }
   if (document.getElementById('mob-map') && !mobMap) {
-    mobMap = L.map('mob-map').setView([6.3654, 2.4183], 13);
-    L.tileLayer(tileUrl, { attribution: tileAttrib, maxZoom: 19 }).addTo(mobMap);
+    mobMap = L.map('mob-map').setView(COTONOU, 13);
+    const mobPlan = _tileOsm(); mobPlan.addTo(mobMap);
+    L.control.layers(
+      { '🗺 Plan': mobPlan, '🛰 Satellite': _tileSat(), '🏔 Terrain': _tileTopo() },
+      {}, { position: 'topright', collapsed: false }
+    ).addTo(mobMap);
   }
   setTimeout(() => { pcMap?.invalidateSize(); mobMap?.invalidateSize(); }, 300);
 }
@@ -1544,7 +1927,7 @@ async function loadCourses() {
   renderCoursesMob();
   renderCourseEnCours();
   // Badge
-  const demandes = allCourses.filter(c => c.statut === 'en_attente');
+  const demandes = allCourses.filter(c => ['en_attente','negociation_attente'].includes(c.statut));
   const badge = document.getElementById('mob-courses-nav-badge');
   const badgeMob = document.getElementById('mob-demandes-badge');
   const badgePc = document.getElementById('pc-demandes-count');
@@ -1554,27 +1937,101 @@ async function loadCourses() {
 }
 
 function renderCoursesPC() {
-  const demandes = allCourses.filter(c => c.statut === 'en_attente');
-  const historique = allCourses.filter(c => !['en_attente'].includes(c.statut));
+  const demandes = allCourses.filter(c => ['en_attente','negociation_attente'].includes(c.statut));
+  const historique = allCourses.filter(c => !['en_attente','negociation_attente'].includes(c.statut));
   document.getElementById('pc-demandes-list').innerHTML = demandes.length
     ? demandes.map(c => courseCardHTML(c, false)).join('')
     : '<div class="empty-state" style="padding:2rem"><i class="ti ti-clock"></i><p>Aucune demande</p></div>';
   document.getElementById('pc-historique-list').innerHTML = historique.length
     ? historique.map(c => courseHistCardHTML(c)).join('')
     : '<div class="empty-state" style="padding:2rem"><p>Aucune course</p></div>';
+  initDemandeMiniMaps();
 }
 function renderCoursesMob() {
-  const demandes = allCourses.filter(c => c.statut === 'en_attente');
-  const historique = allCourses.filter(c => !['en_attente'].includes(c.statut));
+  const demandes = allCourses.filter(c => ['en_attente','negociation_attente'].includes(c.statut));
+  const historique = allCourses.filter(c => !['en_attente','negociation_attente'].includes(c.statut));
   document.getElementById('mob-demandes-list').innerHTML = demandes.length
     ? demandes.map(c => courseCardHTML(c, true)).join('')
     : '<div class="empty-state" style="padding:1.5rem"><i class="ti ti-clock"></i><p>Aucune demande pour l\'instant</p></div>';
   document.getElementById('mob-historique-list').innerHTML = historique.length
     ? historique.map(c => courseHistCardHTML(c)).join('')
     : '<div class="empty-state" style="padding:1.5rem"><p>Aucune course</p></div>';
+  initDemandeMiniMaps();
+}
+
+// Mini-cartes non-interactives sur chaque demande : cadrage clair et automatique
+// sur départ+arrivée (ou juste le départ si l'arrivée n'est pas encore connue)
+let _demandeMiniMaps = {};
+function initDemandeMiniMaps() {
+  document.querySelectorAll('.demande-mini-map').forEach(el => {
+    const dLat = parseFloat(el.dataset.dlat), dLng = parseFloat(el.dataset.dlng);
+    if (!dLat || !dLng) { el.style.display = 'none'; return; }
+    const aLat = parseFloat(el.dataset.alat), aLng = parseFloat(el.dataset.alng);
+    const id = el.id;
+    if (_demandeMiniMaps[id]) { try { _demandeMiniMaps[id].remove(); } catch(e){} }
+    const m = L.map(el, { zoomControl:false, dragging:false, scrollWheelZoom:false, doubleClickZoom:false, touchZoom:false, attributionControl:false });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains:'abcd', maxZoom:20 }).addTo(m);
+    const iconDep = L.divIcon({ html:'<div style="width:14px;height:14px;border-radius:50%;background:var(--success);border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)"></div>', className:'', iconSize:[14,14], iconAnchor:[7,7] });
+    L.marker([dLat,dLng], { icon: iconDep }).addTo(m);
+    if (aLat && aLng) {
+      const iconArr = L.divIcon({ html:'<div style="width:14px;height:14px;border-radius:50%;background:var(--danger);border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)"></div>', className:'', iconSize:[14,14], iconAnchor:[7,7] });
+      L.marker([aLat,aLng], { icon: iconArr }).addTo(m);
+      L.polyline([[dLat,dLng],[aLat,aLng]], { color:'#F97316', weight:3, dashArray:'2 8', opacity:.85 }).addTo(m);
+      m.fitBounds([[dLat,dLng],[aLat,aLng]], { padding:[18,18], maxZoom:15 });
+    } else {
+      m.setView([dLat,dLng], 14);
+    }
+    _demandeMiniMaps[id] = m;
+  });
+}
+
+// ── Groupe de nature de course (doit rester cohérent avec index.html) ──
+// 📦 colis : le livreur récupère un objet et le livre à une adresse
+// 🧍 passager : le livreur/chauffeur récupère une personne et la dépose à destination
+// 🚘 chauffeur : service chauffeur dédié (véhicule perso ou du client)
+const TYPES_GROUPE_PASSAGER = ['zem','voiture_classique','voiture_confort','voiture_eco','transport_enfant','tourisme'];
+function estCourseChauffeur(type){ return type==='chauffeur_perso' || type==='chauffeur_client'; }
+function estCoursePassager(type){ return TYPES_GROUPE_PASSAGER.includes(type); }
+function groupeCourse(type){ return estCourseChauffeur(type) ? 'chauffeur' : estCoursePassager(type) ? 'passager' : 'colis'; }
+function badgeGroupeCourse(type){
+  const g = groupeCourse(type);
+  return g==='chauffeur' ? '🚘 Chauffeur' : g==='passager' ? '🧍 Passager' : '📦 Colis';
+}
+
+// ── Carte spéciale : demande en négociation libre (Mode Indépendant Pilote) ──
+function courseCardNegociationHTML(c, isMob) {
+  const client = c.client || {};
+  const nom = `${client.prenom||''} ${client.nom||''}`.trim() || 'Client';
+  const url = getAvatarUrl(client);
+  const imgHtml = url ? `<img src="${url}" style="width:100%;height:100%;object-fit:cover">` : getInitials(client);
+  const prix = fcfa(c.prix_propose_client||0);
+  const audioHtml = c.audio_negociation_url
+    ? `<audio controls src="${c.audio_negociation_url}" style="width:100%;height:32px;margin-top:.4rem"></audio>`
+    : '';
+  const enAttenteConfirmation = c.statut === 'negociation_contre';
+  return `<div class="${isMob?'demande-card':'course-card'}" style="border:1.5px solid #7C3AED44;background:#FAF5FF">
+    <div class="${isMob?'demande-head':'course-card-head'}">
+      <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:.75rem;flex-shrink:0;border:2px solid var(--border)">${imgHtml}</div>
+      <div style="font-weight:600;font-size:.88rem">${nom}</div>
+      <span style="background:#EDE9FE;color:#6D28D9;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:50px">💰 Prix libre</span>
+      <span style="margin-left:auto;font-weight:700;color:#7C3AED">${prix}</span>
+    </div>
+    <div class="demande-body">
+      <div style="font-size:.82rem;color:var(--text2);margin-bottom:.3rem"><b>📍 Lieu :</b> ${c.adresse_depart||'—'} ${c.adresse_arrivee ? '→ '+c.adresse_arrivee : ''}</div>
+      ${c.description ? `<div style="font-size:.82rem;color:var(--text2);margin-bottom:.3rem"><b>💬</b> ${c.description}</div>` : ''}
+      ${audioHtml}
+      ${enAttenteConfirmation ? `<div style="font-size:.76rem;color:#7C3AED;margin-top:.4rem">⏳ En attente de la confirmation définitive du client…</div>` : ''}
+    </div>
+    ${!enAttenteConfirmation ? `<div class="course-action-btns" style="flex-wrap:wrap">
+      <button class="btn-accept" onclick="accepterNegociation('${c.id}')" style="flex:1 1 100%"><i class="ti ti-check"></i> Accepter à ${prix}</button>
+      <button onclick="exigerPrixDefinitif('${c.id}')" style="flex:1;padding:.55rem;background:#FEF3C7;color:#92400E;border:none;border-radius:var(--radius-xs);font-weight:600;cursor:pointer;font-size:.78rem">💬 Exiger confirmation</button>
+      <button class="btn-reject" onclick="refuserNegociation('${c.id}')" style="flex:1"><i class="ti ti-x"></i> Refuser</button>
+    </div>` : ''}
+  </div>`;
 }
 
 function courseCardHTML(c, isMob) {
+  if (c.statut === 'negociation_attente' || c.statut === 'negociation_contre') return courseCardNegociationHTML(c, isMob);
   const client = c.client || {};
   const nom = `${client.prenom||''} ${client.nom||''}`.trim() || 'Client';
   const url = getAvatarUrl(client);
@@ -1584,17 +2041,22 @@ function courseCardHTML(c, isMob) {
   const allerRetour = c.est_aller_retour ? `<span style="background:#EEF2FF;color:#4338CA;font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:50px">🔄 A/R${c.duree_attente_minutes?' · '+c.duree_attente_minutes+'min':''}</span>` : '';
   const dist = c.distance_km ? `${c.distance_km} km` : '—';
   const prix = fcfa(c.prix_final || c.prix_estime || 0);
+  const groupe = groupeCourse(c.type);
+  const lblDepart = groupe==='colis' ? 'COLLECTE DU COLIS' : groupe==='passager' ? 'PRISE EN CHARGE DU CLIENT' : 'LIEU DE PRISE EN CHARGE';
+  const lblArrivee = groupe==='colis' ? 'LIVRER À' : 'DÉPOSER LE CLIENT À';
+  const badgeGroupe = `<span style="background:${groupe==='colis'?'#EFF6FF':groupe==='passager'?'#F0FDF4':'#FEF3C7'};color:${groupe==='colis'?'#1D4ED8':groupe==='passager'?'#15803D':'#92400E'};font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:50px">${badgeGroupeCourse(c.type)}</span>`;
   return `<div class="${isMob?'demande-card':'course-card'}">
     <div class="${isMob?'demande-head':'course-card-head'}">
       <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:.75rem;flex-shrink:0;border:2px solid var(--border)">${imgHtml}</div>
       <div style="font-weight:600;font-size:.88rem">${nom}</div>
-      ${urgent}${programmee}${allerRetour}
+      ${badgeGroupe}${urgent}${programmee}${allerRetour}
       <span style="margin-left:auto;font-weight:700;color:var(--primary)">${prix}</span>
     </div>
     <div class="demande-body">
-      <div class="route-row"><div class="route-dot start"></div><div style="font-size:.82rem;color:var(--text2)"><span style="font-size:.68rem;font-weight:600;color:var(--success)">DÉPART</span><br>${c.adresse_depart||'—'}</div></div>
+      <div class="demande-mini-map" id="demmap-${c.id}" data-dlat="${c.lat_depart||c.latitude_depart||''}" data-dlng="${c.lng_depart||c.longitude_depart||''}" data-alat="${c.lat_arrivee||c.latitude_arrivee||''}" data-alng="${c.lng_arrivee||c.longitude_arrivee||''}"></div>
+      <div class="route-row"><div class="route-dot start"></div><div style="font-size:.82rem;color:var(--text2)"><span style="font-size:.68rem;font-weight:600;color:var(--success)">${lblDepart}</span><br>${c.adresse_depart||'—'}</div></div>
       <div class="route-row" style="margin:.15rem 0 0 4px"><div style="width:1px;height:12px;background:var(--border2)"></div></div>
-      <div class="route-row"><div class="route-dot end"></div><div style="font-size:.82rem;color:var(--text2)"><span style="font-size:.68rem;font-weight:600;color:var(--danger)">ARRIVÉE</span><br>${c.adresse_arrivee||'—'}</div></div>
+      <div class="route-row"><div class="route-dot end"></div><div style="font-size:.82rem;color:var(--text2)"><span style="font-size:.68rem;font-weight:600;color:var(--danger)">${lblArrivee}</span><br>${c.adresse_arrivee||'—'}</div></div>
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem">
         <span style="font-size:.75rem;color:var(--text2)"><i class="ti ti-road"></i> ${dist}</span>
         <span style="font-size:.75rem;color:var(--text2)"><i class="ti ti-clock"></i> ${fmtDate(c.created_at)}</span>
@@ -1614,7 +2076,7 @@ function courseHistCardHTML(c) {
   const statusTag = {
     acceptee:'<span class="tag en_attente">Acceptée</span>',
     en_route:'<span class="tag encours">En route</span>',
-    prise_en_charge:'<span class="tag" style="background:#EDE9FE;color:#6D28D9">📦 Colis récupéré</span>',
+    prise_en_charge:`<span class="tag" style="background:#EDE9FE;color:#6D28D9">${estCoursePassager(c.type) ? '🧍 Client à bord' : '📦 Colis récupéré'}</span>`,
     livraison_en_cours:'<span class="tag encours">En livraison</span>',
     terminee:'<span class="tag terminee">Terminée</span>',
     annulee:'<span class="tag annulee">Annulée</span>',
@@ -1636,6 +2098,7 @@ function renderCourseEnCours() {
   if (!c) {
     if(pcEl) pcEl.style.display = 'none';
     if(mobEl) mobEl.style.display = 'none';
+    clearTrajetSurCarte();
     return;
   }
   const client = c.client || {};
@@ -1643,41 +2106,79 @@ function renderCourseEnCours() {
   const isAcceptee = c.statut === 'acceptee';
   const isEnRoute = ['en_cours','en_route','prise_en_charge','livraison_en_cours'].includes(c.statut);
   const isChauffeur = c.type === 'chauffeur_perso' || c.type === 'chauffeur_client';
+  const isPassager = estCoursePassager(c.type);
 
-  // Libellés et boutons adaptés selon livraison ou chauffeur
+  // Libellés et boutons adaptés selon colis, passager ou chauffeur
   const statusLabel = isAcceptee
-    ? (isChauffeur ? '🚘 Course chauffeur acceptée' : 'Course acceptée — En préparation')
-    : (isChauffeur ? '🚘 Chauffeur en service' : 'Course en route 🛵');
+    ? (isChauffeur ? '🚘 Course chauffeur acceptée' : isPassager ? '🧍 Trajet accepté — En préparation' : '📦 Course acceptée — En préparation')
+    : (isChauffeur ? '🚘 Chauffeur en service' : isPassager ? '🧍 En route vers le client' : '📦 Course en route');
 
   let actionBtn = '';
   if (c.statut === 'acceptee') {
     actionBtn = isChauffeur
       ? `<button onclick="marquerEnRoute('${c.id}')" style="padding:.4rem .85rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-steering-wheel"></i> Démarrer</button>`
+      : isPassager
+      ? `<button onclick="marquerEnRoute('${c.id}')" style="padding:.4rem .85rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-user"></i> Aller chercher</button>`
       : `<button onclick="marquerEnRoute('${c.id}')" style="padding:.4rem .85rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-bike"></i> En Route</button>`;
   } else if (c.statut === 'en_cours' || c.statut === 'en_route') {
     actionBtn = isChauffeur
       ? `<button onclick="terminerCourseChauffeur('${c.id}')" style="padding:.4rem .85rem;background:var(--success);color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer">🏁 Terminer</button>`
+      : isPassager
+      ? `<button onclick="marquerColisRecupere('${c.id}')" style="padding:.4rem .85rem;background:#7C3AED;color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer">🧍 Client à bord</button>`
       : `<button onclick="marquerColisRecupere('${c.id}')" style="padding:.4rem .85rem;background:#7C3AED;color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer">📦 Récupéré</button>`;
   } else if (isEnRoute && !isChauffeur) {
     actionBtn = `<button onclick="ouvrirModalCode('${c.id}')" style="padding:.4rem .75rem;background:var(--success);color:#fff;border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:600;cursor:pointer">✓ Code</button>`;
   }
 
-  const html = `<div class="course-banner">
+  const html = `<div class="course-banner" onclick="voirDetailCourse('${c.id}')" style="cursor:pointer">
     <div class="pulse"></div>
     <div style="flex:1;min-width:0">
       <div style="font-size:.78rem;font-weight:700;color:var(--success)">${statusLabel}</div>
       <div style="font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nom} → ${c.adresse_arrivee||'—'}</div>
     </div>
     <div style="display:flex;gap:.4rem;flex-shrink:0">
-      <button onclick="ouvrirChat_course('${c.id}')" style="padding:.4rem .75rem;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-message-2"></i></button>
-      ${actionBtn}
-      <button onclick="ouvrirModalAnnulerLv('${c.id}')" style="padding:.4rem .65rem;background:#FEE2E2;color:var(--danger);border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem" title="Annuler la course"><i class="ti ti-x"></i></button>
+      <button onclick="event.stopPropagation();ouvrirChat_course('${c.id}')" style="padding:.4rem .75rem;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.3rem"><i class="ti ti-message-2"></i></button>
+      ${actionBtn.replace('onclick="', 'onclick="event.stopPropagation();')}
+      <button onclick="event.stopPropagation();ouvrirModalAnnulerLv('${c.id}')" style="padding:.4rem .65rem;background:#FEE2E2;color:var(--danger);border:none;border-radius:var(--radius-xs);font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem" title="Annuler la course"><i class="ti ti-x"></i></button>
     </div>
   </div>`;
   if(pcEl) { pcEl.innerHTML = html; pcEl.style.display = ''; }
   if(mobEl) { mobEl.innerHTML = html; mobEl.style.display = ''; }
   subscribeCoursePosition(c.id);
   joinGpsBroadcastChannel(c.id);
+  majTrajetSurCarte(c);
+}
+
+// ── Trajet visible + zoom automatique sur la carte (départ/arrivée) ──
+let _routeMarkers = { depart: {}, arrivee: {}, line: {} };
+function majTrajetSurCarte(c) {
+  const dLat = parseFloat(c.lat_depart || c.latitude_depart);
+  const dLng = parseFloat(c.lng_depart || c.longitude_depart);
+  const aLat = parseFloat(c.lat_arrivee || c.latitude_arrivee);
+  const aLng = parseFloat(c.lng_arrivee || c.longitude_arrivee);
+  if (!dLat || !dLng || !aLat || !aLng) return;
+  [['mob', mobMap], ['pc', pcMap]].forEach(([key, map]) => {
+    if (!map) return;
+    const iconDep = L.divIcon({ html:'<div style="width:16px;height:16px;border-radius:50%;background:var(--success);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)"></div>', className:'', iconSize:[16,16], iconAnchor:[8,8] });
+    const iconArr = L.divIcon({ html:'<div style="width:16px;height:16px;border-radius:50%;background:var(--danger);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)"></div>', className:'', iconSize:[16,16], iconAnchor:[8,8] });
+    if (_routeMarkers.depart[key]) _routeMarkers.depart[key].setLatLng([dLat,dLng]);
+    else _routeMarkers.depart[key] = L.marker([dLat,dLng], { icon: iconDep }).addTo(map).bindPopup('Départ');
+    if (_routeMarkers.arrivee[key]) _routeMarkers.arrivee[key].setLatLng([aLat,aLng]);
+    else _routeMarkers.arrivee[key] = L.marker([aLat,aLng], { icon: iconArr }).addTo(map).bindPopup('Arrivée');
+    if (_routeMarkers.line[key]) map.removeLayer(_routeMarkers.line[key]);
+    _routeMarkers.line[key] = L.polyline([[dLat,dLng],[aLat,aLng]], { color:'#F97316', weight:4, opacity:.85, dashArray:'2 8' }).addTo(map);
+    // Zoom clair et automatique : la carte se cadre pile sur le trajet
+    map.fitBounds([[dLat,dLng],[aLat,aLng]], { padding:[60,60], maxZoom:16 });
+  });
+}
+function clearTrajetSurCarte() {
+  ['mob','pc'].forEach(key => {
+    const map = key==='mob' ? mobMap : pcMap;
+    if (!map) return;
+    if (_routeMarkers.depart[key]) { map.removeLayer(_routeMarkers.depart[key]); delete _routeMarkers.depart[key]; }
+    if (_routeMarkers.arrivee[key]) { map.removeLayer(_routeMarkers.arrivee[key]); delete _routeMarkers.arrivee[key]; }
+    if (_routeMarkers.line[key]) { map.removeLayer(_routeMarkers.line[key]); delete _routeMarkers.line[key]; }
+  });
 }
 
 // ── Détection proximité ────────────────────────────────
@@ -1692,6 +2193,8 @@ function _haversineM(lat1, lng1, lat2, lng2) {
 
 async function accepterCourse(courseId) {
   if (courseEnCours) return showToast('Terminez votre course en cours d\'abord', 'wa');
+  stopRinging();
+  _lvMarkSelfAction();
   const { error } = await sb.from('courses').update({ statut: 'acceptee' }).eq('id', courseId);
   if (error) return showToast('Erreur : ' + error.message, 'er');
   await sb.from('livreurs').update({ statut: 'en_cours' }).eq('id', currentLivreur.id);
@@ -1701,7 +2204,7 @@ async function accepterCourse(courseId) {
   const course = allCourses.find(c => c.id === courseId);
   if (course?.client_id) {
     const isChauffeur = course.type === 'chauffeur_perso' || course.type === 'chauffeur_client';
-    await sb.from('notifications').insert({ utilisateur_id: course.client_id, titre: isChauffeur ? '🚘 Chauffeur en route !' : '✅ Course acceptée !', corps: isChauffeur ? 'Votre chauffeur a accepté la réservation. Il vous contactera avant de partir.' : 'Votre livreur a accepté votre course. Il vous contactera avant de partir.', type: 'course' });
+    await sb.from('notifications').insert({ utilisateur_id: course.client_id, titre: isChauffeur ? '🚘 Chauffeur en route !' : '✅ Course acceptée !', corps: isChauffeur ? 'Votre chauffeur a accepté la réservation. Il vous contactera avant de partir.' : 'Votre agent de service a accepté votre course. Il vous contactera avant de partir.', type: 'course' });
   }
   showToast('Course acceptée ✓', 'ok');
   loadCourses();
@@ -1709,6 +2212,7 @@ async function accepterCourse(courseId) {
 }
 
 async function marquerEnRoute(courseId) {
+  _lvMarkSelfAction();
   const { error } = await sb.from('courses').update({ statut: 'en_cours' }).eq('id', courseId);
   if (error) return showToast('Erreur : ' + error.message, 'er');
   // Partager la position actuelle
@@ -1721,8 +2225,9 @@ async function marquerEnRoute(courseId) {
         const dist = _haversineM(lat, lng, parseFloat(courseEnCours.lat_arrivee), parseFloat(courseEnCours.lng_arrivee));
         if (dist < 200 && !_proximiteNotifSent) {
           _proximiteNotifSent = true;
+          _lvMarkSelfAction();
           await sb.from('courses').update({ statut: 'proximite' }).eq('id', courseEnCours.id).catch(()=>{});
-          await sb.from('notifications').insert({ utilisateur_id: courseEnCours.client_id, titre: '📍 Votre livreur arrive !', corps: 'Il est à moins de 200 m de chez vous. Préparez-vous à réceptionner votre colis 📦', type: 'course' }).catch(()=>{});
+          await sb.from('notifications').insert({ utilisateur_id: courseEnCours.client_id, titre: '📍 Votre agent de service arrive !', corps: 'Il est à moins de 200 m de chez vous. Préparez-vous à réceptionner votre colis 📦', type: 'course' }).catch(()=>{});
         }
         if (dist >= 300) _proximiteNotifSent = false; // Reset si recule
       }
@@ -1732,7 +2237,7 @@ async function marquerEnRoute(courseId) {
   const course = allCourses.find(c => c.id === courseId);
   if (course?.client_id) {
     const isChauffeur2 = course.type === 'chauffeur_perso' || course.type === 'chauffeur_client';
-    await sb.from('notifications').insert({ utilisateur_id: course.client_id, titre: isChauffeur2 ? '🚘 Votre chauffeur démarre !' : '🛵 Votre livreur est en route !', corps: isChauffeur2 ? 'Votre chauffeur a démarré la course. Suivez sa position en temps réel.' : `Il arrive. Suivez sa position en temps réel dans l'application.`, type: 'course' });
+    await sb.from('notifications').insert({ utilisateur_id: course.client_id, titre: isChauffeur2 ? '🚘 Votre chauffeur démarre !' : '🛵 Votre agent de service est en route !', corps: isChauffeur2 ? 'Votre chauffeur a démarré la course. Suivez sa position en temps réel.' : `Il arrive. Suivez sa position en temps réel dans l'application.`, type: 'course' });
   }
   const _isChauffeurToast = allCourses.find(c => c.id === courseId);
   showToast((_isChauffeurToast?.type==='chauffeur_perso'||_isChauffeurToast?.type==='chauffeur_client') ? '🚘 Course démarrée ! Le client est notifié.' : '🛵 En route ! Le client est notifié.', 'ok');
@@ -1740,6 +2245,7 @@ async function marquerEnRoute(courseId) {
 }
 
 async function marquerColisRecupere(courseId) {
+  _lvMarkSelfAction();
   const { error } = await sb.from('courses').update({ statut: 'prise_en_charge' }).eq('id', courseId);
   if (error) return showToast('Erreur : ' + error.message, 'er');
   // Partager la position actuelle
@@ -1754,7 +2260,7 @@ async function marquerColisRecupere(courseId) {
     await sb.from('notifications').insert({
       utilisateur_id: course.client_id,
       titre: '📦 Colis récupéré !',
-      corps: 'Votre livreur a récupéré votre colis et est en route vers vous. Suivez en temps réel !',
+      corps: 'Votre agent de service a récupéré votre colis et est en route vers vous. Suivez en temps réel !',
       type: 'course'
     });
   }
@@ -1763,10 +2269,129 @@ async function marquerColisRecupere(courseId) {
 }
 
 async function refuserCourse(courseId) {
-  const { error } = await sb.from('courses').update({ statut: 'annulee' }).eq('id', courseId);
+  stopRinging();
+  _lvMarkSelfAction();
+  const course = allCourses.find(c => c.id === courseId);
+  const { error } = await sb.from('courses').update({ statut: 'annulee', annule_par: 'livreur' }).eq('id', courseId);
   if (error) return showToast('Erreur : ' + error.message, 'er');
+  // Notifier le client de l'annulation
+  if (course?.client_id) {
+    await sb.from('notifications').insert({
+      utilisateur_id: course.client_id,
+      titre: '❌ Course annulée',
+      corps: 'Votre agent de service a refusé la course. Vous pouvez commander à nouveau, un autre agent de service sera assigné.',
+      type: 'course'
+    });
+  }
   showToast('Course refusée', 'wa');
   loadCourses();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// MODE INDÉPENDANT PILOTE — négociation libre du prix
+// Vaut pour TOUS les types de course (colis, passager, chauffeur) :
+// dès qu'un livreur/chauffeur a activé "mode_independant", ses courses
+// passent par ce circuit prix-libre au lieu du tarif calculé automatique.
+// ══════════════════════════════════════════════════════════════════
+
+async function accepterNegociation(courseId) {
+  if (courseEnCours) return showToast('Terminez votre course en cours d\'abord', 'wa');
+  stopRinging();
+  _lvMarkSelfAction();
+  const course = allCourses.find(c => c.id === courseId);
+  const prix = course?.prix_propose_client || 0;
+  const commPct = parseFloat(currentLivreur?.commission_pct || 10);
+  const comm = Math.round(prix * commPct / 100);
+  const { error } = await sb.from('courses').update({
+    statut: 'acceptee', prix_final: prix, prix_estime: prix,
+    commission_plateforme: comm, gains_livreur: prix - comm
+  }).eq('id', courseId);
+  if (error) return showToast('Erreur : ' + error.message, 'er');
+  await sb.from('livreurs').update({ statut: 'en_cours' }).eq('id', currentLivreur.id);
+  currentLivreur.statut = 'en_cours';
+  updateStatusUI('en_cours');
+  if (course?.client_id) {
+    await sb.from('notifications').insert({ utilisateur_id: course.client_id, titre: '✅ Prix accepté !', corps: `L'agent de service a accepté votre prix de ${fcfa(prix)}. La course démarre.`, type: 'course' });
+  }
+  showToast(`Prix de ${fcfa(prix)} accepté ✓`, 'ok');
+  loadCourses();
+  switchMobPage('carte');
+}
+
+// Le livreur ne renégocie pas le montant : il demande simplement au client
+// de confirmer une dernière fois que ${prix} est bien son prix définitif.
+async function exigerPrixDefinitif(courseId) {
+  _lvMarkSelfAction();
+  const course = allCourses.find(c => c.id === courseId);
+  const { error } = await sb.from('courses').update({ statut: 'negociation_contre' }).eq('id', courseId);
+  if (error) return showToast('Erreur : ' + error.message, 'er');
+  if (course?.client_id) {
+    await sb.from('notifications').insert({
+      utilisateur_id: course.client_id,
+      titre: '💬 Confirmation demandée',
+      corps: `L'agent de service veut être sûr : confirmez-vous définitivement votre prix de ${fcfa(course.prix_propose_client)} ?`,
+      type: 'course'
+    });
+  }
+  showToast('Confirmation demandée au client', 'ok');
+  loadCourses();
+}
+
+// Refus total → on retente automatiquement avec le livreur disponible le plus
+// proche (hors ceux déjà refusés), sans repasser par le client à chaque fois.
+async function refuserNegociation(courseId) {
+  stopRinging();
+  _lvMarkSelfAction();
+  const course = allCourses.find(c => c.id === courseId);
+  if (!course) return;
+  const refuses = Array.isArray(course.livreurs_refuses) ? [...course.livreurs_refuses] : [];
+  if (!refuses.includes(currentLivreur.id)) refuses.push(currentLivreur.id);
+  showToast('Demande refusée — recherche d\'un autre agent de service…', 'wa');
+  await reassignerNegociation(courseId, course, refuses);
+  loadCourses();
+}
+
+// Cherche, parmi les livreurs disponibles et non déjà refusés, le plus proche
+// du point de collecte, sans s'éloigner excessivement hors zone (rayon ~15 km).
+// Si personne n'est trouvé : renvoie l'échec au client avec suggestion de prix.
+const RAYON_MAX_NEGOCIATION_KM = 15;
+async function reassignerNegociation(courseId, course, refuses) {
+  try {
+    const { data: candidats } = await sb.from('livreurs')
+      .select('id, latitude, longitude, statut, mode_independant, type_vehicule')
+      .eq('statut', 'disponible')
+      .eq('mode_independant', true);
+
+    const dispo = (candidats || [])
+      .filter(l => l.id !== currentLivreur.id && !refuses.includes(l.id) && l.latitude && l.longitude)
+      .map(l => ({ ...l, distKm: _haversineM(course.lat_depart, course.lng_depart, l.latitude, l.longitude) / 1000 }))
+      .filter(l => l.distKm <= RAYON_MAX_NEGOCIATION_KM)
+      .sort((a, b) => a.distKm - b.distKm);
+
+    if (dispo.length === 0) {
+      // Plus personne dans la zone : on informe le client de la relance nécessaire
+      const suggestion = Math.round((course.prix_propose_client * 1.2) / 50) * 50;
+      await sb.from('courses').update({ statut: 'negociation_echouee', livreurs_refuses: refuses }).eq('id', courseId);
+      await sb.from('notifications').insert({
+        utilisateur_id: course.client_id,
+        titre: '😕 Aucun agent de service n\'a accepté',
+        corps: `Votre prix de ${fcfa(course.prix_propose_client)} ne convient à aucun agent de service disponible. Essayez avec ${fcfa(suggestion)} ou plus.`,
+        type: 'course'
+      });
+      return;
+    }
+
+    const suivant = dispo[0];
+    await sb.from('courses').update({ livreur_id: suivant.id, statut: 'negociation_attente', livreurs_refuses: refuses }).eq('id', courseId);
+    await sb.from('notifications').insert({
+      utilisateur_id: suivant.id,
+      titre: '💰 Nouvelle demande à prix libre',
+      corps: `Un client propose ${fcfa(course.prix_propose_client)} pour : ${course.adresse_depart}${course.adresse_arrivee ? ' → '+course.adresse_arrivee : ''}`,
+      type: 'course'
+    });
+  } catch (e) {
+    console.warn('reassignerNegociation error:', e);
+  }
 }
 
 // ── Annulation course acceptée/en cours (cash uniquement) ──
@@ -1788,6 +2413,8 @@ async function confirmerAnnulationLv() {
   const courseId = _annulCourseId;
   const course = allCourses.find(c => c.id === courseId);
 
+  stopRinging();
+  _lvMarkSelfAction();
   const { error } = await sb.from('courses').update({
     statut: 'annulee',
     raison_annulation: raison,
@@ -1806,7 +2433,7 @@ async function confirmerAnnulationLv() {
   if (course?.client_id) {
     await sb.from('notifications').insert({
       utilisateur_id: course.client_id,
-      titre: '❌ Course annulée par le livreur',
+      titre: '❌ Course annulée par l\'agent de service',
       corps: `Votre course a été annulée. Raison : ${raison}. Vous pouvez commander à nouveau.`,
       type: 'course'
     });
@@ -1831,18 +2458,17 @@ function codeNext(el, idx) {
   if (el.value && idx < 5) document.getElementById('cd'+(idx+1))?.focus();
 }
 
+let _pendingCode = null;
 async function validerCode() {
   const code = [0,1,2,3,4,5].map(i => document.getElementById('cd'+i)?.value||'').join('');
   if (code.length < 6) return document.getElementById('code-error').textContent = 'Entrez les 6 chiffres';
-  // Vérifier code dans la base
-  const { data: course } = await sb.from('courses').select('code_confirmation').eq('id', currentCodeCourseId).single();
-  if (!course) return document.getElementById('code-error').textContent = 'Course introuvable';
-  if (course.code_confirmation !== code) {
-    document.getElementById('code-error').textContent = 'Code incorrect. Réessayez.';
-    for(let i=0;i<6;i++) { const el=document.getElementById('cd'+i); if(el)el.style.borderColor='var(--danger)'; }
-    return;
-  }
-  // Ouvrir modal preuve photo
+  // SÉCURITÉ : on ne vérifie plus le code ici en le comparant en clair côté
+  // client (un livreur malveillant pouvait sinon marquer une course comme
+  // "livrée" sans jamais valider le vrai code). On garde juste le code saisi
+  // en mémoire ; la vérification réelle + le crédit du wallet se font
+  // ensemble et atomiquement côté serveur dans envoyerPreuve() via la RPC
+  // confirmer_livraison().
+  _pendingCode = code;
   closeModal('modal-code');
   openModal('modal-preuve');
 }
@@ -1863,6 +2489,7 @@ function previewPreuve(input) {
 
 async function envoyerPreuve() {
   if (!preuvePhotoData || !currentCodeCourseId) return showToast('Photo requise', 'wa');
+  if (!_pendingCode) return showToast('Code manquant, recommencez', 'wa');
   showToast('Finalisation de la livraison…');
   try {
     // Upload photo preuve
@@ -1870,66 +2497,36 @@ async function envoyerPreuve() {
     const blob = await fetch(preuvePhotoData).then(r=>r.blob());
     await sb.storage.from('messages-media').upload(path, blob, { contentType: 'image/jpeg', upsert: false }).catch(()=>{});
     const { data: ud } = sb.storage.from('messages-media').getPublicUrl(path);
-    // Terminer la course
-    const { error } = await sb.from('courses').update({
-      statut: 'livree',
-      photo_preuve_livraison: ud?.publicUrl || preuvePhotoData,
-      date_livraison: new Date().toISOString()
-    }).eq('id', currentCodeCourseId);
-    if (error) throw error;
-    // Lire les données de la course (gains + mode paiement)
-    const { data: courseData } = await sb.from('courses')
-      .select('gains_livreur,commission_plateforme,client_id,methode_paiement,prix_final')
-      .eq('id', currentCodeCourseId).single();
-    const { data: w } = await sb.from('wallets').select('id,solde').eq('utilisateur_id', currentUser.id).single();
+    const photoUrl = ud?.publicUrl || preuvePhotoData;
 
-    if (courseData) {
-      const modePaie = courseData.methode_paiement || 'fedapay';
-      const commission = parseFloat(courseData.commission_plateforme || 0);
-
-      if (modePaie === 'especes' || modePaie === 'cash' || modePaie === 'a_la_livraison') {
-        // PAIEMENT CASH : le livreur reçoit le montant total en espèces
-        // → on lui crédite ses gains ET on débite immédiatement la commission
-        if (w) {
-          const gains = parseFloat(courseData.gains_livreur || 0);
-          // Crédit gains (le client a payé cash)
-          if (gains > 0) {
-            await sb.from('wallets').update({ solde: w.solde + gains }).eq('id', w.id);
-            await sb.from('transactions').insert({ wallet_id: w.id, type: 'credit', montant: gains, motif: 'course', description: 'Gains course #'+currentCodeCourseId.slice(-6) });
-          }
-          // Débit commission immédiatement (livreur doit reverser à la plateforme)
-          if (commission > 0) {
-            const { data: wRefresh } = await sb.from('wallets').select('id,solde').eq('utilisateur_id', currentUser.id).single();
-            const soldeApres = (wRefresh?.solde || (w.solde + gains)) - commission;
-            await sb.from('wallets').update({ solde: soldeApres }).eq('id', wRefresh?.id || w.id);
-            await sb.from('transactions').insert({ wallet_id: w.id, type: 'debit', montant: commission, motif: 'commission_cash', description: 'Commission plateforme course #'+currentCodeCourseId.slice(-6)+' (paiement espèces)' });
-            showToast(`⚠️ Commission ${fcfa(commission)} déduite (paiement cash)`, 'wa');
-            // Si le solde est négatif → bloquer le compte après 24h
-            if (soldeApres < 0) {
-              // Programmer un check de blocage (flag dans profiles)
-              await sb.from('profiles').update({ statut_compte: 'en_attente_regularisation', date_regularisation_deadline: new Date(Date.now() + 24*3600*1000).toISOString() }).eq('id', currentUser.id);
-              showToast('⚠️ Solde négatif ! Régularisez dans 24h pour éviter le blocage.', 'wa');
-            }
-          }
-        }
-      } else {
-        // PAIEMENT FEDAPAY : prélèvement automatique déjà fait → créditer uniquement les gains
-        if (courseData.gains_livreur && w) {
-          await sb.from('wallets').update({ solde: w.solde + courseData.gains_livreur }).eq('id', w.id);
-          await sb.from('transactions').insert({ wallet_id: w.id, type: 'credit', montant: courseData.gains_livreur, motif: 'course', description: 'Gains course #'+currentCodeCourseId.slice(-6) });
-        }
+    // SÉCURITÉ : un seul appel RPC atomique et vérifié côté serveur qui :
+    // 1) vérifie que le code de confirmation saisi est le bon (le vrai)
+    // 2) vérifie que la course appartient bien au livreur connecté
+    // 3) empêche tout double-traitement (idempotent si déjà 'livree')
+    // 4) crédite les gains OU débite la commission cash, atomiquement
+    // Voir confirmer_livraison() dans SECURITE_PAIEMENTS_supabase.sql
+    const { data: res, error } = await sb.rpc('confirmer_livraison', {
+      p_course_id: currentCodeCourseId, p_code: _pendingCode, p_photo_url: photoUrl
+    });
+    if (error) {
+      if (error.message?.includes('Code de confirmation')) {
+        showToast('Code incorrect. Retournez saisir le bon code.', 'er');
+        openModal('modal-code');
+        return;
       }
+      throw error;
     }
-    // Notifier client
-    if (courseData?.client_id) {
-      await sb.from('notifications').insert({ utilisateur_id: courseData.client_id, titre: 'Livraison confirmée ✓', corps: 'Votre commande a été livrée avec succès.', type: 'course' });
+    if (res?.commission && res.commission > 0) {
+      showToast(`⚠️ Commission ${fcfa(res.commission)} déduite (paiement cash)`, 'wa');
     }
+
     // Remettre livreur disponible
     await sb.from('livreurs').update({ statut: 'disponible', nombre_courses: (currentLivreur.nombre_courses||0)+1 }).eq('id', currentLivreur.id);
     currentLivreur.statut = 'disponible';
     currentLivreur.nombre_courses = (currentLivreur.nombre_courses||0)+1;
     updateStatusUI('disponible');
     courseEnCours = null;
+    _pendingCode = null;
     leaveGpsBroadcastChannel();
     closeModal('modal-preuve');
     showToast('🎉 Livraison confirmée ! Gains crédités.', 'ok');
@@ -1943,47 +2540,17 @@ async function terminerCourseChauffeur(courseId) {
   if (!confirm('Confirmer la fin de la course chauffeur ?')) return;
   showToast('Finalisation de la course chauffeur…');
   try {
-    const { error } = await sb.from('courses').update({
-      statut: 'livree',
-      date_livraison: new Date().toISOString()
-    }).eq('id', courseId);
+    // SÉCURITÉ : un seul appel RPC atomique et idempotent côté serveur
+    // (empêche le double-crédit en rejouant l'appel depuis la console).
+    // Voir terminer_course_chauffeur() dans SECURITE_PAIEMENTS_supabase.sql
+    const { data: res, error } = await sb.rpc('terminer_course_chauffeur', { p_course_id: courseId });
     if (error) throw error;
-    // Lire gains et mode paiement
     const { data: courseData } = await sb.from('courses')
-      .select('gains_livreur,commission_plateforme,client_id,methode_paiement,prix_final')
+      .select('client_id')
       .eq('id', courseId).single();
-    const { data: w } = await sb.from('wallets').select('id,solde').eq('utilisateur_id', currentUser.id).single();
-    if (courseData) {
-      const modePaie = courseData.methode_paiement || 'fedapay';
-      const commission = parseFloat(courseData.commission_plateforme || 0);
-      if (modePaie === 'especes' || modePaie === 'cash' || modePaie === 'a_la_livraison') {
-        if (w) {
-          const gains = parseFloat(courseData.gains_livreur || 0);
-          if (gains > 0) {
-            await sb.from('wallets').update({ solde: w.solde + gains }).eq('id', w.id);
-            await sb.from('transactions').insert({ wallet_id: w.id, type: 'credit', montant: gains, motif: 'course', description: 'Gains chauffeur #'+courseId.slice(-6) });
-          }
-          if (commission > 0) {
-            const { data: wR } = await sb.from('wallets').select('id,solde').eq('utilisateur_id', currentUser.id).single();
-            const soldeApres = (wR?.solde || (w.solde + gains)) - commission;
-            await sb.from('wallets').update({ solde: soldeApres }).eq('id', wR?.id || w.id);
-            await sb.from('transactions').insert({ wallet_id: w.id, type: 'debit', montant: commission, motif: 'commission_cash', description: 'Commission plateforme chauffeur #'+courseId.slice(-6) });
-            showToast(`⚠️ Commission ${fcfa(commission)} déduite`, 'wa');
-            if (soldeApres < 0) {
-              await sb.from('profiles').update({ statut_compte: 'en_attente_regularisation', date_regularisation_deadline: new Date(Date.now() + 24*3600*1000).toISOString() }).eq('id', currentUser.id);
-              showToast('⚠️ Solde négatif ! Régularisez dans 24h.', 'wa');
-            }
-          }
-        }
-      } else {
-        if (courseData.gains_livreur && w) {
-          await sb.from('wallets').update({ solde: w.solde + courseData.gains_livreur }).eq('id', w.id);
-          await sb.from('transactions').insert({ wallet_id: w.id, type: 'credit', montant: courseData.gains_livreur, motif: 'course', description: 'Gains chauffeur #'+courseId.slice(-6) });
-        }
-      }
-      if (courseData.client_id) {
-        await sb.from('notifications').insert({ utilisateur_id: courseData.client_id, titre: '🚘 Course chauffeur terminée ✓', corps: 'Votre course chauffeur est terminée. Merci de votre confiance !', type: 'course' });
-      }
+    if (res?.ok === false) { showToast('Course déjà terminée', 'wa'); }
+    if (courseData?.client_id) {
+      await sb.from('notifications').insert({ utilisateur_id: courseData.client_id, titre: '🚘 Course chauffeur terminée ✓', corps: 'Votre course chauffeur est terminée. Merci de votre confiance !', type: 'course' });
     }
     await sb.from('livreurs').update({ statut: 'disponible', nombre_courses: (currentLivreur.nombre_courses||0)+1 }).eq('id', currentLivreur.id);
     currentLivreur.statut = 'disponible';
@@ -2001,8 +2568,8 @@ function voirDetailCourse(id) {
   const c = allCourses.find(x => x.id === id); if(!c) return;
   const client = c.client||{};
   const nom = `${client.prenom||''} ${client.nom||''}`.trim() || 'Client';
-  const statLabels = {en_attente:'En attente',acceptee:'Acceptée',en_route:'En route',en_cours:'En cours',prise_en_charge:'📦 Colis récupéré',livraison_en_cours:'Livraison en cours',livree:'Livrée',annulee:'Annulée'};
-  const statColors = {en_attente:'#6B7280',acceptee:'#2563EB',en_route:'#D97706',en_cours:'#D97706',prise_en_charge:'#7C3AED',livraison_en_cours:'#D97706',livree:'#16A34A',annulee:'#DC2626'};
+  const statLabels = {en_attente:'En attente',acceptee:'Acceptée',en_route:'En route',en_cours:'En cours',prise_en_charge:'📦 Colis récupéré',livraison_en_cours:'Livraison en cours',livree:'Livrée',annulee:'Annulée',negociation_attente:'💰 Prix libre — en attente',negociation_contre:'💬 Confirmation demandée',negociation_echouee:'😕 Négociation échouée'};
+  const statColors = {en_attente:'#6B7280',acceptee:'#2563EB',en_route:'#D97706',en_cours:'#D97706',prise_en_charge:'#7C3AED',livraison_en_cours:'#D97706',livree:'#16A34A',annulee:'#DC2626',negociation_attente:'#7C3AED',negociation_contre:'#D97706',negociation_echouee:'#DC2626'};
   const col = statColors[c.statut]||'#6B7280';
   const clientTel = client.telephone || null;
   const isActive = ['acceptee','en_route','en_cours','prise_en_charge','livraison_en_cours'].includes(c.statut);
@@ -2045,17 +2612,18 @@ function voirDetailCourse(id) {
         <span style="background:${col}22;color:${col};padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:600">${statLabels[c.statut]||c.statut}</span>
       </div>
     </div>
+    <div style="margin:-.4rem 0 .6rem"><span style="background:var(--surface2);color:var(--text2);padding:2px 10px;border-radius:50px;font-size:.7rem;font-weight:700">${badgeGroupeCourse(c.type)}</span></div>
     <div style="display:flex;flex-direction:column;gap:.6rem;font-size:.85rem">
       ${programmeeBlock}
       ${allerRetourBlock}
       ${chauffeurBlock}
       <div style="background:var(--bg);border-radius:var(--radius-xs);padding:.6rem .8rem;border:1px solid var(--border)">
-        <div style="font-size:.65rem;font-weight:700;color:var(--success);margin-bottom:2px">DÉPART</div>
+        <div style="font-size:.65rem;font-weight:700;color:var(--success);margin-bottom:2px">${groupeCourse(c.type)==='colis' ? 'COLLECTE DU COLIS' : groupeCourse(c.type)==='passager' ? 'PRISE EN CHARGE DU CLIENT' : 'LIEU DE PRISE EN CHARGE'}</div>
         <div>${c.adresse_depart||'—'}</div>
       </div>
       ${arretsBlock}
       <div style="background:var(--bg);border-radius:var(--radius-xs);padding:.6rem .8rem;border:1px solid var(--border)">
-        <div style="font-size:.65rem;font-weight:700;color:var(--danger);margin-bottom:2px">ARRIVÉE</div>
+        <div style="font-size:.65rem;font-weight:700;color:var(--danger);margin-bottom:2px">${groupeCourse(c.type)==='colis' ? 'LIVRER À' : 'DÉPOSER LE CLIENT À'}</div>
         <div style="font-weight:600">${c.adresse_arrivee||'—'}</div>
       </div>
       <div style="display:flex;gap:1rem;flex-wrap:wrap">
@@ -2089,13 +2657,13 @@ function voirDetailCourse(id) {
         <button onclick="refuserCourse('${c.id}');closeModal('modal-detail-course')" style="flex:1;padding:.7rem;background:var(--danger);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:600;cursor:pointer">✗ Refuser</button>
       </div>` : ''}
       ${c.statut === 'acceptee' ? `
-      <button onclick="${(c.type==='chauffeur_perso'||c.type==='chauffeur_client') ? `marquerEnRoute('${c.id}')` : `marquerEnRoute('${c.id}')`};closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem">
-        ${(c.type==='chauffeur_perso'||c.type==='chauffeur_client') ? '<i class="ti ti-steering-wheel"></i> 🚘 Démarrer la course chauffeur' : '<i class="ti ti-bike"></i> 🛵 Je pars récupérer le colis'}
+      <button onclick="marquerEnRoute('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem">
+        ${(c.type==='chauffeur_perso'||c.type==='chauffeur_client') ? '<i class="ti ti-steering-wheel"></i> 🚘 Démarrer la course chauffeur' : estCoursePassager(c.type) ? '<i class="ti ti-user"></i> 🧍 Je pars chercher le client' : '<i class="ti ti-bike"></i> 🛵 Je pars récupérer le colis'}
       </button>` : ''}
       ${(c.statut === 'en_cours' || c.statut === 'en_route') && (c.type==='chauffeur_perso'||c.type==='chauffeur_client') ? `
       <button onclick="terminerCourseChauffeur('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:var(--success);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem">🏁 Terminer la course chauffeur</button>` : ''}
       ${(c.statut === 'en_cours' || c.statut === 'en_route') && c.type!=='chauffeur_perso' && c.type!=='chauffeur_client' ? `
-      <button onclick="marquerColisRecupere('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:#7C3AED;color:#fff;border:none;border-radius:var(--radius-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem">📦 Colis récupéré — En route !</button>` : ''}
+      <button onclick="marquerColisRecupere('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:#7C3AED;color:#fff;border:none;border-radius:var(--radius-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem">${estCoursePassager(c.type) ? '🧍 Client à bord — En route !' : '📦 Colis récupéré — En route !'}</button>` : ''}
       ${(c.statut === 'prise_en_charge' || c.statut === 'livraison_en_cours') ? `
       <button onclick="ouvrirModalCode('${c.id}');closeModal('modal-detail-course')" style="width:100%;padding:.7rem;background:var(--success);color:#fff;border:none;border-radius:var(--radius-xs);font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.5rem"><i class="ti ti-shield-check"></i> Valider code de livraison</button>` : ''}
       ${['acceptee','en_cours','en_route','prise_en_charge','livraison_en_cours'].includes(c.statut) ? `
@@ -2133,7 +2701,7 @@ async function initNavMap(course) {
   // Créer la carte si elle n'existe pas
   if (_navMap) { _navMap.remove(); _navMap = null; }
   _navMap = L.map('nav-map-lv', { zoomControl: false, attributionControl: false }).setView([6.3654, 2.4183], 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(_navMap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains:'abcd', maxZoom: 20 }).addTo(_navMap);
 
   // Destination marker
   const destLat = course.lat_arrivee || course.latitude_arrivee;
@@ -2455,16 +3023,16 @@ async function _lvLancerAppel(targetId, nomContact, courseId) {
       // Envoyer l'offer sur le canal commun
       await _lvRtcChannel.send({ type: 'broadcast', event: 'offer',
         payload: { sdp: offer, from: currentUser.id, to: targetId, courseId,
-                   callerName: currentProfile?.prenom || 'Livreur' } });
+                   callerName: currentProfile?.prenom || 'Agent de service' } });
       // Canal personnel de la cible (écoute même sans conv ouverte)
       await sb.channel('rtc-incoming-' + targetId).send({ type: 'broadcast', event: 'offer',
         payload: { sdp: offer, from: currentUser.id, to: targetId, courseId,
-                   callerName: currentProfile?.prenom || 'Livreur' } });
+                   callerName: currentProfile?.prenom || 'Agent de service' } });
       // Notification backup
       await sb.from('notifications').insert({
         utilisateur_id: targetId,
-        titre: '📞 Appel de votre livreur',
-        corps: `${currentProfile?.prenom||'Votre livreur'} vous appelle via Allô Livreur`,
+        titre: '📞 Appel de votre agent de service',
+        corps: `${currentProfile?.prenom||'Votre agent de service'} vous appelle via Allô Service`,
         type: 'appel_rtc',
         meta: { courseId, callerId: currentUser.id }
       });
@@ -2638,16 +3206,15 @@ async function confirmerRetrait() {
   const operateur = document.getElementById('retrait-operateur').value;
   if (!montant || montant < 1000) return showToast('Minimum 1 000 FCFA');
   if (!tel) return showToast('Numéro Mobile Money requis');
-  const { data: w } = await sb.from('wallets').select('id,solde').eq('utilisateur_id', currentUser.id).single();
-  if (!w || w.solde < montant) return showToast('Solde insuffisant');
-  await sb.from('wallets').update({ solde: w.solde - montant }).eq('id', w.id);
-  await sb.from('transactions').insert({ wallet_id: w.id, type: 'debit', montant, motif: 'retrait', description: 'Retrait '+operateur.toUpperCase()+' '+tel });
-  await sb.from('retraits').insert({ utilisateur_id: currentUser.id, montant, operateur_mobile_money: operateur, numero_mobile_money: tel, statut: 'en_attente' });
-  closeModal('modal-retrait');
-  showToast('Retrait de '+fcfa(montant)+' en traitement ✓', 'ok');
-  loadWallet();
-  // Update retrait solde field
-  const el=document.getElementById('retrait-solde'); if(el) el.textContent=fcfa((w.solde-montant));
+  try {
+    // SÉCURITÉ : vérification du solde + débit + création de la demande de
+    // retrait dans une seule transaction atomique côté serveur.
+    const { error } = await sb.rpc('demander_retrait', { p_montant: montant, p_operateur: operateur, p_numero: tel });
+    if (error) throw error;
+    closeModal('modal-retrait');
+    showToast('Retrait de '+fcfa(montant)+' en traitement ✓', 'ok');
+    loadWallet();
+  } catch(e) { showToast('Erreur retrait : ' + e.message, 'er'); }
 }
 
 // ═══ SOS ═════════════════════════════════════════════════
@@ -2658,14 +3225,14 @@ async function _envoyerAlerteSOS(lat, lng) {
   if (posEl) posEl.textContent = (lat != null && lng != null) ? `📍 Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}` : '⚠️ Position GPS indisponible — alerte envoyée sans coordonnées';
   await sb.from('notifications').insert({
     utilisateur_id: currentUser.id,
-    titre: '🆘 SOS Livreur',
-    corps: `Livreur ${currentProfile?.prenom||''} ${currentProfile?.nom||''} en difficulté — ${posTxt}`,
+    titre: '🆘 SOS Agent de service',
+    corps: `Agent de service ${currentProfile?.prenom||''} ${currentProfile?.nom||''} en difficulté — ${posTxt}`,
     type: 'sos'
   });
   const { data: admins } = await sb.from('profiles').select('id').eq('role','admin').limit(5);
   if (admins) {
     for (const admin of admins) {
-      await sb.from('notifications').insert({ utilisateur_id: admin.id, titre: '🆘 SOS Livreur', corps: `${currentProfile?.prenom||''} ${currentProfile?.nom||''} a besoin d'aide — ${posTxt}`, type: 'sos' });
+      await sb.from('notifications').insert({ utilisateur_id: admin.id, titre: '🆘 SOS Agent de service', corps: `${currentProfile?.prenom||''} ${currentProfile?.nom||''} a besoin d'aide — ${posTxt}`, type: 'sos' });
     }
   }
   if (statusEl) statusEl.textContent = '✅ Alerte envoyée à l\'administrateur';
@@ -2718,7 +3285,7 @@ async function loadConversations() {
   const mobEl = document.getElementById('mob-conv-list'); if(mobEl) mobEl.innerHTML = mobHtml;
 }
 
-const ROLE_LABELS = {client:'Client',livreur:'Livreur',marchand:'Marchand',admin:'Admin'};
+const ROLE_LABELS = {client:'Client',livreur:'Agent de service',marchand:'Marchand',admin:'Admin'};
 const ROLE_COLORS = {client:'#2563EB',livreur:'#F97316',marchand:'#16A34A',admin:'#7C3AED'};
 
 function convItemHTML(item, mob) {
@@ -2847,7 +3414,7 @@ function buildMsgBubble(m, userId) {
       setTimeout(()=>{
         const el=document.getElementById(mid); if(!el||el._lfMap) return;
         const lm=L.map(el,{zoomControl:false,dragging:false,scrollWheelZoom:false,attributionControl:false,touchZoom:false,doubleClickZoom:false});
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(lm);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains:'abcd', maxZoom: 20 }).addTo(lm);
         L.marker([c.lat,c.lng]).addTo(lm); lm.setView([c.lat,c.lng],15); el._lfMap=lm;
       },300);
       return `<div class="msg-row ${side}"><div class="msg-bubble ${side}" style="padding:5px 5px 4px;max-width:86%"><div style="font-size:.72rem;font-weight:600;opacity:.8;margin-bottom:3px">📍 ${lbl}</div><div id="${mid}" class="msg-mini-map"></div><div class="msg-map-btns"><a href="https://maps.google.com/?q=${c.lat},${c.lng}" target="_blank" class="msg-map-btn gm"><i class="ti ti-map-2"></i> Google Maps</a><a href="https://waze.com/ul?ll=${c.lat},${c.lng}&navigate=yes" target="_blank" class="msg-map-btn wz"><i class="ti ti-navigation"></i> Waze</a></div>${footer}</div></div>`;
@@ -3162,7 +3729,7 @@ function posPickMap() {
   setTimeout(()=>{
     if(!posMap){
       posMap=L.map('pos-map').setView([6.3654,2.4183],13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(posMap);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains:'abcd', maxZoom: 20 }).addTo(posMap);
       posMap.on('click',e=>{
         posSelectedLatLng={lat:e.latlng.lat,lng:e.latlng.lng,label:'Position sur la carte'};
         document.getElementById('pos-lbl').textContent=`${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
@@ -3236,12 +3803,20 @@ function toggleNotifs() {
 function mobToggleNotifs() { loadNotifications(); openModal('modal-notifs'); }
 
 // ═══ REALTIME ════════════════════════════════════════════
+// Empêche la sonnerie de se redéclencher quand c'est le livreur
+// lui-même qui vient de modifier la course (accepter/refuser/récupérer/etc.)
+let _lvSelfAction = false;
+function _lvMarkSelfAction() {
+  _lvSelfAction = true;
+  clearTimeout(_lvMarkSelfAction._t);
+  _lvMarkSelfAction._t = setTimeout(() => { _lvSelfAction = false; }, 2500);
+}
 function subscribeRealtime() {
   const coursesSub = sb.channel('courses-livreur-'+currentLivreur?.id)
     .on('postgres_changes',{event:'*',schema:'public',table:'courses',filter:`livreur_id=eq.${currentLivreur?.id}`},()=>{
       loadCourses();
-      // Son de notification
-      playNotifTone();
+      // Son de notification — sauf si c'est une action du livreur lui-même
+      if (!_lvSelfAction) playNotifTone();
     }).subscribe();
   const notifSub = sb.channel('notifs-livreur')
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:`utilisateur_id=eq.${currentUser.id}`},()=>{
@@ -3278,17 +3853,57 @@ function notifyAPK(titre, corps, convId) {
   if(window.webkit?.messageHandlers?.notify){try{window.webkit.messageHandlers.notify.postMessage({titre,corps,convId});return;}catch(e){}}
   if('Notification' in window && Notification.permission==='granted'){try{new Notification(titre,{body:corps,icon:'/icon.png',tag:convId,renotify:true,vibrate:[200,100,200]});}catch(e){}}
 }
-function playNotifTone() {
+// ─── Sonnerie élégante "cri-cri" (grillon) ──────────────────
+// Sonne 3 fois puis s'arrête automatiquement (ou dès qu'on touche l'écran /
+// clique sur Accepter / Refuser).
+let _ringingActive = false;
+let _ringLoopTimer = null;
+let _ringCount = 0;
+const _RING_MAX_CYCLES = 3;
+function _lvChirp(ctx, startTime) {
+  const osc = ctx.createOscillator(), g = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(4200, startTime);
+  osc.frequency.exponentialRampToValueAtTime(3600, startTime + .05);
+  osc.connect(g); g.connect(ctx.destination);
+  g.gain.setValueAtTime(0, startTime);
+  g.gain.linearRampToValueAtTime(.25, startTime + .008);
+  g.gain.linearRampToValueAtTime(0, startTime + .06);
+  osc.start(startTime); osc.stop(startTime + .07);
+}
+function _ringCycle() {
+  if (!_ringingActive) return;
+  if (_ringCount >= _RING_MAX_CYCLES) { stopRinging(); return; }
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    [[587,.0,.12],[880,.12,.32]].forEach(([freq,start,end])=>{
-      const osc=ctx.createOscillator(),g=ctx.createGain();
-      osc.connect(g);g.connect(ctx.destination);
-      osc.frequency.value=freq;g.gain.setValueAtTime(.28,ctx.currentTime+start);
-      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+end);
-      osc.start(ctx.currentTime+start);osc.stop(ctx.currentTime+end);
-    });
+    const t0=ctx.currentTime;
+    // "cri-cri-cri" : trois pépiements rapprochés
+    _lvChirp(ctx, t0);
+    _lvChirp(ctx, t0 + .12);
+    _lvChirp(ctx, t0 + .24);
+    if(navigator.vibrate) navigator.vibrate([40,60,40,60,40]);
   }catch(e){}
+  _ringCount++;
+  _ringLoopTimer = setTimeout(_ringCycle, 900);
+}
+function startRinging() {
+  if (_ringingActive) return; // déjà en train de sonner
+  _ringingActive = true;
+  _ringCount = 0;
+  _ringCycle();
+}
+function stopRinging() {
+  _ringingActive = false;
+  _ringCount = 0;
+  if (_ringLoopTimer) { clearTimeout(_ringLoopTimer); _ringLoopTimer = null; }
+}
+// Le livreur "décroche" en touchant/cliquant n'importe où sur l'écran
+['touchstart','mousedown','click','keydown'].forEach(evt=>{
+  document.addEventListener(evt, ()=>{ if(_ringingActive) stopRinging(); }, {passive:true});
+});
+function playNotifTone() {
+  // Conservé pour compatibilité avec les appels existants : déclenche la sonnerie continue.
+  startRinging();
 }
 function initAPKBridge() {
   if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
@@ -3296,7 +3911,7 @@ function initAPKBridge() {
   if(window.Android?.requestNotificationPermission){try{window.Android.requestNotificationPermission();}catch(e){}}
   // Service Worker — ne fonctionne QUE dans un contexte sécurisé (https/localhost), jamais sur file://
   if('serviceWorker' in navigator && window.isSecureContext){
-    const swSrc=`self.addEventListener('push',e=>{const d=e.data?e.data.json():{};self.registration.showNotification(d.title||'Allô Livreur',{body:d.body||'Nouveau message',icon:'/icon.png',badge:'/icon.png',vibrate:[200,100,200],tag:d.tag||'msg',renotify:true,data:d});});self.addEventListener('notificationclick',e=>{e.notification.close();clients.matchAll({type:'window'}).then(cs=>{if(cs.length)cs[0].focus();else clients.openWindow('/');});});self.addEventListener('message',e=>{if(e.data==='ping')e.source.postMessage('pong');});`;
+    const swSrc=`self.addEventListener('push',e=>{const d=e.data?e.data.json():{};self.registration.showNotification(d.title||'Allô Service',{body:d.body||'Nouveau message',icon:'/icon.png',badge:'/icon.png',vibrate:[200,100,200],tag:d.tag||'msg',renotify:true,data:d});});self.addEventListener('notificationclick',e=>{e.notification.close();clients.matchAll({type:'window'}).then(cs=>{if(cs.length)cs[0].focus();else clients.openWindow('/');});});self.addEventListener('message',e=>{if(e.data==='ping')e.source.postMessage('pong');});`;
     const blob=new Blob([swSrc],{type:'application/javascript'});
     const swUrl=URL.createObjectURL(blob);
     navigator.serviceWorker.register(swUrl).then(reg=>{setInterval(()=>reg.active?.postMessage('ping'),25000);}).catch(()=>{});
@@ -3351,6 +3966,8 @@ function loadVehiculeForm() {
   const cb=document.getElementById('veh-est-chauffeur');
   const wrap=document.getElementById('chauffeur-tarifs-wrap');
   if(cb){ cb.checked=!!currentLivreur.est_chauffeur; if(wrap) wrap.style.display=cb.checked?'block':'none'; }
+  const cbInd=document.getElementById('veh-mode-independant');
+  if(cbInd) cbInd.checked=!!currentLivreur.mode_independant;
 }
 function toggleProfileDropdown() { document.getElementById('profile-dropdown').classList.toggle('open'); document.getElementById('notif-panel').classList.remove('open'); }
 document.addEventListener('click',e=>{

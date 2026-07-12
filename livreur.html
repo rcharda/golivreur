@@ -1227,6 +1227,25 @@ let pcMap = null, mobMap = null;
 let clientMarker = { pc: null, mob: null };
 let myMarker = { pc: null, mob: null };
 
+// ── Débloquer l'audio dès la première interaction (PC/desktop) ────
+(function _lvUnlockAudioOnce() {
+  const unlock = () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume().catch(()=>{});
+      setTimeout(() => { try { ctx.close(); } catch(e){} }, 500);
+    } catch(e) {}
+    const audio = document.getElementById('lv-rtc-remote-audio');
+    if (audio) audio.play().then(()=>audio.pause()).catch(()=>{});
+    document.removeEventListener('click', unlock);
+    document.removeEventListener('touchstart', unlock);
+    document.removeEventListener('keydown', unlock);
+  };
+  document.addEventListener('click', unlock, { once: true });
+  document.addEventListener('touchstart', unlock, { once: true });
+  document.addEventListener('keydown', unlock, { once: true });
+})();
+
 // ═══ INIT ════════════════════════════════════════════════
 let _appInitialized = false;
 document.addEventListener('DOMContentLoaded', async () => {
@@ -2884,6 +2903,7 @@ async function _lvFlushPendingIce() {
 function _lvPlayRingtone(loop = true) {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume().catch(()=>{});
     let active = true;
     if (navigator.vibrate) navigator.vibrate([400, 200, 400, 2000]);
     const playRing = (startTime) => {
@@ -3037,6 +3057,7 @@ async function _lvLancerAppel(targetId, nomContact, courseId) {
       });
       _lvStartCallTimer();
       _lvUpdateCallUI('connected');
+      _lvActiverHautParleurDefaut();
     })
     .on('broadcast', { event: 'busy' }, ({ payload }) => {
       if (payload.to !== currentUser.id) return;
@@ -3091,21 +3112,25 @@ async function lvRepondreAppel(payload) {
   _lvRtcRole = 'callee'; _lvRtcTargetId = payload.from;
   if (_lvRtcRinging) { _lvRtcRinging(); _lvRtcRinging = null; }
   clearTimeout(_lvRtcRingTimeout); _lvRtcRingTimeout = null;
-  try {
-    const mediaErr = checkMediaSupport('audio');
-    if (mediaErr) { showToast(mediaErr, 'er'); return; }
-    _lvRtcLocalStream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-    });
-  } catch(e) { return showToast('🎤 Micro non autorisé', 'er'); }
+
   const peer = _lvRtcPeer || _lvCreatePeer();
-  _lvRtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _lvRtcLocalStream));
+
+  if (!_lvRtcLocalStream) {
+    try {
+      const mediaErr = checkMediaSupport('audio');
+      if (mediaErr) { showToast(mediaErr, 'er'); return; }
+      _lvRtcLocalStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      });
+      _lvRtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _lvRtcLocalStream));
+    } catch(e) { return showToast('🎤 Micro non autorisé', 'er'); }
+  }
+
   if (!_lvRtcRemoteSet) {
     await peer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
     _lvRtcRemoteSet = true;
   }
   await _lvFlushPendingIce();
-  // Correctif "audio à sens unique" (voir index.html pour l'explication complète)
   peer.getTransceivers().forEach(tr => {
     if (tr.receiver?.track?.kind === 'audio' || tr.sender?.track?.kind === 'audio') tr.direction = 'sendrecv';
   });
@@ -3117,6 +3142,21 @@ async function lvRepondreAppel(payload) {
   _lvUpdateCallUI('connected');
   const audioElR = document.getElementById('lv-rtc-remote-audio');
   if (audioElR && audioElR.srcObject) audioElR.play().catch(() => {});
+  _lvActiverHautParleurDefaut();
+}
+
+// ── Haut-parleur activé par défaut sur tous les appels ─
+function _lvActiverHautParleurDefaut() {
+  _lvRtcSpeaker = true;
+  const audio = document.getElementById('lv-rtc-remote-audio');
+  if (audio && audio.setSinkId) audio.setSinkId('default').catch(()=>{});
+  try { window.flutter_inappwebview?.callHandler('speakerphoneOn', true); } catch(e) {}
+  try { window.Android?.setSpeakerphoneOn?.(true); } catch(e) {}
+  const btn = document.getElementById('lv-call-btn-speaker');
+  if (btn) {
+    btn.querySelector('div').style.background = '#2563EB';
+    btn.querySelector('span').textContent = 'HP ON';
+  }
 }
 
 // ── Raccrocher ─────────────────────────────────────────
@@ -3179,7 +3219,8 @@ function _lvShowCallModal(role, nomContact) {
   if (timer) timer.textContent = '';
   if (rBtn) rBtn.style.display = role === 'callee' ? 'flex' : 'none';
   if (muteBtn) muteBtn.style.display = role === 'caller' ? 'none' : 'flex';
-  if (spkBtn) spkBtn.style.display = 'flex';
+  if (spkBtn) { spkBtn.style.display = 'flex'; spkBtn.querySelector('div').style.background = '#2563EB'; spkBtn.querySelector('span').textContent = 'HP ON'; }
+  _lvRtcSpeaker = true;
   _lvRtcMuted = false;
   _lvRtcLocalStream?.getAudioTracks().forEach(t => t.enabled = true);
   openModal('modal-lv-appel');
@@ -3215,13 +3256,29 @@ function startLvRTCListener() {
       _lvRtcChannel = _lvBuildCallChannel(chName)
         .on('broadcast', { event: 'answer' }, () => {}); // géré côté appelant
       await new Promise(res => { _lvRtcChannel.subscribe(s => s === 'SUBSCRIBED' && res()); setTimeout(res, 3000); });
-      _lvCreatePeer();
-      // Poser la remoteDescription dès l'offre reçue pour laisser l'ICE démarrer
-      // pendant la sonnerie, et ne pas perdre les premiers candidats de l'appelant.
+      const peer = _lvCreatePeer();
+
+      // ── Correctif définitif "audio à sens unique" (voir index.html) ──
       try {
-        await _lvRtcPeer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+        const mediaErr = checkMediaSupport('audio');
+        if (!mediaErr) {
+          _lvRtcLocalStream = await navigator.mediaDevices.getUserMedia({
+            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+          });
+          _lvRtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _lvRtcLocalStream));
+        }
+      } catch(e) {
+        console.warn('Pré-capture micro pendant la sonnerie échouée :', e);
+        _lvRtcLocalStream = null;
+      }
+
+      try {
+        await peer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
         _lvRtcRemoteSet = true;
         await _lvFlushPendingIce();
+        peer.getTransceivers().forEach(tr => {
+          if (tr.receiver?.track?.kind === 'audio' || tr.sender?.track?.kind === 'audio') tr.direction = 'sendrecv';
+        });
       } catch(e) { console.warn('setRemoteDescription (offre) échoué:', e); }
       _lvRtcRinging = _lvPlayRingtone(true);
       const nomAppelant = payload.callerName || 'Client';

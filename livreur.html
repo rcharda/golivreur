@@ -2941,6 +2941,33 @@ function _lvPlayRingtone(loop = true) {
   } catch(e) { return () => {}; }
 }
 
+// ── Capture micro sécurisée (anti doublon / anti-race) ─
+// Corrige le bug "audio à sens unique" : un seul getUserMedia() en vol à la
+// fois — la pré-capture pendant la sonnerie et le clic "Répondre" attendent
+// la même promesse au lieu d'en lancer chacun une, ce qui garantissait que
+// le flux réellement ajouté au peer n'était pas toujours celui utilisé.
+let _lvRtcCapturePromise = null;
+let _lvRtcTracksAddedTo = null;
+async function _lvEnsureLocalStream(peer) {
+  if (_lvRtcLocalStream && _lvRtcTracksAddedTo === peer) return _lvRtcLocalStream;
+  if (!_lvRtcCapturePromise) {
+    _lvRtcCapturePromise = (async () => {
+      const mediaErr = checkMediaSupport('audio');
+      if (mediaErr) throw new Error(mediaErr);
+      return await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      });
+    })();
+  }
+  const stream = await _lvRtcCapturePromise;
+  _lvRtcLocalStream = stream;
+  if (_lvRtcTracksAddedTo !== peer) {
+    stream.getTracks().forEach(t => peer.addTrack(t, stream));
+    _lvRtcTracksAddedTo = peer;
+  }
+  return stream;
+}
+
 // ── Timer d'appel ──────────────────────────────────────
 function _lvStartCallTimer() {
   _lvRtcSeconds = 0;
@@ -3034,14 +3061,11 @@ async function _lvLancerAppel(targetId, nomContact, courseId) {
   if (_lvRtcPeer) return showToast('Appel déjà en cours', 'wa');
   _lvRtcRole = 'caller'; _lvRtcTargetId = targetId;
   _lvRtcRemoteSet = false; _lvRtcPendingIce = [];
+  _lvRtcCapturePromise = null; _lvRtcTracksAddedTo = null; _lvRtcLocalStream = null;
 
-  try {
-    const mediaErr = checkMediaSupport('audio');
-    if (mediaErr) { showToast(mediaErr, 'er'); return; }
-    _lvRtcLocalStream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-    });
-  } catch(e) { return showToast('🎤 Microphone non autorisé', 'er'); }
+  // Affichage immédiat du modal pour un retour visuel instantané
+  _lvRtcRinging = _lvPlayRingtone(true);
+  _lvShowCallModal('caller', nomContact);
 
   const chName = 'rtc-call-' + [currentUser.id, targetId].sort().join('-');
   _lvRtcChannel = _lvBuildCallChannel(chName)
@@ -3068,7 +3092,13 @@ async function _lvLancerAppel(targetId, nomContact, courseId) {
     .subscribe(async status => {
       if (status !== 'SUBSCRIBED') return;
       const peer = _lvCreatePeer();
-      _lvRtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _lvRtcLocalStream));
+      try {
+        await _lvEnsureLocalStream(peer);
+      } catch(e) {
+        showToast(e.message || '🎤 Microphone non autorisé', 'er');
+        lvRaccrocher(false);
+        return;
+      }
       const offer = await peer.createOffer();
       await peer.setLocalDescription(offer);
       const offerPayload = { sdp: offer, from: currentUser.id, to: targetId, courseId,
@@ -3094,8 +3124,6 @@ async function _lvLancerAppel(targetId, nomContact, courseId) {
         type: 'appel_rtc',
         meta: { courseId, callerId: currentUser.id }
       }).catch(()=>{});
-      _lvRtcRinging = _lvPlayRingtone(true);
-      _lvShowCallModal('caller', nomContact);
 
       clearTimeout(_lvRtcRingTimeout);
       _lvRtcRingTimeout = setTimeout(() => {
@@ -3115,16 +3143,12 @@ async function lvRepondreAppel(payload) {
 
   const peer = _lvRtcPeer || _lvCreatePeer();
 
-  if (!_lvRtcLocalStream) {
-    try {
-      const mediaErr = checkMediaSupport('audio');
-      if (mediaErr) { showToast(mediaErr, 'er'); return; }
-      _lvRtcLocalStream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-      });
-      _lvRtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _lvRtcLocalStream));
-    } catch(e) { return showToast('🎤 Micro non autorisé', 'er'); }
-  }
+  // Le micro a normalement déjà été capturé pendant la sonnerie. On attend la
+  // MÊME promesse ici plutôt que de relancer un getUserMedia() séparé — c'est
+  // ce doublon qui causait l'audio à sens unique.
+  try {
+    await _lvEnsureLocalStream(peer);
+  } catch(e) { return showToast(e.message || '🎤 Micro non autorisé', 'er'); }
 
   if (!_lvRtcRemoteSet) {
     await peer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
@@ -3252,25 +3276,36 @@ function startLvRTCListener() {
         } catch(e) {}
         return;
       }
+      // Reset complet de l'état avant de traiter cette nouvelle offre — évite
+      // qu'un résidu d'un appel précédent mal refermé ne fasse rester affiché
+      // "📡 Appel en cours…" au lieu de "📞 Appel entrant".
+      _lvRtcRole = 'callee'; _lvRtcTargetId = payload.from;
+      _lvRtcRemoteSet = false; _lvRtcPendingIce = [];
+      _lvRtcCapturePromise = null; _lvRtcTracksAddedTo = null; _lvRtcLocalStream = null;
+
+      // ── Affichage IMMÉDIAT du modal, AVANT toute opération async ──────
+      // Corrige le bug "je vois seulement Appel en cours" : le modal (avec le
+      // bon texte "📞 Appel entrant" et le bouton Répondre) s'affiche tout de
+      // suite, sans attendre getUserMedia()/setRemoteDescription() qui peuvent
+      // prendre du temps (voire bloquer) sur certains appareils Android.
+      const nomAppelant = payload.callerName || 'Client';
+      _lvRtcRinging = _lvPlayRingtone(true);
+      _lvShowCallModal('callee', nomAppelant);
+      document.getElementById('lv-call-repondre').onclick = () => lvRepondreAppel(payload);
+
       const chName = 'rtc-call-' + [payload.from, currentUser.id].sort().join('-');
       _lvRtcChannel = _lvBuildCallChannel(chName)
         .on('broadcast', { event: 'answer' }, () => {}); // géré côté appelant
       await new Promise(res => { _lvRtcChannel.subscribe(s => s === 'SUBSCRIBED' && res()); setTimeout(res, 3000); });
       const peer = _lvCreatePeer();
 
-      // ── Correctif définitif "audio à sens unique" (voir index.html) ──
-      try {
-        const mediaErr = checkMediaSupport('audio');
-        if (!mediaErr) {
-          _lvRtcLocalStream = await navigator.mediaDevices.getUserMedia({
-            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-          });
-          _lvRtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _lvRtcLocalStream));
-        }
-      } catch(e) {
-        console.warn('Pré-capture micro pendant la sonnerie échouée :', e);
-        _lvRtcLocalStream = null;
-      }
+      // ── Correctif "audio à sens unique" ────────────────────────────────
+      // Capture le micro dès que ça sonne, via le helper qui garantit une
+      // seule capture en vol — si le livreur clique "Répondre" avant la fin,
+      // lvRepondreAppel() attend cette MÊME promesse au lieu d'en relancer une.
+      _lvEnsureLocalStream(peer).catch(e => {
+        console.warn('Pré-capture micro pendant la sonnerie échouée (on réessaiera au clic répondre) :', e);
+      });
 
       try {
         await peer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
@@ -3280,10 +3315,6 @@ function startLvRTCListener() {
           if (tr.receiver?.track?.kind === 'audio' || tr.sender?.track?.kind === 'audio') tr.direction = 'sendrecv';
         });
       } catch(e) { console.warn('setRemoteDescription (offre) échoué:', e); }
-      _lvRtcRinging = _lvPlayRingtone(true);
-      const nomAppelant = payload.callerName || 'Client';
-      _lvShowCallModal('callee', nomAppelant);
-      document.getElementById('lv-call-repondre').onclick = () => lvRepondreAppel(payload);
 
       clearTimeout(_lvRtcRingTimeout);
       _lvRtcRingTimeout = setTimeout(() => {

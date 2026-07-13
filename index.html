@@ -6842,6 +6842,19 @@ function convItemHTML(item, mob) {
     + '</div>';
 }
 
+// ─── Ouvrir une conversation depuis une notification push ──
+async function openConversationById(convId) {
+  if (!convId) return;
+  const { data: conv } = await sb.from('conversations').select('id,participant_1_id,participant_2_id').eq('id', convId).single();
+  if (!conv) return;
+  const otherId = conv.participant_1_id === currentUser.id ? conv.participant_2_id : conv.participant_1_id;
+  const { data: p } = await sb.from('profiles').select('prenom,nom').eq('id', otherId).single();
+  const nom = p ? ((p.prenom||'') + ' ' + (p.nom||'')).trim() : 'Contact';
+  switchMobPage('messages');
+  openChat(convId, nom, otherId);
+}
+window.openConversationById = openConversationById;
+
 async function openChat(convId, nom, otherId) {
   currentConvId = convId;
   currentConvOtherId = otherId || null;
@@ -7041,7 +7054,26 @@ async function envoyerMessage() {
     await sb.from('conversations').update({ dernier_message_at:new Date().toISOString(), dernier_message_texte:text.substring(0,80) }).eq('id',currentConvId);
     setTimeout(()=>scrollChatBottom('mob'),60);
     setTimeout(()=>scrollChatBottom('pc'),60);
+    _notifyNewMessage(currentConvOtherId, text, currentConvId);
   }
+}
+
+// ─── Notification push message (FCM) ──────────────────────
+async function _notifyNewMessage(recipientId, previewText, conversationId) {
+  if (!recipientId) return;
+  try {
+    await fetch(SUPABASE_URL + '/functions/v1/notify-new-message', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify({
+        recipientId: recipientId,
+        recipientType: 'livreur',
+        senderName: currentProfile?.prenom || 'Client',
+        preview: previewText,
+        conversationId: conversationId
+      })
+    });
+  } catch(e) { console.warn('[FCM] echec envoi push message:', e); }
 }
 
 
@@ -11177,6 +11209,7 @@ async function envoyerMessagePC() {
   if (!error) {
     await sb.from('conversations').update({ dernier_message_at: new Date().toISOString(), dernier_message_texte: text }).eq('id', currentConvId);
     loadMessages(currentConvId);
+    _notifyNewMessage(currentConvOtherId, text, currentConvId);
   }
 }
 

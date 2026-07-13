@@ -10320,13 +10320,55 @@ async function copierCodeLivraison() {
 //  Sonnerie téléphonique vraie + mute + timer + haut-parleur
 // ══════════════════════════════════════════════════════════
 let _rtcPeer = null, _rtcLocalStream = null, _rtcRemoteStream = null;
+let _rtcLastHandledOfferId = null; // anti-double-traitement d'une même offre
 let _rtcCallChannel = null, _rtcRole = null, _rtcTargetId = null;
 let _rtcRinging = null, _rtcCallTimer = null, _rtcSeconds = 0;
+// Vrai seulement APRÈS que le répondant ait cliqué le bouton vert. Sert de
+// garde car peer.ontrack() se déclenche dès setRemoteDescription(offer)
+// (avant même que l'utilisateur ait cliqué) — sans cette garde, l'UI passait
+// en "connecté" et masquait le bouton Répondre presque instantanément.
+let _rtcAnswered = false;
 let _rtcMuted = false, _rtcSpeaker = false;
 // ── Correctifs fiabilité appels ─────────────────────────
 let _rtcPendingIce = [];      // ICE reçus avant que la description distante ne soit posée
 let _rtcRemoteSet = false;    // remoteDescription déjà posée ?
 let _rtcRingTimeout = null;   // timeout de sonnerie sans réponse
+
+// ── Capture micro sécurisée (anti doublon / anti-race) ─
+// Corrige le bug "audio à sens unique" : avant, la pré-capture pendant la
+// sonnerie ET le clic "Répondre" pouvaient chacun démarrer leur propre
+// getUserMedia() en parallèle si l'utilisateur répondait vite. Le flux
+// gagnant n'était pas toujours celui dont les pistes avaient été ajoutées
+// au peer, donc un des deux côtés n'envoyait jamais son audio.
+// Ici : un seul appel getUserMedia() en vol à la fois, tout le monde
+// attend la même promesse, et les pistes ne sont ajoutées qu'une fois.
+let _rtcCapturePromise = null;
+let _rtcTracksAddedTo = null; // peer sur lequel les pistes ont déjà été ajoutées
+async function _ensureLocalStream(peer) {
+  if (_rtcLocalStream && _rtcTracksAddedTo === peer) return _rtcLocalStream;
+  if (!_rtcCapturePromise) {
+    _rtcCapturePromise = (async () => {
+      const mediaErr = checkMediaSupport('audio');
+      if (mediaErr) throw new Error(mediaErr);
+      return await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      });
+    })();
+  }
+  const stream = await _rtcCapturePromise;
+  _rtcLocalStream = stream;
+  if (_rtcTracksAddedTo !== peer) {
+    stream.getTracks().forEach(t => peer.addTrack(t, stream));
+    _rtcTracksAddedTo = peer;
+    // Forcer sendrecv APRÈS l'ajout réel des pistes (et non avant), sinon le
+    // sender n'a pas encore de track au moment du forçage et l'answer généré
+    // ne transporte pas d'audio sortant → voix à sens unique.
+    peer.getTransceivers().forEach(tr => {
+      if (tr.receiver?.track?.kind === 'audio' || tr.sender?.track?.kind === 'audio') tr.direction = 'sendrecv';
+    });
+  }
+  return stream;
+}
 
 // Vide la file d'attente ICE dès que remoteDescription est prête
 async function _flushPendingIce() {
@@ -10413,7 +10455,7 @@ function _playRingtone(loop = true) {
 
 // ── Créer PeerConnection avec STUN/TURN ────────────────
 function _createPeer() {
-  _rtcPeer = new RTCPeerConnection({
+  const peer = new RTCPeerConnection({
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
@@ -10427,14 +10469,23 @@ function _createPeer() {
     ],
     iceCandidatePoolSize: 4
   });
+  _rtcPeer = peer;
   _rtcRemoteSet = false; _rtcPendingIce = [];
-  _rtcPeer.onicecandidate = e => {
+  peer.onicecandidate = e => {
+    if (_rtcPeer !== peer) return; // peer périmé (nouvel appel démarré entre temps)
     if (e.candidate && _rtcCallChannel) {
       _rtcCallChannel.send({ type: 'broadcast', event: 'ice',
         payload: { candidate: e.candidate, from: currentUser.id } }).catch(()=>{});
     }
   };
-  _rtcPeer.ontrack = e => {
+  peer.ontrack = e => {
+    // Garde d'identité : si un ancien peer (appel précédent mal refermé, ou
+    // deux offres traitées en parallèle) reçoit encore des évènements après
+    // qu'un NOUVEL appel a démarré, on ignore — sinon ça mettait l'UI en
+    // "connecté" (masquant le bouton Répondre) pour le mauvais appel, ce qui
+    // donnait l'impression que le bouton "s'affichait et disparaissait aussitôt".
+    if (_rtcPeer !== peer) return;
+    console.log('[RTC-CLIENT] ontrack reçu, kind=', e.track.kind, 'streams=', e.streams.length);
     _rtcRemoteStream = e.streams[0];
     const audio = document.getElementById('rtc-remote-audio');
     if (audio) {
@@ -10452,20 +10503,38 @@ function _createPeer() {
         } catch(e) { tryPlay(); }
       } else { tryPlay(); }
     }
-    _updateCallUI('connected');
+    _updateCallUI(_rtcRole === 'callee' && !_rtcAnswered ? 'ringing' : 'connected');
+    if (_rtcPeer !== peer) return;
+    console.log('[RTC-CLIENT] iceConnectionState =', peer.iceConnectionState);
   };
-  _rtcPeer.onconnectionstatechange = () => {
-    const state = _rtcPeer?.connectionState;
+  peer.onconnectionstatechange = () => {
+    if (_rtcPeer !== peer) return; // peer périmé, on ne raccroche pas l'appel courant à sa place
+    const state = peer.connectionState;
+    console.log('[RTC-CLIENT] connectionState =', state);
     // 'disconnected' est transitoire pendant ICE — on ignore, grâce de 6s
-    if (state === 'failed' || state === 'closed') {
+    if (state === 'failed') {
+      // Avant de raccrocher, on tente une reprise ICE (restartIce). Le TURN
+      // gratuit openrelay.metered.ca est régulièrement saturé/indisponible ;
+      // sans cette tentative, un simple relais lent faisait raccrocher l'appel
+      // presque instantanément ("le bouton vient et part en même temps") et
+      // pouvait aussi ne laisser passer l'audio que dans un seul sens (relais
+      // établi dans une direction seulement avant l'échec).
+      console.warn('[RTC-CLIENT] connectionState=failed → tentative restartIce()');
+      try { peer.restartIce(); } catch(e) { console.warn('restartIce indisponible:', e); }
+      setTimeout(() => {
+        if (_rtcPeer === peer && (peer.connectionState === 'failed' || peer.connectionState === 'closed')) {
+          raccrocherAppel(false);
+        }
+      }, 5000);
+    } else if (state === 'closed') {
       raccrocherAppel(false);
     } else if (state === 'disconnected') {
       setTimeout(() => {
-        if (_rtcPeer?.connectionState === 'disconnected') raccrocherAppel(false);
+        if (_rtcPeer === peer && peer.connectionState === 'disconnected') raccrocherAppel(false);
       }, 6000);
     }
   };
-  return _rtcPeer;
+  return peer;
 }
 
 // ── Démarrer timer d'appel ─────────────────────────────
@@ -10518,15 +10587,13 @@ async function initierAppelWebRTC_conv(targetId) {
 async function _lancerAppel(targetId, nomContact, courseId) {
   if (_rtcPeer) return showToast('Appel déjà en cours', 'wa');
   _rtcRole = 'caller'; _rtcTargetId = targetId;
+  _rtcAnswered = false;
   _rtcRemoteSet = false; _rtcPendingIce = [];
+  _rtcCapturePromise = null; _rtcTracksAddedTo = null; _rtcLocalStream = null;
 
-  try {
-    const mediaErr = checkMediaSupport('audio');
-    if (mediaErr) { showToast(mediaErr, 'er'); return; }
-    _rtcLocalStream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-    });
-  } catch(e) { return showToast(micErrorMessage(e), 'er'); }
+  // Affichage immédiat du modal "Appel en cours…" pour un retour visuel instantané
+  _rtcRinging = _playRingtone(true);
+  _showCallModal('caller', nomContact);
 
   const chName = 'rtc-call-' + [currentUser.id, targetId].sort().join('-');
   _rtcCallChannel = _buildCallChannel(chName, targetId)
@@ -10553,11 +10620,19 @@ async function _lancerAppel(targetId, nomContact, courseId) {
     .subscribe(async status => {
       if (status !== 'SUBSCRIBED') return;
       const peer = _createPeer();
-      _rtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _rtcLocalStream));
+      try {
+        await _ensureLocalStream(peer);
+      } catch(e) {
+        showToast(e.message || micErrorMessage(e), 'er');
+        raccrocherAppel(false);
+        return;
+      }
       const offer = await peer.createOffer();
+      console.log('[RTC-CLIENT] offre créée, envoi en cours…');
       await peer.setLocalDescription(offer);
 
-      const offerPayload = { sdp: offer, from: currentUser.id, to: targetId, courseId, callerName: currentProfile?.prenom || 'Contact' };
+      const offerPayload = { sdp: offer, from: currentUser.id, to: targetId, courseId, callerName: currentProfile?.prenom || 'Contact',
+                              offerId: currentUser.id + '-' + Date.now() + '-' + Math.random().toString(36).slice(2) };
 
       // Envoyer offer via canal dédié (partagé caller/callee)
       await _rtcCallChannel.send({ type: 'broadcast', event: 'offer', payload: offerPayload });
@@ -10574,17 +10649,37 @@ async function _lancerAppel(targetId, nomContact, courseId) {
         setTimeout(() => { try { sb.removeChannel(incomingCh); } catch(e){} }, 4000);
       } catch(e) { console.warn('Notification canal entrant échouée:', e); }
 
-      // Notification Supabase (backup si pas connecté au canal)
-      await sb.from('notifications').insert({
-        utilisateur_id: targetId,
-        titre: '📞 Appel entrant de ' + (currentProfile?.prenom || 'Contact'),
-        corps: 'Appuyez pour répondre via Allô Service',
-        type: 'appel_rtc',
-        meta: { courseId, callerId: currentUser.id }
-      }).catch(()=>{});
+      // Push FCM haute priorité — réveille le téléphone du livreur même si
+      // son écran est éteint depuis plus d'une minute (Doze). Sans ça, le
+      // broadcast Realtime ci-dessus peut ne jamais être livré (WebSocket
+      // coupé par Android en arrière-plan). N'échoue pas bruyamment si la
+      // cible n'a pas encore de fcm_token enregistré.
+      try {
+        await fetch(SUPABASE_URL + '/functions/v1/notify-incoming-call', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+          body: JSON.stringify({
+            livreurId: targetId,
+            callerName: offerPayload.callerName,
+            callerId: currentUser.id
+          })
+        });
+      } catch(e) { console.warn('[FCM] échec envoi push appel entrant:', e); }
 
-      _rtcRinging = _playRingtone(true); // son côté appelant (patientez…)
-      _showCallModal('caller', nomContact);
+      // Notification Supabase (backup si pas connecté au canal)
+      // Note : pas de .catch() chaîné directement sur le query builder — certaines
+      // versions du client Supabase ne l'implémentent pas et ça provoque un
+      // TypeError non capturé ("insert(...).catch is not a function") qui
+      // interrompait le reste de la fonction (ex: le timeout de sonnerie).
+      try {
+        await sb.from('notifications').insert({
+          utilisateur_id: targetId,
+          titre: '📞 Appel entrant de ' + (currentProfile?.prenom || 'Contact'),
+          corps: 'Appuyez pour répondre via Allô Service',
+          type: 'appel_rtc',
+          meta: { courseId, callerId: currentUser.id }
+        });
+      } catch(e) { console.warn('Notification appel (backup) échouée:', e); }
 
       // Timeout : pas de réponse après 35s → on arrête tout proprement
       clearTimeout(_rtcRingTimeout);
@@ -10600,24 +10695,18 @@ async function _lancerAppel(targetId, nomContact, courseId) {
 // ── Répondre à un appel entrant ────────────────────────
 async function repondreAppel(payload) {
   _rtcRole = 'callee'; _rtcTargetId = payload.from;
+  _rtcAnswered = true; // dès le clic — autorise désormais ontrack à passer l'UI en "connecté"
   if (_rtcRinging) { _rtcRinging(); _rtcRinging = null; }
   clearTimeout(_rtcRingTimeout); _rtcRingTimeout = null;
 
   const peer = _rtcPeer || _createPeer();
 
-  // Le micro a normalement déjà été capturé pendant la sonnerie (voir startRTCListener).
-  // Si ce n'est pas le cas (permission refusée puis réessai, navigateur qui bloque la
-  // capture avant un geste utilisateur, etc.), on le fait maintenant en secours.
-  if (!_rtcLocalStream) {
-    try {
-      const mediaErr = checkMediaSupport('audio');
-      if (mediaErr) { showToast(mediaErr, 'er'); return; }
-      _rtcLocalStream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-      });
-      _rtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _rtcLocalStream));
-    } catch(e) { return showToast(micErrorMessage(e), 'er'); }
-  }
+  // Le micro a normalement déjà été capturé pendant la sonnerie (voir startRTCListener),
+  // via _ensureLocalStream. On attend simplement la même promesse ici — jamais de
+  // second getUserMedia() en parallèle, ce qui évite le bug "audio à sens unique".
+  try {
+    await _ensureLocalStream(peer);
+  } catch(e) { return showToast(e.message || micErrorMessage(e), 'er'); }
 
   if (!_rtcRemoteSet) {
     await peer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
@@ -10628,6 +10717,7 @@ async function repondreAppel(payload) {
     if (tr.receiver?.track?.kind === 'audio' || tr.sender?.track?.kind === 'audio') tr.direction = 'sendrecv';
   });
   const answer = await peer.createAnswer();
+  console.log('[RTC-CLIENT] réponse (answer) créée, envoi en cours…');
   await peer.setLocalDescription(answer);
   await _rtcCallChannel.send({
     type: 'broadcast', event: 'answer',
@@ -10739,6 +10829,7 @@ function _updateCallUI(state) {
   const st = document.getElementById('call-status-txt');
   const rBtn = document.getElementById('call-btn-repondre');
   const muteBtn = document.getElementById('call-btn-mute');
+  if (state === 'ringing') return; // ontrack prématuré avant clic — on ne touche pas à l'UI
   if (state === 'connected') {
     if (st) st.textContent = '🟢 En communication';
     if (rBtn) rBtn.style.display = 'none';
@@ -10747,11 +10838,20 @@ function _updateCallUI(state) {
 }
 
 // ── Écouter les appels entrants ─────────────────────────
+let _incomingCallChannel = null;
 function startRTCListener() {
   if (!currentUser?.id) return;
-  sb.channel('rtc-incoming-' + currentUser.id)
+  if (_incomingCallChannel) { try { sb.removeChannel(_incomingCallChannel); } catch(e){} _incomingCallChannel = null; }
+  _incomingCallChannel = sb.channel('rtc-incoming-' + currentUser.id)
     .on('broadcast', { event: 'offer' }, async ({ payload }) => {
       if (payload.to !== currentUser.id) return;
+      // Anti-double-traitement : la même offre peut arriver deux fois (envoyée à la
+      // fois sur le canal d'appel dédié et sur le canal personnel), ou être redélivrée
+      // par Realtime. Si on la traite deux fois, un second RTCPeerConnection se crée
+      // et ses évènements viennent perturber l'UI du premier (bouton Répondre qui
+      // s'affiche puis disparaît aussitôt). On ignore toute offre déjà vue.
+      if (payload.offerId && payload.offerId === _rtcLastHandledOfferId) return;
+      if (payload.offerId) _rtcLastHandledOfferId = payload.offerId;
       if (_rtcPeer) {
         // déjà en appel → signaler "occupé" à l'appelant au lieu de l'ignorer en silence
         try {
@@ -10763,6 +10863,27 @@ function startRTCListener() {
         return;
       }
 
+      // Reset complet de l'état d'appel avant de traiter cette nouvelle offre —
+      // évite qu'un résidu d'un appel précédent mal refermé ne pollue l'UI
+      // (c'est ce qui pouvait faire rester affiché "📡 Appel en cours…").
+      _rtcRole = 'callee'; _rtcTargetId = payload.from;
+      _rtcAnswered = false;
+      _rtcRemoteSet = false; _rtcPendingIce = [];
+      _rtcCapturePromise = null; _rtcTracksAddedTo = null; _rtcLocalStream = null;
+
+      // ── Affichage IMMÉDIAT du modal, AVANT toute opération async ──────
+      // C'est le correctif du bug "je vois seulement Appel en cours" : avant,
+      // le modal n'était affiché qu'après avoir attendu getUserMedia() et
+      // setRemoteDescription(), qui peuvent prendre du temps (ou bloquer sur
+      // certaines WebView Android). Le répondant ne voyait rien pendant ce
+      // temps, ou voyait le texte HTML par défaut. Maintenant, le modal avec
+      // "📞 Appel entrant" et le bouton Répondre apparaît instantanément.
+      const nomAppelant = payload.callerName || 'Contact';
+      console.log('[RTC-CLIENT] offre entrante reçue de', payload.from);
+      _rtcRinging = _playRingtone(true);
+      _showCallModal('callee', nomAppelant);
+      document.getElementById('call-btn-repondre').onclick = () => repondreAppel(payload);
+
       const chName = 'rtc-call-' + [payload.from, currentUser.id].sort().join('-');
       _rtcCallChannel = _buildCallChannel(chName, payload.from)
         .on('broadcast', { event: 'answer' }, () => {}) // géré côté appelant
@@ -10770,24 +10891,21 @@ function startRTCListener() {
       await new Promise(res => { _rtcCallChannel.subscribe(s => s === 'SUBSCRIBED' && res()); setTimeout(res, 3000); });
       const peer = _createPeer();
 
-      // ── Correctif définitif "audio à sens unique" ──────────────────────
+      // ── Correctif "audio à sens unique" ────────────────────────────────
       // On demande le micro du répondant DÈS que ça sonne (pas seulement au clic
-      // "Répondre"). Ainsi, quand la description distante (offre) est appliquée,
-      // le transceiver audio est déjà "sendrecv" depuis sa création — au lieu de
-      // naître "recvonly" puis devoir être "mis à niveau" plus tard, étape que
-      // beaucoup de WebView Android ne gèrent pas correctement (le micro du
-      // répondant ne part jamais dans ce cas, même si lui entend bien l'appelant).
+      // "Répondre"), via le helper _ensureLocalStream qui garantit une seule
+      // capture en vol : si l'utilisateur clique "Répondre" avant la fin de
+      // cette capture, repondreAppel() attendra la MÊME promesse au lieu d'en
+      // démarrer une seconde — c'est cette double-capture qui causait l'audio
+      // à sens unique (le flux ajouté au peer n'était pas toujours le bon).
+      // On attend la fin réelle de la capture micro AVANT setRemoteDescription :
+      // avant, les deux se lançaient en parallèle (fire-and-forget), et le
+      // forçage sendrecv pouvait s'exécuter avant que la piste locale soit
+      // ajoutée au peer → answer sans audio sortant (voix à sens unique).
       try {
-        const mediaErr = checkMediaSupport('audio');
-        if (!mediaErr) {
-          _rtcLocalStream = await navigator.mediaDevices.getUserMedia({
-            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-          });
-          _rtcLocalStream.getTracks().forEach(t => peer.addTrack(t, _rtcLocalStream));
-        }
+        await _ensureLocalStream(peer);
       } catch(e) {
         console.warn('Pré-capture micro pendant la sonnerie échouée (on réessaiera au clic répondre) :', e);
-        _rtcLocalStream = null;
       }
 
       try {
@@ -10798,11 +10916,6 @@ function startRTCListener() {
           if (tr.receiver?.track?.kind === 'audio' || tr.sender?.track?.kind === 'audio') tr.direction = 'sendrecv';
         });
       } catch(e) { console.warn('setRemoteDescription (offre) échoué:', e); }
-
-      _rtcRinging = _playRingtone(true);
-      const nomAppelant = payload.callerName || 'Contact';
-      _showCallModal('callee', nomAppelant);
-      document.getElementById('call-btn-repondre').onclick = () => repondreAppel(payload);
 
       // Appel manqué si personne ne décroche après 30s
       clearTimeout(_rtcRingTimeout);
@@ -10818,7 +10931,16 @@ function startRTCListener() {
       showToast('📵 Ligne occupée', 'wa');
       raccrocherAppel(false);
     })
-    .subscribe();
+    .subscribe(status => {
+      // Un broadcast Supabase n'est livré QUE si le canal est déjà SUBSCRIBED
+      // au moment de l'envoi (rien n'est mis en file d'attente). Si ce canal
+      // se ferme (perte réseau, mise en veille mobile...) sans se rouvrir, on
+      // ne reçoit plus jamais les offres d'appel entrantes → aucun modal, donc
+      // "pas de bouton vert". On se reconnecte automatiquement.
+      if (status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        setTimeout(() => { if (currentUser?.id) startRTCListener(); }, 2000);
+      }
+    });
 }
 
 // ── Compatibilité course suivi ─────────────────────────

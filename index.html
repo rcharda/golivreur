@@ -10486,19 +10486,31 @@ function _playRingtone(loop = true) {
 }
 
 // ── Créer PeerConnection avec STUN/TURN ────────────────
-function _createPeer() {
+let _cachedIceServers = null;
+let _iceServersFetchedAt = 0;
+
+async function _getIceServers() {
+  const now = Date.now();
+  if (_cachedIceServers && (now - _iceServersFetchedAt) < 20 * 3600 * 1000) {
+    return _cachedIceServers;
+  }
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/get-turn-credentials');
+    const data = await res.json();
+    if (data.iceServers) {
+      _cachedIceServers = data.iceServers;
+      _iceServersFetchedAt = now;
+      return _cachedIceServers;
+    }
+  } catch (e) {
+    console.warn('[RTC-CLIENT] echec recuperation TURN Cloudflare, fallback STUN seul:', e);
+  }
+  return [{ urls: 'stun:stun.cloudflare.com:3478' }];
+}
+
+function _createPeer(iceServers) {
   const peer = new RTCPeerConnection({
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:stun.cloudflare.com:3478' },
-      // TURN — indispensable pour relier deux réseaux mobiles/opérateurs différents
-      // (beaucoup d'échecs d'appel "pas de son" viennent de l'absence de relais TURN
-      // quand les deux téléphones sont derrière un NAT symétrique / CGNAT).
-      { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-      { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-      { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
-    ],
+    iceServers: iceServers || [{ urls: 'stun:stun.cloudflare.com:3478' }],
     iceCandidatePoolSize: 4
   });
   _rtcPeer = peer;
@@ -10651,7 +10663,7 @@ async function _lancerAppel(targetId, nomContact, courseId) {
     .on('broadcast', { event: 'hangup' }, () => raccrocherAppel(false))
     .subscribe(async status => {
       if (status !== 'SUBSCRIBED') return;
-      const peer = _createPeer();
+      const peer = _createPeer(await _getIceServers());
       try {
         await _ensureLocalStream(peer);
       } catch(e) {
@@ -10746,7 +10758,7 @@ async function repondreAppel(payload) {
   if (_rtcRinging) { _rtcRinging(); _rtcRinging = null; }
   clearTimeout(_rtcRingTimeout); _rtcRingTimeout = null;
 
-  const peer = _rtcPeer || _createPeer();
+  const peer = _rtcPeer || _createPeer(await _getIceServers());
 
   // Le micro a normalement déjà été capturé pendant la sonnerie (voir startRTCListener),
   // via _ensureLocalStream. On attend simplement la même promesse ici — jamais de
@@ -10936,7 +10948,7 @@ function startRTCListener() {
         .on('broadcast', { event: 'answer' }, () => {}) // géré côté appelant
         ;
       await new Promise(res => { _rtcCallChannel.subscribe(s => s === 'SUBSCRIBED' && res()); setTimeout(res, 3000); });
-      const peer = _createPeer();
+      const peer = _createPeer(await _getIceServers());
 
       // ── Correctif "audio à sens unique" ────────────────────────────────
       // On demande le micro du répondant DÈS que ça sonne (pas seulement au clic

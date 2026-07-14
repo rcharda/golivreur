@@ -1327,7 +1327,11 @@ async function initApp() {
   document.getElementById('kyc-status-screen').style.display = 'none';
 
   // ── Vérification blocage 24h (paiements cash non régularisés) ──
-  await verifierStatutCompte();
+  try {
+    await verifierStatutCompte();
+  } catch (e) {
+    console.error('verifierStatutCompte a échoué, on continue quand même:', e);
+  }
 
   await loadLivreurRecord();
   initMaps();
@@ -1439,7 +1443,13 @@ async function verifierStatutCompte() {
 
 // ── Modal de régularisation : payer la dette pour débloquer le compte immédiatement ──
 async function ouvrirModalRegularisation() {
-  const { data: w } = await sb.from('wallets').select('id,solde').eq('utilisateur_id', currentUser.id).single().catch(()=>({data:null}));
+  let w = null;
+  try {
+    const res = await sb.from('wallets').select('id,solde').eq('utilisateur_id', currentUser.id).single();
+    w = res.data;
+  } catch (e) {
+    w = null;
+  }
   const solde = w?.solde || 0;
   const dette = solde < 0 ? Math.abs(solde) : 0;
 

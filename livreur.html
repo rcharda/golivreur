@@ -676,6 +676,26 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
     <!-- Map area -->
     <div class="pc-map-area">
       <div id="pc-map"></div>
+      <div id="pc-nav-bar" style="position:absolute;top:0;left:0;right:0;z-index:22;display:none">
+        <div style="display:flex;align-items:center;gap:.6rem;padding:.7rem .9rem;background:#1D4ED8;color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.3)">
+          <span id="pc-nav-icon" style="font-size:2rem;color:#FF8C00;text-shadow:0 1px 3px rgba(0,0,0,.5);flex-shrink:0;line-height:1">⬆</span>
+          <div style="flex:1;min-width:0">
+            <div id="pc-nav-dist" style="font-size:.88rem;font-weight:800">Calcul de l'itinéraire…</div>
+            <div id="pc-nav-street" style="font-size:.72rem;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:.6rem;opacity:.8">ETA</div>
+            <div id="pc-nav-eta" style="font-weight:800;font-size:1rem">—</div>
+            <div id="pc-nav-km" style="font-size:.6rem;opacity:.75"></div>
+          </div>
+          <button onclick="ouvrirGoogleMapsExterne()" id="pc-nav-gmaps-btn" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:1rem;cursor:pointer;flex-shrink:0" title="Suivre sur Google Maps">🗺️</button>
+          <button onclick="toggleVoixMainNav()" id="pc-nav-voice-btn" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:1.05rem;cursor:pointer;flex-shrink:0">🔇</button>
+        </div>
+      </div>
+      <button id="pc-nav-recenter" onclick="recentrerMainNav()" style="position:absolute;top:82px;right:1rem;z-index:22;display:none;width:40px;height:40px;border-radius:50%;background:#fff;border:none;box-shadow:0 2px 8px rgba(0,0,0,.25);color:var(--primary);font-size:1.15rem;cursor:pointer">📍</button>
+      <button id="pc-nav-start-fab" onclick="demarrerItineraireCarte()" style="position:absolute;left:1rem;bottom:1.5rem;z-index:23;display:none;padding:.55rem 1rem;background:#FF8C00;color:#fff;border:none;border-radius:50px;font-weight:700;font-size:.8rem;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.28);align-items:center;justify-content:center;gap:.35rem">
+        <i class="ti ti-navigation" style="font-size:.9rem"></i> Démarrer
+      </button>
       <!-- PC chat panel -->
       <div class="pc-chat-panel" id="pc-chat-panel">
         <div class="wa-header">
@@ -741,6 +761,28 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
     </div>
     <div class="mob-map-wrap">
       <div id="mob-map"></div>
+      <!-- Barre de guidage GPS style Google Maps, directement sur la carte principale -->
+      <div id="mob-nav-bar" style="position:absolute;top:0;left:0;right:0;z-index:22;display:none">
+        <div style="display:flex;align-items:center;gap:.6rem;padding:.7rem .9rem;background:#1D4ED8;color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.3)">
+          <span id="mob-nav-icon" style="font-size:2rem;color:#FF8C00;text-shadow:0 1px 3px rgba(0,0,0,.5);flex-shrink:0;line-height:1">⬆</span>
+          <div style="flex:1;min-width:0">
+            <div id="mob-nav-dist" style="font-size:.88rem;font-weight:800">Calcul de l'itinéraire…</div>
+            <div id="mob-nav-street" style="font-size:.72rem;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:.6rem;opacity:.8">ETA</div>
+            <div id="mob-nav-eta" style="font-weight:800;font-size:1rem">—</div>
+            <div id="mob-nav-km" style="font-size:.6rem;opacity:.75"></div>
+          </div>
+          <button onclick="ouvrirGoogleMapsExterne()" id="mob-nav-gmaps-btn" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:1rem;cursor:pointer;flex-shrink:0" title="Suivre sur Google Maps">🗺️</button>
+          <button onclick="toggleVoixMainNav()" id="mob-nav-voice-btn" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:1.05rem;cursor:pointer;flex-shrink:0">🔇</button>
+        </div>
+      </div>
+      <button id="mob-nav-recenter" onclick="recentrerMainNav()" style="position:absolute;top:82px;right:.75rem;z-index:22;display:none;width:40px;height:40px;border-radius:50%;background:#fff;border:none;box-shadow:0 2px 8px rgba(0,0,0,.25);color:var(--primary);font-size:1.15rem;cursor:pointer">📍</button>
+      <!-- Bouton compact pour démarrer le guidage GPS -->
+      <button id="mob-nav-start-fab" onclick="demarrerItineraireCarte()" style="position:absolute;left:.75rem;bottom:150px;z-index:23;display:none;padding:.5rem .9rem;background:#FF8C00;color:#fff;border:none;border-radius:50px;font-weight:700;font-size:.78rem;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.28);align-items:center;justify-content:center;gap:.35rem">
+        <i class="ti ti-navigation" style="font-size:.9rem"></i> Démarrer
+      </button>
       <!-- SOS button -->
       <button class="sos-btn" onclick="envoiSOS()"><i class="ti ti-urgent"></i> SOS</button>
     </div>
@@ -1776,6 +1818,10 @@ async function toggleStatut(online) {
   if (online) { startGPS(); startHeartbeat(); }
   else { stopGPS(); stopHeartbeat(); }
   showToast(online ? '✅ Vous êtes en ligne' : '⭕ Vous êtes hors ligne', online ? 'ok' : '');
+  // Pont vers l'app native (App Control : Foreground Service + écran allumé)
+  if (window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SET_ONLINE', online: online }));
+  }
   // Sync both toggles
   document.getElementById('pc-online-toggle').checked = online;
   document.getElementById('mob-online-toggle').checked = online;
@@ -1896,12 +1942,215 @@ function updateMyMarker(lat, lng) {
   const p = currentProfile;
   const url = getAvatarUrl(p);
   const init = getInitials(p);
-  const iconHtml = `<div class="custom-marker-lv">${url?`<img src="${url}">`:`<span style="font-weight:700;color:var(--primary);font-size:.9rem">${init}</span>`}</div>`;
+  const c = courseEnCours;
+  const navActive = c && ['acceptee','en_cours','en_route','prise_en_charge','livraison_en_cours'].includes(c.statut);
+  if (navActive) {
+    if (_mainPrevPos) _mainBearing = _bearing2(_mainPrevPos.lat, _mainPrevPos.lng, lat, lng);
+    _mainPrevPos = { lat, lng };
+  }
+  const arrowHtml = navActive ? `<div style="position:absolute;left:50%;top:50%;width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:24px solid #FF8C00;transform:translate(-50%,-24px) rotate(${_mainBearing}deg);transform-origin:50% 24px;transition:transform .4s ease;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));z-index:1"></div>` : '';
+  const iconHtml = `<div style="position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center">${arrowHtml}<div class="custom-marker-lv" style="position:relative;z-index:2">${url?`<img src="${url}">`:`<span style="font-weight:700;color:var(--primary);font-size:.9rem">${init}</span>`}</div></div>`;
   const icon = L.divIcon({ html: iconHtml, className: '', iconSize: [44,44], iconAnchor: [22,22] });
-  if (myMarker.pc) { myMarker.pc.setLatLng([lat,lng]); }
+  if (myMarker.pc) { myMarker.pc.setLatLng([lat,lng]); myMarker.pc.setIcon(icon); }
   else if (pcMap) { myMarker.pc = L.marker([lat,lng], { icon }).addTo(pcMap).bindPopup('Votre position'); pcMap.setView([lat,lng],14); }
-  if (myMarker.mob) { myMarker.mob.setLatLng([lat,lng]); }
+  if (myMarker.mob) { myMarker.mob.setLatLng([lat,lng]); myMarker.mob.setIcon(icon); }
   else if (mobMap) { myMarker.mob = L.marker([lat,lng], { icon }).addTo(mobMap).bindPopup('Votre position'); mobMap.setView([lat,lng],14); }
+
+  if (navActive && _mainNavStarted) _mainNavTick(lat, lng);
+  else if (!navActive) { _mainNavStarted = false; _hideMainNavBar(); }
+  _updateNavStartFab();
+}
+
+// ══════════════════════════════════════════════════════════
+//  GUIDAGE GPS TEMPS RÉEL SUR LA CARTE PRINCIPALE
+//  (style Google Maps : bandeau du haut + flèche orange + voix)
+// ══════════════════════════════════════════════════════════
+let _mainBearing = 0, _mainPrevPos = null;
+let _mainNavSteps = [], _mainNavLastFetch = 0, _mainNavFollow = true, _mainNavBarShown = false, _mainNavStarted = false;
+let _mainNavVoiceOn = false, _mainNavLastStepKey = null, _mainNavAnnouncedNear = false, _mainNavArrivedSpoken = false;
+
+function _updateNavStartFab() {
+  const c = courseEnCours;
+  const navActive = c && ['acceptee','en_cours','en_route','prise_en_charge','livraison_en_cours'].includes(c.statut);
+  const show = navActive && !_mainNavStarted;
+  ['mob','pc'].forEach(k => {
+    const el = document.getElementById(k+'-nav-start-fab');
+    if (el) el.style.display = show ? 'flex' : 'none';
+  });
+}
+
+// Appelée quand le livreur clique sur "🚀 Démarrer l'itinéraire" sur la carte
+function demarrerItineraireCarte() {
+  const c = courseEnCours;
+  if (!c) return showToast('Aucune course active', 'wa');
+  _mainNavStarted = true;
+  _mainNavVoiceOn = true;
+  _mainNavFollow = true;
+  _mainNavLastFetch = 0;
+  _mainNavLastStepKey = null; _mainNavAnnouncedNear = false; _mainNavArrivedSpoken = false;
+  ['mob','pc'].forEach(k => {
+    const b = document.getElementById(k+'-nav-voice-btn'); if (b) b.textContent = '🔊';
+    const fab = document.getElementById(k+'-nav-start-fab'); if (fab) fab.style.display = 'none';
+  });
+  try { window.speechSynthesis.speak(new SpeechSynthesisUtterance(' ')); } catch(e) {}
+  const go = (lat, lng) => { updateMyMarker(lat, lng); showToast('🧭 Itinéraire démarré', 'ok'); };
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => go(pos.coords.latitude, pos.coords.longitude),
+      () => {
+        if (currentLivreur?.latitude && currentLivreur?.longitude) go(currentLivreur.latitude, currentLivreur.longitude);
+        else showToast('📍 Position GPS indisponible', 'er');
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  } else if (currentLivreur?.latitude && currentLivreur?.longitude) {
+    go(currentLivreur.latitude, currentLivreur.longitude);
+  }
+}
+
+function _mainNavTarget(c) {
+  const versArrivee = ['prise_en_charge','livraison_en_cours'].includes(c.statut);
+  return versArrivee
+    ? { lat: parseFloat(c.lat_arrivee || c.latitude_arrivee), lng: parseFloat(c.lng_arrivee || c.longitude_arrivee) }
+    : { lat: parseFloat(c.lat_depart || c.latitude_depart), lng: parseFloat(c.lng_depart || c.longitude_depart) };
+}
+
+function _showMainNavBar() {
+  if (!_mainNavBarShown) { _mainNavBarShown = true; _mainNavFollow = true; }
+  ['mob','pc'].forEach(k => {
+    const el = document.getElementById(k+'-nav-bar'); if (el) el.style.display = '';
+    const rc = document.getElementById(k+'-nav-recenter'); if (rc) rc.style.display = '';
+  });
+}
+function _hideMainNavBar() {
+  if (!_mainNavBarShown) return;
+  _mainNavBarShown = false;
+  _mainNavStarted = false;
+  _mainNavSteps = []; _mainNavLastFetch = 0; _mainNavLastStepKey = null; _mainNavAnnouncedNear = false; _mainNavArrivedSpoken = false;
+  _mainNavVoiceOn = false;
+  try { window.speechSynthesis.cancel(); } catch(e) {}
+  ['mob','pc'].forEach(k => {
+    const el = document.getElementById(k+'-nav-bar'); if (el) el.style.display = 'none';
+    const rc = document.getElementById(k+'-nav-recenter'); if (rc) rc.style.display = 'none';
+    const btn = document.getElementById(k+'-nav-voice-btn'); if (btn) btn.textContent = '🔇';
+  });
+  _updateNavStartFab();
+}
+
+// Ouvre Google Maps dans un nouvel onglet/app externe (jamais dans la webview de l'app)
+// avec la destination courante — pratique en secours si le réseau OSRM est faible.
+function ouvrirGoogleMapsExterne() {
+  const c = courseEnCours;
+  if (!c) return showToast('Aucune course active', 'wa');
+  const target = _mainNavTarget(c);
+  if (!target.lat || !target.lng) return showToast('Destination introuvable', 'er');
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${target.lat},${target.lng}&travelmode=driving`;
+  window.open(url, '_blank', 'noopener');
+}
+
+function recentrerMainNav() {
+  _mainNavFollow = true;
+  if (_mainPrevPos) {
+    mobMap?.setView([_mainPrevPos.lat, _mainPrevPos.lng], 17, { animate: true });
+    pcMap?.setView([_mainPrevPos.lat, _mainPrevPos.lng], 17, { animate: true });
+  }
+}
+
+function toggleVoixMainNav() {
+  _mainNavVoiceOn = !_mainNavVoiceOn;
+  ['mob','pc'].forEach(k => { const b = document.getElementById(k+'-nav-voice-btn'); if (b) b.textContent = _mainNavVoiceOn ? '🔊' : '🔇'; });
+  if (_mainNavVoiceOn) {
+    try { window.speechSynthesis.speak(new SpeechSynthesisUtterance(' ')); } catch(e) {}
+    _mainNavLastStepKey = null; _mainNavAnnouncedNear = false; _mainNavArrivedSpoken = false;
+    if (_mainNavSteps.length) _mainAnnoncerInstruction(_mainNavSteps[0], true);
+    else _mainNavSpeak('Guidage vocal activé.');
+  } else {
+    try { window.speechSynthesis.cancel(); } catch(e) {}
+  }
+}
+
+async function _mainNavTick(lat, lng) {
+  const c = courseEnCours;
+  if (!c) { _hideMainNavBar(); return; }
+  const target = _mainNavTarget(c);
+  if (!target.lat || !target.lng) { _hideMainNavBar(); return; }
+  _showMainNavBar();
+  if (_mainNavFollow) {
+    mobMap?.setView([lat,lng], 17, { animate: true });
+    pcMap?.setView([lat,lng], 17, { animate: true });
+  }
+  const now = Date.now();
+  if (now - _mainNavLastFetch < 10000) return; // throttle OSRM
+  _mainNavLastFetch = now;
+  try {
+    const r = await fetch(`https://router.project-osrm.org/route/v1/driving/${lng},${lat};${target.lng},${target.lat}?overview=false&geometries=geojson&steps=true`);
+    const d = await r.json();
+    if (d.code !== 'Ok' || !d.routes?.length) return;
+    const route = d.routes[0];
+    _mainNavSteps = route.legs?.[0]?.steps || [];
+    const distKm = (route.distance/1000).toFixed(1);
+    const etaMin = Math.max(1, Math.round(route.duration/60));
+    ['mob','pc'].forEach(k => {
+      const etaEl = document.getElementById(k+'-nav-eta'); const kmEl = document.getElementById(k+'-nav-km');
+      if (etaEl) etaEl.textContent = etaMin < 60 ? etaMin+' min' : Math.floor(etaMin/60)+'h'+String(etaMin%60).padStart(2,'0');
+      if (kmEl) kmEl.textContent = distKm+' km';
+    });
+    _afficherMainNavInstruction();
+  } catch(e) {}
+}
+
+function _afficherMainNavInstruction() {
+  if (!_mainNavSteps.length) return;
+  const step = _mainNavSteps[0];
+  const manType = step.maneuver?.type || '';
+  const manMod  = step.maneuver?.modifier || '';
+  const icons = { turn: { left:'↰', right:'↱', 'slight left':'↖', 'slight right':'↗', 'sharp left':'⬅', 'sharp right':'➡', straight:'⬆' }, arrive: { '':'🏁' }, depart: { '':'⬆' }, roundabout: { '':'🔄' }, merge: { '':'⬆' } };
+  const icon = icons[manType]?.[manMod] ?? icons[manType]?.[''] ?? '⬆';
+  const distM = step.distance < 1000 ? Math.round(step.distance)+' m' : (step.distance/1000).toFixed(1)+' km';
+  const name = step.name || step.ref || '';
+  ['mob','pc'].forEach(k => {
+    const iconEl = document.getElementById(k+'-nav-icon');
+    const distEl = document.getElementById(k+'-nav-dist');
+    const streetEl = document.getElementById(k+'-nav-street');
+    if (iconEl) iconEl.textContent = icon;
+    if (distEl) distEl.textContent = 'Dans '+distM;
+    if (streetEl) streetEl.textContent = name || 'Continuez';
+  });
+  if (_mainNavVoiceOn) {
+    const key = manType+'|'+manMod+'|'+name;
+    if (key !== _mainNavLastStepKey) {
+      _mainNavLastStepKey = key; _mainNavAnnouncedNear = false;
+      _mainAnnoncerInstruction(step, true);
+    } else if (!_mainNavAnnouncedNear && step.distance <= 50) {
+      _mainNavAnnouncedNear = true;
+      _mainAnnoncerInstruction(step, false);
+    }
+    if (manType === 'arrive' && step.distance <= 25 && !_mainNavArrivedSpoken) {
+      _mainNavArrivedSpoken = true;
+      _mainNavSpeak('Vous êtes arrivé à destination.');
+    }
+  }
+}
+
+function _mainNavSpeak(text) {
+  if (!_mainNavVoiceOn) return;
+  try {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'fr-FR'; u.rate = 1;
+    window.speechSynthesis.speak(u);
+  } catch(e) {}
+}
+
+function _mainAnnoncerInstruction(step, immediate=false) {
+  const distM = Math.round(step.distance || 0);
+  const texte = _texteInstruction(step);
+  if (immediate) {
+    _mainNavSpeak(distM > 30 ? `Dans ${distM < 1000 ? distM + ' mètres' : (distM/1000).toFixed(1) + ' kilomètres'}, ${texte}` : texte);
+  } else {
+    _mainNavSpeak(`${texte}, maintenant`);
+  }
 }
 
 // ═══ MAPS ════════════════════════════════════════════════
@@ -1929,6 +2178,9 @@ function initMaps() {
     ).addTo(mobMap);
   }
   setTimeout(() => { pcMap?.invalidateSize(); mobMap?.invalidateSize(); }, 300);
+  // Suivi auto désactivé si le livreur déplace la carte manuellement pendant le guidage
+  mobMap?.on('dragstart', () => { _mainNavFollow = false; });
+  pcMap?.on('dragstart', () => { _mainNavFollow = false; });
 }
 
 // ═══ COURSES ═════════════════════════════════════════════
@@ -2118,6 +2370,8 @@ function renderCourseEnCours() {
     if(pcEl) pcEl.style.display = 'none';
     if(mobEl) mobEl.style.display = 'none';
     clearTrajetSurCarte();
+    _mainNavStarted = false;
+    _updateNavStartFab();
     return;
   }
   const client = c.client || {};
@@ -2166,10 +2420,14 @@ function renderCourseEnCours() {
   subscribeCoursePosition(c.id);
   joinGpsBroadcastChannel(c.id);
   majTrajetSurCarte(c);
+  _updateNavStartFab();
 }
 
 // ── Trajet visible + zoom automatique sur la carte (départ/arrivée) ──
+// Trace le VRAI itinéraire routier (OSRM), comme sur index.html — plus une
+// simple ligne droite. Fallback sur la ligne droite si OSRM est indisponible.
 let _routeMarkers = { depart: {}, arrivee: {}, line: {} };
+let _majTrajetOsrmKey = null;
 function majTrajetSurCarte(c) {
   const dLat = parseFloat(c.lat_depart || c.latitude_depart);
   const dLng = parseFloat(c.lng_depart || c.longitude_depart);
@@ -2184,13 +2442,40 @@ function majTrajetSurCarte(c) {
     else _routeMarkers.depart[key] = L.marker([dLat,dLng], { icon: iconDep }).addTo(map).bindPopup('Départ');
     if (_routeMarkers.arrivee[key]) _routeMarkers.arrivee[key].setLatLng([aLat,aLng]);
     else _routeMarkers.arrivee[key] = L.marker([aLat,aLng], { icon: iconArr }).addTo(map).bindPopup('Arrivée');
-    if (_routeMarkers.line[key]) map.removeLayer(_routeMarkers.line[key]);
-    _routeMarkers.line[key] = L.polyline([[dLat,dLng],[aLat,aLng]], { color:'#F97316', weight:4, opacity:.85, dashArray:'2 8' }).addTo(map);
+    // Ligne droite immédiate (retour visuel instantané), remplacée par le
+    // vrai tracé routier dès que la réponse OSRM arrive.
+    if (!_routeMarkers.line[key]) {
+      _routeMarkers.line[key] = L.polyline([[dLat,dLng],[aLat,aLng]], { color:'#F97316', weight:3, opacity:.7, dashArray:'2 8' }).addTo(map);
+    }
     // Zoom clair et automatique : la carte se cadre pile sur le trajet
     map.fitBounds([[dLat,dLng],[aLat,aLng]], { padding:[60,60], maxZoom:16 });
   });
+  _chargerVraiTrajetOsrm(dLat, dLng, aLat, aLng);
+}
+
+// ── Charge le vrai itinéraire routier via OSRM et remplace la ligne droite ──
+async function _chargerVraiTrajetOsrm(dLat, dLng, aLat, aLng) {
+  const key = `${dLat},${dLng}-${aLat},${aLng}`;
+  if (_majTrajetOsrmKey === key) return; // déjà à jour, évite les appels répétés
+  try {
+    const r = await fetch(`https://router.project-osrm.org/route/v1/driving/${dLng},${dLat};${aLng},${aLat}?overview=full&geometries=geojson`);
+    const d = await r.json();
+    if (d.code !== 'Ok' || !d.routes?.length) throw new Error('OSRM: pas de route');
+    _majTrajetOsrmKey = key;
+    const coords = d.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+    ['mob','pc'].forEach(mapKey => {
+      const map = mapKey === 'mob' ? mobMap : pcMap;
+      if (!map) return;
+      if (_routeMarkers.line[mapKey]) map.removeLayer(_routeMarkers.line[mapKey]);
+      _routeMarkers.line[mapKey] = L.polyline(coords, { color:'#2563EB', weight:5, opacity:.9, lineJoin:'round', lineCap:'round' }).addTo(map);
+    });
+  } catch(e) {
+    console.warn('Itinéraire OSRM indisponible, on garde la ligne droite :', e);
+  }
 }
 function clearTrajetSurCarte() {
+  _majTrajetOsrmKey = null;
+  _hideMainNavBar();
   ['mob','pc'].forEach(key => {
     const map = key==='mob' ? mobMap : pcMap;
     if (!map) return;
@@ -2246,7 +2531,9 @@ async function marquerEnRoute(courseId) {
           _proximiteNotifSent = true;
           _lvMarkSelfAction();
           await sb.from('courses').update({ statut: 'proximite' }).eq('id', courseEnCours.id).catch(()=>{});
-          await sb.from('notifications').insert({ utilisateur_id: courseEnCours.client_id, titre: '📍 Votre agent de service arrive !', corps: 'Il est à moins de 200 m de chez vous. Préparez-vous à réceptionner votre colis 📦', type: 'course' }).catch(()=>{});
+          try {
+            await sb.from('notifications').insert({ utilisateur_id: courseEnCours.client_id, titre: '📍 Votre agent de service arrive !', corps: 'Il est à moins de 200 m de chez vous. Préparez-vous à réceptionner votre colis 📦', type: 'course' });
+          } catch(e) {}
         }
         if (dist >= 300) _proximiteNotifSent = false; // Reset si recule
       }
@@ -2654,7 +2941,10 @@ function voirDetailCourse(id) {
 
       ${isActive ? `
       <!-- NAVIGATION TEMPS RÉEL -->
-      <div id="nav-map-wrap" style="border-radius:var(--radius-xs);overflow:hidden;border:1px solid var(--border);margin-top:.3rem">
+      <button id="nav-start-btn" onclick="demarrerNavigationVocale()" style="width:100%;padding:.65rem;background:#FF8C00;color:#fff;border:none;border-radius:var(--radius-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.3rem;font-family:var(--font)">
+        <i class="ti ti-navigation"></i> 🔊 Démarrer l'itinéraire (guidage vocal)
+      </button>
+      <div id="nav-map-wrap" style="border-radius:var(--radius-xs);overflow:hidden;border:1px solid var(--border);margin-top:.5rem">
         <div id="nav-eta-bar" style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;background:#1D4ED8;color:#fff;font-size:.78rem">
           <div id="nav-next-step" style="display:flex;align-items:center;gap:.5rem;flex:1;min-width:0"><i class="ti ti-navigation"></i> <span>Calcul de l'itinéraire…</span></div>
           <div style="text-align:right;flex-shrink:0;margin-left:.5rem">
@@ -2703,6 +2993,7 @@ function voirDetailCourse(id) {
 let _navMap = null, _navRouteLine = null, _navMyMarker = null, _navDestMarker = null;
 let _navSteps = [], _navFollowMode = true, _navCourse = null;
 let _navBearing = 0, _navPrevPos = null;
+let _navVoiceOn = false, _navLastStepKey = null, _navAnnouncedNear = false, _navArrivedSpoken = false;
 
 function _bearing2(lat1, lng1, lat2, lng2) {
   const dLng = (lng2 - lng1) * Math.PI / 180;
@@ -2783,8 +3074,11 @@ function _placeNavMyMarker(lat, lng) {
   const emoji = veh === 'voiture' ? '🚗' : '🛵';
   const icon = L.divIcon({
     className: '',
-    html: `<div style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;transform:rotate(${_navBearing}deg);transition:transform .4s ease;font-size:1.5rem;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))">${emoji}</div>`,
-    iconSize: [38, 38], iconAnchor: [19, 19]
+    html: `<div style="position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center">
+      <div style="position:absolute;left:50%;top:50%;width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:20px solid #FF8C00;transform:translate(-50%,-32px) rotate(${_navBearing}deg);transform-origin:50% 32px;transition:transform .4s ease;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))"></div>
+      <div style="font-size:1.4rem;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))">${emoji}</div>
+    </div>`,
+    iconSize: [44, 44], iconAnchor: [22, 22]
   });
   if (_navMyMarker) { _navMyMarker.setLatLng([lat, lng]); _navMyMarker.setIcon(icon); }
   else { _navMyMarker = L.marker([lat, lng], { icon, zIndexOffset: 1000 }).addTo(_navMap); }
@@ -2820,6 +3114,61 @@ async function _fetchNavRoute(fromLat, fromLng, toLat, toLng) {
   }
 }
 
+// ── Guidage vocal (comme Google Maps) ──────────────────
+function _navSpeak(text) {
+  if (!_navVoiceOn) return;
+  try {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'fr-FR';
+    u.rate = 1;
+    window.speechSynthesis.speak(u);
+  } catch(e) {}
+}
+
+function demarrerNavigationVocale() {
+  _navVoiceOn = true;
+  _navLastStepKey = null;
+  _navAnnouncedNear = false;
+  _navArrivedSpoken = false;
+  // Débloque la synthèse vocale sur mobile (nécessite un geste utilisateur)
+  try { window.speechSynthesis.speak(new SpeechSynthesisUtterance(' ')); } catch(e) {}
+  const btn = document.getElementById('nav-start-btn');
+  if (btn) { btn.innerHTML = '<i class="ti ti-volume"></i> 🔊 Guidage vocal activé'; btn.disabled = true; btn.style.opacity = '.75'; btn.style.cursor = 'default'; }
+  if (_navSteps.length) _annoncerInstruction(_navSteps[0], true);
+  else _navSpeak('Calcul de votre itinéraire.');
+}
+
+const _navVerbes = {
+  turn: { left:'Tournez à gauche', right:'Tournez à droite', 'slight left':'Serrez légèrement à gauche', 'slight right':'Serrez légèrement à droite', 'sharp left':'Tournez fortement à gauche', 'sharp right':'Tournez fortement à droite', straight:'Continuez tout droit' },
+  depart: { '': 'Démarrez' },
+  arrive: { '': 'Vous êtes arrivé à destination' },
+  roundabout: { '': 'Prenez le rond-point' },
+  merge: { '': 'Rejoignez la voie' },
+  'new name': { '': 'Continuez tout droit' },
+  fork: { left: 'Prenez à gauche', right: 'Prenez à droite', '': 'Continuez tout droit' }
+};
+
+function _texteInstruction(step) {
+  const manType = step.maneuver?.type || '';
+  const manMod  = step.maneuver?.modifier || '';
+  const name = step.name || step.ref || '';
+  let verbe = _navVerbes[manType]?.[manMod] ?? _navVerbes[manType]?.[''] ?? 'Continuez tout droit';
+  if (name && manType !== 'arrive') verbe += ` sur ${name}`;
+  return verbe;
+}
+
+function _annoncerInstruction(step, immediate=false) {
+  const distM = Math.round(step.distance || 0);
+  const texte = _texteInstruction(step);
+  if (immediate) {
+    _navSpeak(distM > 30 ? `Dans ${distM < 1000 ? distM + ' mètres' : (distM/1000).toFixed(1) + ' kilomètres'}, ${texte}` : texte);
+  } else {
+    _navSpeak(`${texte}, maintenant`);
+  }
+}
+
 function _afficherNavInstruction() {
   const el = document.getElementById('nav-next-step');
   if (!el || !_navSteps.length) return;
@@ -2830,7 +3179,25 @@ function _afficherNavInstruction() {
   const icon = icons[manType]?.[manMod] ?? icons[manType]?.[''] ?? '⬆';
   const distM = step.distance < 1000 ? Math.round(step.distance) + ' m' : (step.distance/1000).toFixed(1) + ' km';
   const name = step.name || step.ref || '';
-  el.innerHTML = `<span style="font-size:1.2rem;flex-shrink:0">${icon}</span><div style="flex:1;min-width:0"><div style="font-size:.78rem;font-weight:700">Dans ${distM}</div><div style="font-size:.7rem;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name||'Continuez'}</div></div>`;
+  el.innerHTML = `<span style="font-size:1.6rem;flex-shrink:0;color:#FF8C00;text-shadow:0 1px 2px rgba(0,0,0,.4)">${icon}</span><div style="flex:1;min-width:0"><div style="font-size:.78rem;font-weight:700">Dans ${distM}</div><div style="font-size:.7rem;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name||'Continuez'}</div></div>`;
+
+  // Guidage vocal : annonce à l'arrivée d'une nouvelle manœuvre, puis rappel juste avant
+  if (_navVoiceOn) {
+    const key = manType + '|' + manMod + '|' + name;
+    if (key !== _navLastStepKey) {
+      _navLastStepKey = key;
+      _navAnnouncedNear = false;
+      _annoncerInstruction(step, true);
+    } else if (!_navAnnouncedNear && step.distance <= 50) {
+      _navAnnouncedNear = true;
+      _annoncerInstruction(step, false);
+    }
+    // Arrivée finale
+    if (manType === 'arrive' && step.distance <= 25 && !_navArrivedSpoken) {
+      _navArrivedSpoken = true;
+      _navSpeak('Vous êtes arrivé à destination.');
+    }
+  }
 }
 
 function recentrerNavMap() {
@@ -2874,6 +3241,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('modal-detail-course')?.addEventListener('click', e => {
     if (e.target === document.getElementById('modal-detail-course')) {
       if (_navUpdateInterval) { clearInterval(_navUpdateInterval); _navUpdateInterval = null; }
+      _navVoiceOn = false;
+      try { window.speechSynthesis.cancel(); } catch(e) {}
     }
   });
 });
@@ -2883,8 +3252,15 @@ document.addEventListener('DOMContentLoaded', () => {
 //  Sonnerie vraie + mute + timer + haut-parleur + callerName
 // ══════════════════════════════════════════════════════════
 let _lvRtcPeer = null, _lvRtcLocalStream = null, _lvRtcRemoteStream = null;
+let _lvRtcLastHandledOfferId = null; // anti-double-traitement d'une même offre
+let _lvRtcLastOfferPayload = null; // dernier payload d'offre en attente (pour acceptIncomingCall natif)
 let _lvRtcChannel = null, _lvRtcRole = null, _lvRtcTargetId = null;
 let _lvRtcRinging = null, _lvRtcCallTimer = null, _lvRtcSeconds = 0;
+// Vrai seulement APRÈS que le répondant ait cliqué le bouton vert. Sert de
+// garde car peer.ontrack() se déclenche dès setRemoteDescription(offer)
+// (avant même que l'utilisateur ait cliqué) — sans cette garde, l'UI passait
+// en "connecté" et masquait le bouton Répondre presque instantanément.
+let _lvRtcAnswered = false;
 let _lvRtcMuted = false, _lvRtcSpeaker = false;
 // ── Correctifs fiabilité appels ─────────────────────────
 let _lvRtcPendingIce = [];
@@ -2964,6 +3340,12 @@ async function _lvEnsureLocalStream(peer) {
   if (_lvRtcTracksAddedTo !== peer) {
     stream.getTracks().forEach(t => peer.addTrack(t, stream));
     _lvRtcTracksAddedTo = peer;
+    // Forcer sendrecv APRÈS l'ajout réel des pistes (et non avant), sinon le
+    // sender n'a pas encore de track au moment du forçage et l'answer généré
+    // ne transporte pas d'audio sortant → voix à sens unique.
+    peer.getTransceivers().forEach(tr => {
+      if (tr.receiver?.track?.kind === 'audio' || tr.sender?.track?.kind === 'audio') tr.direction = 'sendrecv';
+    });
   }
   return stream;
 }
@@ -2993,26 +3375,50 @@ function _lvBuildCallChannel(chName) {
 }
 
 // ── Créer PeerConnection (STUN + TURN) ─────────────────
-function _lvCreatePeer() {
-  _lvRtcPeer = new RTCPeerConnection({
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:stun.cloudflare.com:3478' },
-      { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-      { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-      { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
-    ],
+let _lvCachedIceServers = null;
+let _lvIceServersFetchedAt = 0;
+
+async function _lvGetIceServers() {
+  // Cache 20h (le token Cloudflare dure 24h, on se laisse une marge) pour
+  // eviter un appel reseau a chaque appel telephonique.
+  const now = Date.now();
+  if (_lvCachedIceServers && (now - _lvIceServersFetchedAt) < 20 * 3600 * 1000) {
+    return _lvCachedIceServers;
+  }
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/get-turn-credentials');
+    const data = await res.json();
+    if (data.iceServers) {
+      _lvCachedIceServers = data.iceServers;
+      _lvIceServersFetchedAt = now;
+      return _lvCachedIceServers;
+    }
+  } catch (e) {
+    console.warn('[RTC-LV] echec recuperation TURN Cloudflare, fallback STUN seul:', e);
+  }
+  return [{ urls: 'stun:stun.cloudflare.com:3478' }];
+}
+
+function _lvCreatePeer(iceServers) {
+  const peer = new RTCPeerConnection({
+    iceServers: iceServers || [{ urls: 'stun:stun.cloudflare.com:3478' }],
     iceCandidatePoolSize: 4
   });
+  _lvRtcPeer = peer;
   _lvRtcRemoteSet = false; _lvRtcPendingIce = [];
-  _lvRtcPeer.onicecandidate = e => {
+  peer.onicecandidate = e => {
+    if (_lvRtcPeer !== peer) return; // peer périmé
     if (e.candidate && _lvRtcChannel) {
       _lvRtcChannel.send({ type: 'broadcast', event: 'ice',
         payload: { candidate: e.candidate, from: currentUser.id } }).catch(()=>{});
     }
   };
-  _lvRtcPeer.ontrack = e => {
+  peer.ontrack = e => {
+    // Garde d'identité : ignore les évènements d'un peer périmé (appel précédent
+    // mal refermé, ou offre traitée deux fois) — sinon ça masquait le bouton
+    // Répondre du NOUVEL appel juste après qu'il s'affiche.
+    if (_lvRtcPeer !== peer) return;
+    console.log('[RTC-LV] ontrack reçu, kind=', e.track.kind, 'streams=', e.streams.length);
     _lvRtcRemoteStream = e.streams[0];
     const audio = document.getElementById('lv-rtc-remote-audio');
     if (audio) {
@@ -3025,19 +3431,38 @@ function _lvCreatePeer() {
         } else { tmpCtx.close(); tryPlay(); }
       } catch(e) { tryPlay(); }
     }
-    _lvUpdateCallUI('connected');
+    _lvUpdateCallUI(_lvRtcRole === 'callee' && !_lvRtcAnswered ? 'ringing' : 'connected');
   };
-  _lvRtcPeer.onconnectionstatechange = () => {
-    const state = _lvRtcPeer?.connectionState;
-    if (state === 'failed' || state === 'closed') {
+  peer.oniceconnectionstatechange = () => {
+    if (_lvRtcPeer !== peer) return;
+    console.log('[RTC-LV] iceConnectionState =', peer.iceConnectionState);
+  };
+  peer.onconnectionstatechange = () => {
+    if (_lvRtcPeer !== peer) return;
+    const state = peer.connectionState;
+    console.log('[RTC-LV] connectionState =', state);
+    if (state === 'failed') {
+      // Tentative de reprise ICE avant de raccrocher — le TURN gratuit
+      // openrelay.metered.ca est souvent saturé/indisponible ; sans cette
+      // reprise, un relais lent faisait raccrocher quasi instantanément
+      // ("le bouton vient et part") et pouvait ne laisser passer l'audio
+      // que dans un seul sens.
+      console.warn('[RTC-LV] connectionState=failed → tentative restartIce()');
+      try { peer.restartIce(); } catch(e) { console.warn('restartIce indisponible:', e); }
+      setTimeout(() => {
+        if (_lvRtcPeer === peer && (peer.connectionState === 'failed' || peer.connectionState === 'closed')) {
+          lvRaccrocher(false);
+        }
+      }, 5000);
+    } else if (state === 'closed') {
       lvRaccrocher(false);
     } else if (state === 'disconnected') {
       setTimeout(() => {
-        if (_lvRtcPeer?.connectionState === 'disconnected') lvRaccrocher(false);
+        if (_lvRtcPeer === peer && peer.connectionState === 'disconnected') lvRaccrocher(false);
       }, 6000);
     }
   };
-  return _lvRtcPeer;
+  return peer;
 }
 
 // ── Initier un appel depuis une course ─────────────────
@@ -3060,6 +3485,7 @@ async function lvCallContact() {
 async function _lvLancerAppel(targetId, nomContact, courseId) {
   if (_lvRtcPeer) return showToast('Appel déjà en cours', 'wa');
   _lvRtcRole = 'caller'; _lvRtcTargetId = targetId;
+  _lvRtcAnswered = false;
   _lvRtcRemoteSet = false; _lvRtcPendingIce = [];
   _lvRtcCapturePromise = null; _lvRtcTracksAddedTo = null; _lvRtcLocalStream = null;
 
@@ -3091,7 +3517,7 @@ async function _lvLancerAppel(targetId, nomContact, courseId) {
     .on('broadcast', { event: 'hangup' }, () => lvRaccrocher(false))
     .subscribe(async status => {
       if (status !== 'SUBSCRIBED') return;
-      const peer = _lvCreatePeer();
+      const peer = _lvCreatePeer(await _lvGetIceServers());
       try {
         await _lvEnsureLocalStream(peer);
       } catch(e) {
@@ -3100,9 +3526,11 @@ async function _lvLancerAppel(targetId, nomContact, courseId) {
         return;
       }
       const offer = await peer.createOffer();
+      console.log('[RTC-LV] offre créée, envoi en cours…');
       await peer.setLocalDescription(offer);
       const offerPayload = { sdp: offer, from: currentUser.id, to: targetId, courseId,
-                              callerName: currentProfile?.prenom || 'Agent de service' };
+                              callerName: currentProfile?.prenom || 'Agent de service',
+                              offerId: currentUser.id + '-' + Date.now() + '-' + Math.random().toString(36).slice(2) };
       // Envoyer l'offer sur le canal commun
       await _lvRtcChannel.send({ type: 'broadcast', event: 'offer', payload: offerPayload });
       // Canal personnel de la cible (écoute même sans conv ouverte) — on s'abonne
@@ -3116,14 +3544,19 @@ async function _lvLancerAppel(targetId, nomContact, courseId) {
         await incomingCh.send({ type: 'broadcast', event: 'offer', payload: offerPayload });
         setTimeout(() => { try { sb.removeChannel(incomingCh); } catch(e){} }, 4000);
       } catch(e) { console.warn('Notification canal entrant échouée:', e); }
-      // Notification backup
-      await sb.from('notifications').insert({
-        utilisateur_id: targetId,
-        titre: '📞 Appel de votre agent de service',
-        corps: `${currentProfile?.prenom||'Votre agent de service'} vous appelle via Allô Service`,
-        type: 'appel_rtc',
-        meta: { courseId, callerId: currentUser.id }
-      }).catch(()=>{});
+      // Notification backup — pas de .catch() chaîné directement sur le query
+      // builder : cette version du client Supabase ne l'implémente pas et ça
+      // provoquait un TypeError non capturé qui interrompait le reste de la
+      // fonction (le timeout de sonnerie n'était alors jamais posé).
+      try {
+        await sb.from('notifications').insert({
+          utilisateur_id: targetId,
+          titre: '📞 Appel de votre agent de service',
+          corps: `${currentProfile?.prenom||'Votre agent de service'} vous appelle via Allô Service`,
+          type: 'appel_rtc',
+          meta: { courseId, callerId: currentUser.id }
+        });
+      } catch(e) { console.warn('Notification appel (backup) échouée:', e); }
 
       clearTimeout(_lvRtcRingTimeout);
       _lvRtcRingTimeout = setTimeout(() => {
@@ -3138,30 +3571,51 @@ async function _lvLancerAppel(targetId, nomContact, courseId) {
 // ── Répondre à un appel entrant ────────────────────────
 async function lvRepondreAppel(payload) {
   _lvRtcRole = 'callee'; _lvRtcTargetId = payload.from;
+  _lvRtcAnswered = true; // dès le clic — autorise désormais ontrack à passer l'UI en "connecté"
   if (_lvRtcRinging) { _lvRtcRinging(); _lvRtcRinging = null; }
   clearTimeout(_lvRtcRingTimeout); _lvRtcRingTimeout = null;
 
-  const peer = _lvRtcPeer || _lvCreatePeer();
+  const peer = _lvRtcPeer || _lvCreatePeer(await _lvGetIceServers());
 
   // Le micro a normalement déjà été capturé pendant la sonnerie. On attend la
   // MÊME promesse ici plutôt que de relancer un getUserMedia() séparé — c'est
   // ce doublon qui causait l'audio à sens unique.
   try {
     await _lvEnsureLocalStream(peer);
-  } catch(e) { return showToast(e.message || '🎤 Micro non autorisé', 'er'); }
-
-  if (!_lvRtcRemoteSet) {
-    await peer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
-    _lvRtcRemoteSet = true;
+  } catch(e) {
+    // Sans ce signal, l'ecran d'appel natif restait bloque indefiniment sur
+    // "Connexion..." si le micro etait refuse, sans jamais prevenir
+    // l'utilisateur qu'il fallait raccrocher manuellement.
+    try { if (window.NativeCallBridge) window.NativeCallBridge.onCallFailed(); } catch(e2) {}
+    return showToast(e.message || '🎤 Micro non autorisé', 'er');
   }
-  await _lvFlushPendingIce();
-  peer.getTransceivers().forEach(tr => {
-    if (tr.receiver?.track?.kind === 'audio' || tr.sender?.track?.kind === 'audio') tr.direction = 'sendrecv';
-  });
-  const answer = await peer.createAnswer();
-  await peer.setLocalDescription(answer);
-  await _lvRtcChannel.send({ type: 'broadcast', event: 'answer',
-    payload: { sdp: answer, from: currentUser.id, to: payload.from } });
+
+  try {
+    if (!_lvRtcRemoteSet) {
+      await peer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+      _lvRtcRemoteSet = true;
+    }
+    await _lvFlushPendingIce();
+    peer.getTransceivers().forEach(tr => {
+      if (tr.receiver?.track?.kind === 'audio' || tr.sender?.track?.kind === 'audio') tr.direction = 'sendrecv';
+    });
+    const answer = await peer.createAnswer();
+    console.log('[RTC-LV] réponse (answer) créée, envoi en cours…');
+    await peer.setLocalDescription(answer);
+    await _lvRtcChannel.send({ type: 'broadcast', event: 'answer',
+      payload: { sdp: answer, from: currentUser.id, to: payload.from } });
+  } catch(e) {
+    console.warn('[RTC-LV] echec creation/envoi de la reponse:', e);
+    try { if (window.NativeCallBridge) window.NativeCallBridge.onCallFailed(); } catch(e2) {}
+    return showToast('Echec de connexion à l\'appel', 'er');
+  }
+
+  // Ne notifie le natif "En communication" qu'une fois la reponse SDP
+  // reellement envoyee avec succes — avant, on le faisait des le clic sur
+  // "Repondre", ce qui affichait un statut trompeur meme quand la
+  // connexion echouait juste apres.
+  try { if (window.NativeCallBridge) window.NativeCallBridge.onCallConnected(); } catch(e) {}
+
   _lvStartCallTimer();
   _lvUpdateCallUI('connected');
   const audioElR = document.getElementById('lv-rtc-remote-audio');
@@ -3185,6 +3639,7 @@ function _lvActiverHautParleurDefaut() {
 
 // ── Raccrocher ─────────────────────────────────────────
 function lvRaccrocher(sendSignal = true) {
+  try { if (window.NativeCallBridge) window.NativeCallBridge.onCallEnded(); } catch(e) {}
   if (!_lvRtcPeer && !_lvRtcChannel && !_lvRtcLocalStream) {
     closeModal('modal-lv-appel');
     clearTimeout(_lvRtcRingTimeout); _lvRtcRingTimeout = null;
@@ -3202,6 +3657,7 @@ function lvRaccrocher(sendSignal = true) {
   if (_lvRtcPeer) { _lvRtcPeer.close(); _lvRtcPeer = null; }
   if (_lvRtcChannel) { sb.removeChannel(_lvRtcChannel); _lvRtcChannel = null; }
   _lvRtcRemoteStream = null;
+  _lvRtcLastOfferPayload = null;
   if (navigator.vibrate) navigator.vibrate(0);
   closeModal('modal-lv-appel');
 }
@@ -3254,6 +3710,7 @@ function _lvUpdateCallUI(state) {
   const st = document.getElementById('lv-call-status');
   const rBtn = document.getElementById('lv-call-repondre');
   const muteBtn = document.getElementById('lv-call-btn-mute');
+  if (state === 'ringing') return; // ontrack prématuré avant clic — on ne touche pas à l'UI
   if (state === 'connected') {
     if (st) st.textContent = '🟢 En communication';
     if (rBtn) rBtn.style.display = 'none';
@@ -3262,11 +3719,41 @@ function _lvUpdateCallUI(state) {
 }
 
 // ── Écouter les appels entrants (client → livreur) ─────
+let _lvIncomingCallChannel = null;
+let _lvCallListeningPaused = false;
+
+// Pont natif : appele par MainActivity.onPause()/onResume() (via App.tsx)
+// quand l'app quitte/reprend le premier plan. Empeche que CETTE WebView
+// (potentiellement encore vivante en arriere-plan) continue d'ecouter les
+// offres d'appel EN PARALLELE de l'ecran natif plein ecran (IncomingCallActivity),
+// qui a sa propre WebView cachee dediee. Sans ca, deux RTCPeerConnection
+// repondaient chacun independamment a la meme offre -> audio casse/muet/a
+// sens unique de facon aleatoire selon laquelle des deux reponses gagnait.
+window.pauseCallListening = function() {
+  _lvCallListeningPaused = true;
+  if (_lvIncomingCallChannel) {
+    try { sb.removeChannel(_lvIncomingCallChannel); } catch(e) {}
+    _lvIncomingCallChannel = null;
+  }
+  console.log('[RTC-LV] ecoute d\'appels entrants mise en pause (app en arriere-plan)');
+};
+window.resumeCallListening = function() {
+  _lvCallListeningPaused = false;
+  console.log('[RTC-LV] reprise ecoute d\'appels entrants (app au premier plan)');
+  startLvRTCListener();
+};
+
 function startLvRTCListener() {
   if (!currentUser?.id) return;
-  sb.channel('rtc-incoming-' + currentUser.id)
+  if (_lvCallListeningPaused) return;
+  if (_lvIncomingCallChannel) { try { sb.removeChannel(_lvIncomingCallChannel); } catch(e){} _lvIncomingCallChannel = null; }
+  _lvIncomingCallChannel = sb.channel('rtc-incoming-' + currentUser.id)
     .on('broadcast', { event: 'offer' }, async ({ payload }) => {
       if (payload.to !== currentUser.id) return;
+      // Anti-double-traitement de la même offre (voir index.html pour le détail) —
+      // évite qu'un second RTCPeerConnection vienne perturber l'UI du premier.
+      if (payload.offerId && payload.offerId === _lvRtcLastHandledOfferId) return;
+      if (payload.offerId) _lvRtcLastHandledOfferId = payload.offerId;
       if (_lvRtcPeer) {
         try {
           const busyCh = sb.channel('rtc-incoming-' + payload.from);
@@ -3280,6 +3767,7 @@ function startLvRTCListener() {
       // qu'un résidu d'un appel précédent mal refermé ne fasse rester affiché
       // "📡 Appel en cours…" au lieu de "📞 Appel entrant".
       _lvRtcRole = 'callee'; _lvRtcTargetId = payload.from;
+      _lvRtcAnswered = false;
       _lvRtcRemoteSet = false; _lvRtcPendingIce = [];
       _lvRtcCapturePromise = null; _lvRtcTracksAddedTo = null; _lvRtcLocalStream = null;
 
@@ -3289,23 +3777,41 @@ function startLvRTCListener() {
       // suite, sans attendre getUserMedia()/setRemoteDescription() qui peuvent
       // prendre du temps (voire bloquer) sur certains appareils Android.
       const nomAppelant = payload.callerName || 'Client';
-      _lvRtcRinging = _lvPlayRingtone(true);
-      _lvShowCallModal('callee', nomAppelant);
+      console.log('[RTC-LV] offre entrante reçue de', payload.from);
+      // Réveille l'écran natif (comme un vrai appel téléphonique)
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'INCOMING_CALL' }));
+      }
+      // Si on tourne dans la WebView cachee pilotee par l'ecran d'appel natif
+      // (IncomingCallActivity), la sonnerie et l'UI sont deja geres cote
+      // Kotlin (CallForegroundService). Jouer AUSSI la sonnerie JS ici
+      // creait un double son qui se melangeait desagreablement.
+      if (!window.NativeCallBridge) {
+        _lvRtcRinging = _lvPlayRingtone(true);
+        _lvShowCallModal('callee', nomAppelant);
+      }
+      _lvRtcLastOfferPayload = payload;
       document.getElementById('lv-call-repondre').onclick = () => lvRepondreAppel(payload);
 
       const chName = 'rtc-call-' + [payload.from, currentUser.id].sort().join('-');
       _lvRtcChannel = _lvBuildCallChannel(chName)
         .on('broadcast', { event: 'answer' }, () => {}); // géré côté appelant
       await new Promise(res => { _lvRtcChannel.subscribe(s => s === 'SUBSCRIBED' && res()); setTimeout(res, 3000); });
-      const peer = _lvCreatePeer();
+      const peer = _lvCreatePeer(await _lvGetIceServers());
 
       // ── Correctif "audio à sens unique" ────────────────────────────────
       // Capture le micro dès que ça sonne, via le helper qui garantit une
       // seule capture en vol — si le livreur clique "Répondre" avant la fin,
       // lvRepondreAppel() attend cette MÊME promesse au lieu d'en relancer une.
-      _lvEnsureLocalStream(peer).catch(e => {
+      // On attend la fin réelle de la capture micro AVANT setRemoteDescription :
+      // avant, les deux se lançaient en parallèle (fire-and-forget), et le
+      // forçage sendrecv pouvait s'exécuter avant que la piste locale soit
+      // ajoutée au peer → answer sans audio sortant (voix à sens unique).
+      try {
+        await _lvEnsureLocalStream(peer);
+      } catch(e) {
         console.warn('Pré-capture micro pendant la sonnerie échouée (on réessaiera au clic répondre) :', e);
-      });
+      }
 
       try {
         await peer.setRemoteDescription(new RTCSessionDescription(payload.sdp));
@@ -3329,7 +3835,15 @@ function startLvRTCListener() {
       showToast('📵 Ligne occupée', 'wa');
       lvRaccrocher(false);
     })
-    .subscribe();
+    .subscribe(status => {
+      // Un broadcast Supabase n'est livré QUE si le canal est déjà SUBSCRIBED
+      // au moment de l'envoi. Si ce canal se ferme (réseau, veille mobile...)
+      // sans se rouvrir, le livreur ne reçoit plus jamais les offres d'appel
+      // entrantes → aucun modal, donc "pas de bouton vert". Reconnexion auto.
+      if (status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        setTimeout(() => { if (currentUser?.id) startLvRTCListener(); }, 2000);
+      }
+    });
 }
 
 // ═══ COURSE POSITION CHANNEL ════════════════════════════
@@ -3494,6 +4008,69 @@ function convItemHTML(item, mob) {
     +'<div class="conv-time">'+time+'</div></div>';
 }
 
+// ─── Ouvrir une conversation depuis une notification push ──
+async function openConversationById(convId) {
+  if (!convId) return;
+  const { data: conv } = await sb.from('conversations').select('id,participant_1_id,participant_2_id').eq('id', convId).single();
+  if (!conv) return;
+  const otherId = conv.participant_1_id === currentUser.id ? conv.participant_2_id : conv.participant_1_id;
+  const { data: p } = await sb.from('profiles').select('prenom,nom').eq('id', otherId).single();
+  const nom = p ? ((p.prenom||'') + ' ' + (p.nom||'')).trim() : 'Contact';
+  switchMobPage('messages');
+  openChat(convId, nom, otherId);
+}
+window.openConversationById = openConversationById;
+
+// ─── Reception et sauvegarde du token FCM (venant de App.tsx / React Native) ──
+window.saveFcmToken = async function(token) {
+  if (!token || !currentUser?.id) {
+    // currentUser pas encore chargé : on retente un peu plus tard
+    window._pendingFcmToken = token;
+    return;
+  }
+  try {
+    await sb.from('livreurs').update({ fcm_token: token }).eq('id', currentUser.id);
+    console.log('[FCM] token sauvegarde pour livreur', currentUser.id);
+  } catch(e) {
+    console.warn('[FCM] echec sauvegarde token:', e);
+  }
+};
+
+// ─── Pont natif : accepter un appel depuis l'écran plein écran Android ──
+// Appelé par App.tsx (event 'acceptCall' emis par IncomingCallActivity.kt)
+// quand le livreur appuie sur "Répondre" alors que l'app était en arrière-plan
+// ou l'écran verrouillé. On répond simplement au dernier appel entrant connu,
+// en reproduisant exactement le clic du bouton "Répondre" du modal.
+window.acceptIncomingCall = function(callId) {
+  console.log('[RTC-LV] acceptIncomingCall (natif) appele, callId=', callId);
+  if (!_lvRtcLastOfferPayload) {
+    console.warn('[RTC-LV] acceptIncomingCall: aucune offre en attente (appel deja raccroche ou pas encore recue)');
+    return;
+  }
+  lvRepondreAppel(_lvRtcLastOfferPayload);
+};
+
+// Pont natif : refuser un appel depuis l'ecran plein ecran Android (bouton
+// rouge). Envoie le signal de raccroche au client et nettoie l'etat local,
+// sans jamais avoir eu besoin d'ouvrir l'app visuellement.
+window.declineIncomingCall = function(callId) {
+  console.log('[RTC-LV] declineIncomingCall (natif) appele, callId=', callId);
+  lvRaccrocher(true);
+};
+
+// Si le token est arrive avant que currentUser soit pret, on le retente
+// automatiquement une fois currentUser disponible (verifie chaque seconde, 20x max).
+let _fcmRetryCount = 0;
+const _fcmRetryInterval = setInterval(() => {
+  _fcmRetryCount++;
+  if (window._pendingFcmToken && currentUser?.id) {
+    window.saveFcmToken(window._pendingFcmToken);
+    window._pendingFcmToken = null;
+    clearInterval(_fcmRetryInterval);
+  }
+  if (_fcmRetryCount > 20) clearInterval(_fcmRetryInterval);
+}, 1000);
+
 async function openChat(convId, nom, otherId) {
   currentConvId = convId;
   currentConvOtherId = otherId||null;
@@ -3652,6 +4229,7 @@ async function envoyerMessageMob() {
   if (!error) {
     await sb.from('conversations').update({ dernier_message_at: new Date().toISOString(), dernier_message_texte: text }).eq('id', currentConvId);
     loadMessages(currentConvId);
+    _notifyNewMessage(currentConvOtherId, text, currentConvId);
   }
 }
 async function envoyerMessagePC() {
@@ -3663,7 +4241,26 @@ async function envoyerMessagePC() {
   if (!error) {
     await sb.from('conversations').update({ dernier_message_at: new Date().toISOString(), dernier_message_texte: text }).eq('id', currentConvId);
     loadMessages(currentConvId);
+    _notifyNewMessage(currentConvOtherId, text, currentConvId);
   }
+}
+
+// ─── Notification push message (FCM) ──────────────────────
+async function _notifyNewMessage(recipientId, previewText, conversationId) {
+  if (!recipientId) return;
+  try {
+    await fetch(SUPABASE_URL + '/functions/v1/notify-new-message', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify({
+        recipientId: recipientId,
+        recipientType: 'client',
+        senderName: currentProfile?.prenom || 'Livreur',
+        preview: previewText,
+        conversationId: conversationId
+      })
+    });
+  } catch(e) { console.warn('[FCM] echec envoi push message:', e); }
 }
 
 // ─── Photo ───────────────────────────────────────────────

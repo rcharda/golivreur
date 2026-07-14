@@ -12410,7 +12410,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .order('created_at', { ascending: false });
       if (error) throw error;
       if (!data || !data.length) {
-        el.innerHTML = '<div class="empty-state" style="padding:1.5rem"><i class="ti ti-speakerphone"></i><p>Aucune campagne pour l\\'instant</p></div>';
+        el.innerHTML = '<div class="empty-state" style="padding:1.5rem"><i class="ti ti-speakerphone"></i><p>Aucune campagne pour l\'instant</p></div>';
         return;
       }
       el.innerHTML = data.map(c => {

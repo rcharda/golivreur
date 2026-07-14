@@ -6122,11 +6122,13 @@ async function chargerMonArtisan() {
 async function afficherBlocageArtisanBanner() {
   const banner = document.getElementById('art-blocage-banner');
   if (!banner) return;
-  const { data: prof } = await sb.from('profiles').select('statut_compte,date_regularisation_deadline').eq('id', currentUser.id).single().catch(()=>({data:null}));
+  let prof = null;
+  try { ({ data: prof } = await sb.from('profiles').select('statut_compte,date_regularisation_deadline').eq('id', currentUser.id).single()); } catch (e) { prof = null; }
   const statut = prof?.statut_compte;
   if (statut !== 'bloque' && statut !== 'en_attente_regularisation') { banner.style.display = 'none'; banner.innerHTML=''; return; }
 
-  const { data: w } = await sb.from('wallets').select('solde').eq('utilisateur_id', currentUser.id).single().catch(()=>({data:null}));
+  let w = null;
+  try { ({ data: w } = await sb.from('wallets').select('solde').eq('utilisateur_id', currentUser.id).single()); } catch (e) { w = null; }
   const solde = w?.solde || 0;
   const dette = solde < 0 ? Math.abs(solde) : 0;
 
@@ -6667,7 +6669,8 @@ async function ouvrirSuiviMissionArtisan(artisanId, missionId) {
   document.getElementById('sart-next-step').style.display = 'none';
   document.getElementById('sart-map-placeholder').style.display = 'flex';
   // Charger la mission
-  const { data: mission } = await sb.from('missions_artisan').select('*').eq('id', missionId).single().catch(()=>({data:null}));
+  let mission = null;
+  try { ({ data: mission } = await sb.from('missions_artisan').select('*').eq('id', missionId).single()); } catch (e) { mission = null; }
   if (mission) {
     document.getElementById('sart-description').textContent = mission.description || '—';
     document.getElementById('sart-montant').textContent = (mission.montant||0).toLocaleString('fr-FR') + ' FCFA';
@@ -6690,8 +6693,9 @@ async function ouvrirSuiviMissionArtisan(artisanId, missionId) {
 
   // Polling position artisan (toutes les 5s)
   const pollArtisan = async () => {
-    const { data: art } = await sb.from('artisans').select('latitude,longitude,est_en_ligne').eq('id', artisanId).single().catch(()=>({data:null}));
-    const { data: m } = await sb.from('missions_artisan').select('statut').eq('id', missionId).single().catch(()=>({data:null}));
+    let art = null, m = null;
+    try { ({ data: art } = await sb.from('artisans').select('latitude,longitude,est_en_ligne').eq('id', artisanId).single()); } catch (e) { art = null; }
+    try { ({ data: m } = await sb.from('missions_artisan').select('statut').eq('id', missionId).single()); } catch (e) { m = null; }
     if (m) _sartUpdateStatut(m.statut || 'attente');
     if (art?.latitude && art?.longitude) {
       _sartUpdateMarker(art.latitude, art.longitude);

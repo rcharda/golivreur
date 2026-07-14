@@ -10678,6 +10678,21 @@ async function _lancerAppel(targetId, nomContact, courseId) {
           setTimeout(res, 2500); // sécurité si jamais "SUBSCRIBED" n'arrive pas
         });
         await incomingCh.send({ type: 'broadcast', event: 'offer', payload: offerPayload });
+        // Reemission de l'offre pendant que ca sonne : si le livreur avait l'app
+        // totalement fermee, le push FCM reveille l'ecran mais React Native +
+        // WebView + auth Supabase + abonnement au canal prend plusieurs secondes.
+        // Le tout premier broadcast arrive alors dans le vide (personne abonne
+        // encore), et un broadcast Supabase Realtime n'est jamais mis en file
+        // d'attente. On rejoue donc l'offre plusieurs fois pour couvrir ce
+        // demarrage a froid, jusqu'a ce que l'appel soit decroche/annule.
+        const _offerResendTimers = [2000, 4000, 6500, 9000, 12000].map(delay =>
+          setTimeout(() => {
+            if (_rtcRole === 'caller' && !_rtcCallTimer) {
+              incomingCh.send({ type: 'broadcast', event: 'offer', payload: offerPayload }).catch(() => {});
+            }
+          }, delay)
+        );
+        setTimeout(() => { _offerResendTimers.forEach(t => clearTimeout(t)); }, 16000);
         setTimeout(() => { try { sb.removeChannel(incomingCh); } catch(e){} }, 4000);
       } catch(e) { console.warn('Notification canal entrant échouée:', e); }
 

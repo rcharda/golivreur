@@ -10691,21 +10691,27 @@ async function _lancerAppel(targetId, nomContact, courseId) {
         });
         await incomingCh.send({ type: 'broadcast', event: 'offer', payload: offerPayload });
         // Reemission de l'offre pendant que ca sonne : si le livreur avait l'app
-        // totalement fermee, le push FCM reveille l'ecran mais React Native +
-        // WebView + auth Supabase + abonnement au canal prend plusieurs secondes.
+        // totalement fermee, le push FCM reveille l'ecran mais le demarrage a
+        // froid (process + WebView + chargement du script Supabase + abonnement
+        // au canal) peut prendre plusieurs secondes, notamment sur reseau lent.
         // Le tout premier broadcast arrive alors dans le vide (personne abonne
         // encore), et un broadcast Supabase Realtime n'est jamais mis en file
         // d'attente. On rejoue donc l'offre plusieurs fois pour couvrir ce
         // demarrage a froid, jusqu'a ce que l'appel soit decroche/annule.
-        const _offerResendTimers = [2000, 4000, 6500, 9000, 12000].map(delay =>
+        const _offerResendTimers = [2000, 4000, 6500, 9000, 12000, 16000, 20000, 25000].map(delay =>
           setTimeout(() => {
             if (_rtcRole === 'caller' && !_rtcCallTimer) {
               incomingCh.send({ type: 'broadcast', event: 'offer', payload: offerPayload }).catch(() => {});
             }
           }, delay)
         );
-        setTimeout(() => { _offerResendTimers.forEach(t => clearTimeout(t)); }, 16000);
-        setTimeout(() => { try { sb.removeChannel(incomingCh); } catch(e){} }, 4000);
+        setTimeout(() => { _offerResendTimers.forEach(t => clearTimeout(t)); }, 30000);
+        // BUG CORRIGE : le canal etait ferme apres seulement 4s, ce qui faisait
+        // silencieusement echouer TOUTES les reemissions programmees apres ce
+        // delai (6.5s, 9s, 12s...). C'etait la cause exacte du "ca marche si je
+        // reponds vite, ca rate si je suis lent". On ne ferme plus qu'apres la
+        // toute derniere reemission.
+        setTimeout(() => { try { sb.removeChannel(incomingCh); } catch(e){} }, 30500);
       } catch(e) { console.warn('Notification canal entrant échouée:', e); }
 
       // Push FCM haute priorité — réveille le téléphone du livreur même si

@@ -6,6 +6,7 @@
 <title>ZémiGo — La Super App N°1 en Afrique de l'Ouest</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --primary:#FF4C29;
@@ -481,6 +482,13 @@ footer span{color:var(--primary);font-weight:700;}
 </footer>
 
 <script>
+// ── Tracking clics / téléchargements (Supabase) ──
+const SUPABASE_URL = 'https://kathcclodsceifbyygzk.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_9m78hZ7BUe9jYykJ1w3kZw_Q_yig4J3';
+const sbTrack = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+function trackerClic(){ sbTrack.rpc('increment_page_clic', { p_page: 'zemigo', p_n: 1 }).then(()=>{},()=>{}); }
+function trackerTelechargement(){ sbTrack.rpc('increment_page_clic', { p_page: 'zemigo_telechargement', p_n: 1 }).then(()=>{},()=>{}); }
+
 const APK_URL = "https://github.com/rcharda/myboxtv/releases/download/v1.0/app-release.apk";
 const downloadBtn = document.getElementById('downloadBtn');
 const btnLabel = document.getElementById('btnLabel');
@@ -496,6 +504,7 @@ function triggerDownload(){
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+  trackerTelechargement();
 }
 
 function animateProgressThenDownload(auto){
@@ -522,7 +531,12 @@ function animateProgressThenDownload(auto){
   }, 180);
 }
 
-downloadBtn.addEventListener('click', ()=> animateProgressThenDownload(false));
+downloadBtn.addEventListener('click', ()=>{ trackerClic(); animateProgressThenDownload(false); });
+
+// Compte aussi les clics sur les autres CTA de téléchargement (menu + bouton final)
+document.querySelectorAll('a.nav-cta, .btn-final').forEach(el=>{
+  el.addEventListener('click', trackerClic);
+});
 
 window.addEventListener('DOMContentLoaded', ()=>{
   const fleetImg = document.getElementById('fleetImg');

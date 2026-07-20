@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-<title>Allô Livreur — Devenir Livreur</title>
+<title>Zémigo — Devenir Livreur</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@700;800&display=swap" rel="stylesheet"/>
@@ -303,7 +303,7 @@ input[type=range]{flex:1;accent-color:var(--primary)}
 
 <!-- HERO -->
 <div class="hero">
-  <div class="hero-logo">Allô<span>Livreur</span></div>
+  <div class="hero-logo">Zémi<span>Go</span></div>
   <h1 class="hero-title">Rejoins notre équipe<br>de livreurs 🛵</h1>
   <p class="hero-sub">Travaille à ton rythme, fixe ton propre prix,<br>reçois ton argent sur Mobile Money.</p>
   <div class="hero-badges">
@@ -830,14 +830,14 @@ input[type=range]{flex:1;accent-color:var(--primary)}
             <input type="checkbox" id="cg-3"/>
             <div class="check-item-text">
               <strong>Conditions générales</strong>
-              J'accepte les conditions générales d'utilisation de la plateforme Allô Livreur.
+              J'accepte les conditions générales d'utilisation de la plateforme Zémigo.
             </div>
           </label>
           <label class="check-item">
             <input type="checkbox" id="cg-4"/>
             <div class="check-item-text">
               <strong>Traitement des données</strong>
-              J'autorise Allô Livreur à traiter mes données personnelles pour la gestion de mon compte.
+              J'autorise Zémigo à traiter mes données personnelles pour la gestion de mon compte.
             </div>
           </label>
         </div>
@@ -866,7 +866,7 @@ input[type=range]{flex:1;accent-color:var(--primary)}
   </p>
   <div class="alert alert-info" style="text-align:left;margin-bottom:1.5rem">
     <i class="ti ti-bell"></i>
-    <span>Gardez un œil sur vos notifications dans l'application Allô Livreur.</span>
+    <span>Gardez un œil sur vos notifications dans l'application Zémigo.</span>
   </div>
   <a href="https://github.com/rcharda/myboxtv/releases/download/v1.0/Allo_Espace_Livreur_1.0_signed.apk" class="btn btn-primary btn-full" style="margin-bottom:.75rem" download>
     <i class="ti ti-download"></i> Télécharger l'application Livreur (APK)
@@ -1004,7 +1004,7 @@ async function handleAuth() {
     await sb.from('points_fidelite').upsert({ client_id: userId, solde_points: 0, total_points_gagnes: 0, total_points_utilises: 0 }, { onConflict: 'client_id' });
     const { error: notifErr } = await sb.from('notifications').insert({
       utilisateur_id: userId,
-      titre: '🎉 Bienvenue sur Allô Livreur !',
+      titre: '🎉 Bienvenue sur Zémigo !',
       corps: `Bonjour ${prenom} ! Complétez votre dossier livreur pour commencer à recevoir des courses.`,
       type: 'info'
     });

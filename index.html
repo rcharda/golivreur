@@ -14300,6 +14300,8 @@ function aegQuitterVocal() {
   _aegVocalActif = false;
   document.getElementById('aeg-vocal-btn').innerHTML = '<i class="ti ti-microphone"></i> Rejoindre le salon';
   document.getElementById('aeg-vocal-statut').textContent = 'Rejoignez à tout moment, sans appel';
+  document.getElementById('aeg-vocal-participants').innerHTML = '';
+}
 
 // ═══════════════════════════════════════════════════════════
 //  SALONS VOCAUX (public/privé) — mesh WebRTC + rôles admin/speaker/auditeur
@@ -14568,8 +14570,6 @@ async function slnQuitterSalon() {
   if (_slnSalonId && currentUser) await sb.from('salon_participants').update({ left_at: new Date().toISOString() }).eq('salon_id', _slnSalonId).eq('user_id', currentUser.id);
   _slnSalonId = null; _slnChannel = null; _slnParticipants = {};
   closeModal('modal-salon-live');
-}
-  document.getElementById('aeg-vocal-participants').innerHTML = '';
 }
 
 async function ouvrirTransfertArgent() {

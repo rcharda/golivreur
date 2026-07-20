@@ -1883,9 +1883,13 @@ input:valid {
 
 <style>
 /* ══════════ JOURNAL — Réseau social (Fil + Watch) ══════════ */
-.jr-toptabs{margin-left:auto;display:flex;gap:4px;background:var(--surface2);border-radius:var(--radius-pill);padding:3px}
-.jr-toptab{border:none;background:transparent;padding:6px 14px;border-radius:var(--radius-pill);font-family:var(--font);font-weight:700;font-size:.78rem;color:var(--text2);cursor:pointer}
+.jr-toptabs{margin-left:auto;display:flex;gap:4px;background:var(--surface2);border-radius:var(--radius-pill);padding:3px;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.jr-toptab{border:none;background:transparent;padding:6px 14px;border-radius:var(--radius-pill);font-family:var(--font);font-weight:700;font-size:.78rem;color:var(--text2);cursor:pointer;flex:none;white-space:nowrap}
 .jr-toptab.active{background:var(--primary);color:#fff}
+@media (max-width:768px){
+  .jr-toptabs{gap:2px;padding:2px}
+  .jr-toptab{padding:5px 9px;font-size:.7rem}
+}
 .jr-tabpane{display:none;min-height:0}
 .jr-tabpane.active{display:block;flex:1}
 #jr-pane-watch.jr-tabpane.active{display:flex;flex-direction:column;background:#000;position:relative}
@@ -2778,6 +2782,7 @@ input:valid {
       <div class="jr-toptabs">
         <button type="button" class="jr-toptab active" id="jr-toptab-fil" onclick="jrSwitchTab('fil')">Fil</button>
         <button type="button" class="jr-toptab" id="jr-toptab-watch" onclick="jrSwitchTab('watch')">Watch</button>
+        <button type="button" class="jr-toptab" onclick="ouvrirSalons()"><i class="ti ti-microphone"></i> Salons</button>
       </div>
       <button type="button" class="jr-appheader-close" title="Fermer" onclick="switchPCNav('livreurs', document.getElementById('railnav-livreurs'))"><i class="ti ti-x"></i></button>
     </div>
@@ -2796,7 +2801,15 @@ input:valid {
           <label class="jr-composer-attach"><i class="ti ti-photo"></i> Photo<input type="file" accept="image/*" style="display:none" onchange="jrAttach(event,'image')"></label>
           <label class="jr-composer-attach"><i class="ti ti-video"></i> Vidéo<input type="file" accept="video/*" style="display:none" onchange="jrAttach(event,'video')"></label>
           <label class="jr-composer-attach"><i class="ti ti-paperclip"></i> Fichier<input type="file" style="display:none" onchange="jrAttach(event,'file')"></label>
+          <button type="button" class="jr-composer-attach" title="Message vocal" onclick="jrStartComposerAudio()"><i class="ti ti-microphone"></i> Vocal</button>
           <button type="button" class="jr-publish-btn" onclick="jrPublier()">Publier</button>
+        </div>
+        <div class="jr-rec-bar" id="jr-composer-rec-row" style="display:none;margin-top:.5rem">
+          <div class="jr-rec-dot"></div>
+          <div class="jr-rec-wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="jr-rec-timer" id="jr-composer-rec-timer">0:00</div>
+          <button type="button" class="jr-rec-cancel" title="Annuler" onclick="jrCancelComposerAudio()"><i class="ti ti-trash"></i></button>
+          <button type="button" class="jr-rec-confirm" title="Valider" onclick="jrConfirmComposerAudio()"><i class="ti ti-check"></i></button>
         </div>
       </div>
       <div id="jr-feed-list"></div>
@@ -3996,7 +4009,61 @@ input:valid {
     </div>
   </div>
 </div>
-<div class="modal-overlay" id="modal-abonnement" onclick="closeModal('modal-abonnement')">
+<!-- Modal Salons vocaux (public/privé) -->
+<div class="modal-overlay" id="modal-salons" onclick="closeModal('modal-salons')">
+  <div class="modal-content" onclick="event.stopPropagation()" style="max-width:480px">
+    <div class="modal-handle" onclick="closeModal('modal-salons')"><div class="modal-handle-pill"></div></div>
+    <div id="sln-vue-liste">
+      <div style="font-family:var(--font-display);font-weight:800;font-size:1.1rem;margin-bottom:.6rem">🎙️ Salons vocaux</div>
+      <button type="button" onclick="slnOuvrirCreation()" style="width:100%;padding:.7rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-pill);font-family:var(--font);font-weight:800;cursor:pointer;margin-bottom:.8rem"><i class="ti ti-plus"></i> Créer un salon</button>
+      <div id="sln-liste-salons"></div>
+    </div>
+    <div id="sln-vue-creation" style="display:none">
+      <div style="font-family:var(--font-display);font-weight:800;font-size:1.05rem;margin-bottom:.6rem">Nouveau salon</div>
+      <input type="text" id="sln-titre" placeholder="Titre du salon" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.85rem;margin-bottom:.6rem">
+      <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
+        <button type="button" id="sln-type-public" onclick="slnChoisirType('public')" style="flex:1;padding:.6rem;border-radius:var(--radius-sm);border:1.5px solid var(--primary);background:var(--primary);color:#fff;font-family:var(--font);font-weight:700;cursor:pointer">🌍 Public</button>
+        <button type="button" id="sln-type-prive" onclick="slnChoisirType('prive')" style="flex:1;padding:.6rem;border-radius:var(--radius-sm);border:1.5px solid var(--border2);background:var(--bg);color:var(--text);font-family:var(--font);font-weight:700;cursor:pointer">🔒 Privé</button>
+      </div>
+      <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
+        <button type="button" id="sln-mode-audio" onclick="slnChoisirMode('audio')" style="flex:1;padding:.6rem;border-radius:var(--radius-sm);border:1.5px solid var(--primary);background:var(--primary);color:#fff;font-family:var(--font);font-weight:700;cursor:pointer">🎙️ Audio</button>
+        <button type="button" id="sln-mode-video" onclick="slnChoisirMode('video')" style="flex:1;padding:.6rem;border-radius:var(--radius-sm);border:1.5px solid var(--border2);background:var(--bg);color:var(--text);font-family:var(--font);font-weight:700;cursor:pointer">🎥 Vidéo</button>
+      </div>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;margin-bottom:.8rem">
+        <input type="checkbox" id="sln-ecoute-seule" checked> Les autres écoutent seulement (jusqu'à être "montés" par l'admin)
+      </label>
+      <button type="button" onclick="slnCreerSalon()" style="width:100%;padding:.7rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-pill);font-family:var(--font);font-weight:800;cursor:pointer">Lancer le salon</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Salon en direct (panel live) -->
+<div class="modal-overlay" id="modal-salon-live" onclick="event.stopPropagation()">
+  <div class="modal-content" style="max-width:480px">
+    <div id="sln-live-titre" style="font-family:var(--font-display);font-weight:800;font-size:1.05rem;margin-bottom:.3rem">—</div>
+    <div style="display:flex;gap:.8rem;font-size:.75rem;color:var(--text2);margin-bottom:.8rem">
+      <span>🎙️ <b id="sln-nb-speakers">0</b> à la parole</span>
+      <span>👂 <b id="sln-nb-auditeurs">0</b> auditeur(s)</span>
+    </div>
+    <div id="sln-video-grid" style="display:none;grid-template-columns:repeat(2,1fr);gap:.4rem;margin-bottom:.8rem"></div>
+    <div id="sln-demandes-wrap" style="display:none;margin-bottom:.8rem">
+      <div style="font-size:.78rem;font-weight:700;color:var(--text2);margin-bottom:.4rem">Demandes d'accès</div>
+      <div id="sln-liste-demandes" style="display:flex;flex-direction:column;gap:.4rem"></div>
+    </div>
+    <div style="font-size:.78rem;font-weight:700;color:var(--text2);margin-bottom:.4rem">À la parole</div>
+    <div id="sln-liste-speakers" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem"></div>
+    <div style="font-size:.78rem;font-weight:700;color:var(--text2);margin-bottom:.4rem">Auditeurs</div>
+    <div id="sln-liste-auditeurs" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem;max-height:180px;overflow-y:auto"></div>
+    <div style="font-size:.78rem;font-weight:700;color:var(--text2);margin-bottom:.4rem">Commentaires</div>
+    <div id="sln-liste-commentaires" style="display:flex;flex-direction:column;gap:.3rem;max-height:160px;overflow-y:auto;margin-bottom:.5rem;padding-right:.2rem"></div>
+    <div style="display:flex;gap:.5rem;margin-bottom:.8rem">
+      <input type="text" id="sln-commentaire-input" placeholder="Écrire un commentaire…" onkeydown="if(event.key==='Enter')slnEnvoyerCommentaire()" style="flex:1;min-width:0;border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-pill);padding:.45rem .9rem;font-family:var(--font);font-size:.8rem;outline:none">
+      <button type="button" onclick="slnEnvoyerCommentaire()" style="border:none;background:var(--primary);color:#fff;border-radius:50%;width:34px;height:34px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="ti ti-send"></i></button>
+    </div>
+    <button type="button" onclick="slnQuitterSalon()" style="width:100%;padding:.7rem;background:var(--danger);color:#fff;border:none;border-radius:var(--radius-pill);font-family:var(--font);font-weight:800;cursor:pointer"><i class="ti ti-phone-off"></i> Quitter le salon</button>
+  </div>
+</div>
+
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-handle" onclick="closeModal('modal-abonnement')"><div class="modal-handle-pill"></div></div>
     <div style="padding:0 1.25rem 1.5rem">
@@ -4249,6 +4316,7 @@ input:valid {
         <div style="flex:1;min-width:0">
           <div id="pp-nom" style="font-family:var(--font-display);font-weight:800;font-size:1.05rem">—</div>
           <div id="pp-role" style="font-size:.75rem;color:var(--text2)"></div>
+          <div id="pp-nb-amis" style="font-size:.72rem;color:var(--text3);margin-top:.15rem"></div>
         </div>
       </div>
       <div style="display:flex;gap:.5rem;margin-bottom:1rem">
@@ -9174,6 +9242,8 @@ async function ouvrirProfilPublic(userId) {
   document.getElementById('pp-nom').textContent = nom + (profil.badge_verifie ? ' ✓' : '');
   document.getElementById('pp-role').textContent = ROLE_LABELS[profil.role] || profil.role || '';
   document.getElementById('pp-ava').textContent = getInitials(profil);
+  sb.from('v_nb_amis').select('nb_amis').eq('user_id', userId).maybeSingle()
+    .then(({ data }) => { document.getElementById('pp-nb-amis').textContent = `👥 ${data?.nb_amis || 0} ami(s)`; });
   // Bouton appel désactivé si livreur sans course active
   const peutAppeler = await clientPeutEcrireA(userId);
   const btnAppel = document.getElementById('pp-btn-appel');
@@ -14230,6 +14300,275 @@ function aegQuitterVocal() {
   _aegVocalActif = false;
   document.getElementById('aeg-vocal-btn').innerHTML = '<i class="ti ti-microphone"></i> Rejoindre le salon';
   document.getElementById('aeg-vocal-statut').textContent = 'Rejoignez à tout moment, sans appel';
+
+// ═══════════════════════════════════════════════════════════
+//  SALONS VOCAUX (public/privé) — mesh WebRTC + rôles admin/speaker/auditeur
+//  Pensé pour 5-10 personnes (au-delà, prévoir un SFU dédié)
+// ═══════════════════════════════════════════════════════════
+let _slnSalonId = null, _slnChannel = null, _slnPeers = {}, _slnStream = null, _slnMode = 'audio';
+let _slnMonRole = 'auditeur', _slnEstAdmin = false, _slnCreationType = 'public';
+let _slnParticipants = {}; // userId -> { nom, role }
+let _slnCreationMode = 'audio';
+
+function slnChoisirMode(mode) {
+  _slnCreationMode = mode;
+  document.getElementById('sln-mode-audio').style.background = mode === 'audio' ? 'var(--primary)' : 'var(--bg)';
+  document.getElementById('sln-mode-audio').style.color = mode === 'audio' ? '#fff' : 'var(--text)';
+  document.getElementById('sln-mode-video').style.background = mode === 'video' ? 'var(--primary)' : 'var(--bg)';
+  document.getElementById('sln-mode-video').style.color = mode === 'video' ? '#fff' : 'var(--text)';
+}
+
+function slnOuvrirCreation() {
+  document.getElementById('sln-vue-liste').style.display = 'none';
+  document.getElementById('sln-vue-creation').style.display = '';
+}
+function slnChoisirType(type) {
+  _slnCreationType = type;
+  document.getElementById('sln-type-public').style.background = type === 'public' ? 'var(--primary)' : 'var(--bg)';
+  document.getElementById('sln-type-public').style.color = type === 'public' ? '#fff' : 'var(--text)';
+  document.getElementById('sln-type-prive').style.background = type === 'prive' ? 'var(--primary)' : 'var(--bg)';
+  document.getElementById('sln-type-prive').style.color = type === 'prive' ? '#fff' : 'var(--text)';
+}
+async function ouvrirSalons() {
+  openModal('modal-salons');
+  document.getElementById('sln-vue-liste').style.display = '';
+  document.getElementById('sln-vue-creation').style.display = 'none';
+  const { data } = await sb.from('salons').select('id,titre,type,mode,createur_id').eq('statut', 'live').order('created_at', { ascending: false });
+  const zone = document.getElementById('sln-liste-salons');
+  if (!data?.length) { zone.innerHTML = '<div class="empty-state" style="padding:1rem"><i class="ti ti-microphone-off"></i><p>Aucun salon en direct</p></div>'; return; }
+  zone.innerHTML = data.map(s => `
+    <div style="display:flex;align-items:center;gap:.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);padding:.6rem .8rem;margin-bottom:.5rem;cursor:pointer" onclick="slnDemanderRejoindre('${s.id}')">
+      <div style="width:34px;height:34px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center">${s.type === 'public' ? '🌍' : '🔒'}</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.85rem">${s.mode === 'video' ? '🎥 ' : ''}${jrEsc(s.titre)}</div><div style="font-size:.7rem;color:var(--text2)">${s.type === 'public' ? 'Salon public' : 'Salon privé'} · ${s.mode === 'video' ? 'Vidéo' : 'Audio'}</div></div>
+      <i class="ti ti-chevron-right"></i>
+    </div>`).join('');
+}
+async function slnCreerSalon() {
+  const titre = document.getElementById('sln-titre').value.trim();
+  if (!titre) return showToast('Donne un titre au salon', 'error');
+  if (!currentUser) return showToast('Connectez-vous pour créer un salon', 'error');
+  const ecouteSeule = document.getElementById('sln-ecoute-seule').checked;
+  const { data, error } = await sb.from('salons').insert({
+    titre, type: _slnCreationType, mode: _slnCreationMode, createur_id: currentUser.id, ecoute_seule_defaut: ecouteSeule
+  }).select('id').single();
+  if (error) { console.error(error); return showToast('Erreur création salon', 'error'); }
+  closeModal('modal-salons');
+  await slnRejoindre(data.id, 'admin');
+}
+async function slnDemanderRejoindre(salonId) {
+  const { data: salon } = await sb.from('salons').select('id,type,createur_id,ecoute_seule_defaut').eq('id', salonId).single();
+  if (!salon) return showToast('Salon introuvable', 'error');
+  if (salon.type === 'prive' && salon.createur_id !== currentUser.id) {
+    const { data: invite } = await sb.from('salon_invites').select('statut').eq('salon_id', salonId).eq('user_id', currentUser.id).maybeSingle();
+    if (!invite || invite.statut === 'refuse') {
+      await sb.from('salon_invites').upsert({ salon_id: salonId, user_id: currentUser.id, statut: 'demande' });
+      showToast('Demande envoyée à l\'admin du salon.', 'ok');
+      return;
+    }
+    if (invite.statut === 'demande') return showToast('Demande en attente de validation.', 'wa');
+  }
+  closeModal('modal-salons');
+  await slnRejoindre(salonId, salon.createur_id === currentUser.id ? 'admin' : 'auditeur');
+}
+async function slnRejoindre(salonId, role) {
+  _slnSalonId = salonId;
+  _slnMonRole = role;
+  _slnEstAdmin = role === 'admin';
+  const { data: salonModeInfo } = await sb.from('salons').select('mode').eq('id', salonId).single();
+  _slnMode = salonModeInfo?.mode || 'audio';
+  const grilleVideo = document.getElementById('sln-video-grid');
+  grilleVideo.style.display = _slnMode === 'video' ? 'grid' : 'none';
+  try {
+    const capterVideo = _slnMode === 'video' && (role === 'admin' || role === 'speaker');
+    _slnStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true },
+      video: capterVideo ? { width: 480, height: 480, facingMode: 'user' } : false
+    });
+    if (role !== 'admin' && role !== 'speaker') _slnStream.getAudioTracks().forEach(t => t.enabled = false); // auditeur = micro coupé
+    if (capterVideo) {
+      let monVideo = document.getElementById('sln-video-' + currentUser.id);
+      if (!monVideo) { monVideo = document.createElement('video'); monVideo.id = 'sln-video-' + currentUser.id; monVideo.autoplay = true; monVideo.muted = true; monVideo.playsInline = true; monVideo.style.cssText = 'width:100%;border-radius:8px;background:#000'; grilleVideo.appendChild(monVideo); }
+      monVideo.srcObject = _slnStream;
+    }
+  } catch (e) { return showToast('Micro/caméra indisponible : ' + e.message, 'err'); }
+
+  await sb.from('salon_participants').upsert({ salon_id: salonId, user_id: currentUser.id, role, left_at: null });
+
+  const { data: salonInfo } = await sb.from('salons').select('titre,type').eq('id', salonId).single();
+  document.getElementById('sln-live-titre').textContent = salonInfo?.titre || 'Salon';
+  openModal('modal-salon-live');
+  if (role === 'admin' && salonInfo?.type === 'prive') {
+    document.getElementById('sln-demandes-wrap').style.display = '';
+    slnChargerDemandes();
+  } else {
+    document.getElementById('sln-demandes-wrap').style.display = 'none';
+  }
+  document.getElementById('sln-liste-commentaires').innerHTML = '';
+  const { data: historique } = await sb.from('salon_messages').select('texte,user_id,profiles:user_id(nom,prenom)').eq('salon_id', salonId).order('created_at', { ascending: true }).limit(50);
+  (historique || []).forEach(m => {
+    const nom = `${m.profiles?.prenom || ''} ${m.profiles?.nom || ''}`.trim() || 'Membre';
+    slnAfficherCommentaire(nom, m.texte);
+  });
+
+  _slnChannel = sb.channel('salon-' + salonId, { config: { presence: { key: currentUser.id } } });
+
+  _slnChannel.on('broadcast', { event: 'signal' }, ({ payload }) => {
+    if (payload.to !== currentUser.id) return;
+    slnHandleSignal(payload);
+  });
+  _slnChannel.on('broadcast', { event: 'commentaire' }, ({ payload }) => {
+    slnAfficherCommentaire(payload.nom, payload.texte);
+  });
+  _slnChannel.on('broadcast', { event: 'role_change' }, ({ payload }) => {
+    if (payload.to !== currentUser.id) return;
+    slnAppliquerNouveauRole(payload.role);
+  });
+  _slnChannel.on('presence', { event: 'sync' }, () => {
+    const state = _slnChannel.presenceState();
+    const liste = Object.values(state).flat();
+    _slnParticipants = {};
+    liste.forEach(p => { _slnParticipants[p.id] = { nom: p.nom, role: p.role }; });
+    slnRenderPanel();
+    const ids = liste.map(p => p.id).filter(id => id !== currentUser.id);
+    ids.forEach(id => { if (!_slnPeers[id]) slnCreerPeer(id, true); });
+    Object.keys(_slnPeers).forEach(id => { if (!ids.includes(id)) slnFermerPeer(id); });
+  });
+
+  await _slnChannel.subscribe(async (status) => {
+    if (status === 'SUBSCRIBED') {
+      const nom = `${currentProfile?.prenom || ''} ${currentProfile?.nom || ''}`.trim() || 'Membre';
+      await _slnChannel.track({ id: currentUser.id, nom, role });
+    }
+  });
+}
+function slnCreerPeer(peerId, initiateur) {
+  const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+  _slnStream.getTracks().forEach(t => pc.addTrack(t, _slnStream));
+  pc.onicecandidate = (e) => { if (e.candidate) _slnChannel.send({ type: 'broadcast', event: 'signal', payload: { to: peerId, from: currentUser.id, kind: 'ice', data: e.candidate } }); };
+  pc.ontrack = (e) => {
+    if (e.track.kind === 'video') {
+      let videoEl = document.getElementById('sln-video-' + peerId);
+      if (!videoEl) { videoEl = document.createElement('video'); videoEl.id = 'sln-video-' + peerId; videoEl.autoplay = true; videoEl.playsInline = true; videoEl.style.cssText = 'width:100%;border-radius:8px;background:#000'; document.getElementById('sln-video-grid').appendChild(videoEl); }
+      videoEl.srcObject = e.streams[0];
+    } else {
+      let audioEl = document.getElementById('sln-audio-' + peerId);
+      if (!audioEl) { audioEl = document.createElement('audio'); audioEl.id = 'sln-audio-' + peerId; audioEl.autoplay = true; document.body.appendChild(audioEl); }
+      audioEl.srcObject = e.streams[0];
+    }
+  };
+  _slnPeers[peerId] = pc;
+  if (initiateur) {
+    pc.createOffer().then(offer => pc.setLocalDescription(offer)).then(() => {
+      _slnChannel.send({ type: 'broadcast', event: 'signal', payload: { to: peerId, from: currentUser.id, kind: 'offer', data: pc.localDescription } });
+    });
+  }
+  return pc;
+}
+async function slnHandleSignal(payload) {
+  let pc = _slnPeers[payload.from];
+  if (!pc) pc = slnCreerPeer(payload.from, false);
+  if (payload.kind === 'offer') {
+    await pc.setRemoteDescription(new RTCSessionDescription(payload.data));
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    _slnChannel.send({ type: 'broadcast', event: 'signal', payload: { to: payload.from, from: currentUser.id, kind: 'answer', data: pc.localDescription } });
+  } else if (payload.kind === 'answer') {
+    await pc.setRemoteDescription(new RTCSessionDescription(payload.data));
+  } else if (payload.kind === 'ice') {
+    try { await pc.addIceCandidate(payload.data); } catch (e) {}
+  }
+}
+function slnFermerPeer(peerId) {
+  _slnPeers[peerId]?.close();
+  delete _slnPeers[peerId];
+  document.getElementById('sln-audio-' + peerId)?.remove();
+  document.getElementById('sln-video-' + peerId)?.remove();
+}
+function slnRenderPanel() {
+  const speakers = Object.entries(_slnParticipants).filter(([id, p]) => p.role === 'admin' || p.role === 'speaker');
+  const auditeurs = Object.entries(_slnParticipants).filter(([id, p]) => p.role === 'auditeur');
+  document.getElementById('sln-nb-speakers').textContent = speakers.length;
+  document.getElementById('sln-nb-auditeurs').textContent = auditeurs.length;
+  const ligne = ([id, p], estSpeaker) => `
+    <div style="display:flex;align-items:center;gap:.5rem;background:var(--bg);border-radius:var(--radius-sm);padding:.4rem .6rem">
+      <span style="flex:1;font-size:.8rem;font-weight:600">${p.role === 'admin' ? '⭐ ' : ''}${jrEsc(p.nom || 'Membre')}</span>
+      ${id !== currentUser.id ? `<button type="button" onclick="envoyerDemandeAmi('${id}',this)" title="Ajouter en ami" style="border:none;background:transparent;color:var(--primary);cursor:pointer"><i class="ti ti-user-plus"></i></button>` : ''}
+      ${_slnEstAdmin && id !== currentUser.id ? (estSpeaker
+        ? `<button type="button" onclick="slnChangerRole('${id}','auditeur')" title="Faire descendre" style="border:none;background:transparent;color:var(--text2);cursor:pointer"><i class="ti ti-arrow-down"></i></button>`
+        : `<button type="button" onclick="slnChangerRole('${id}','speaker')" title="Faire monter" style="border:none;background:transparent;color:var(--primary);cursor:pointer"><i class="ti ti-arrow-up"></i></button>`) : ''}
+    </div>`;
+  document.getElementById('sln-liste-speakers').innerHTML = speakers.map(e => ligne(e, true)).join('') || '<div style="font-size:.75rem;color:var(--text3)">Personne pour l\'instant</div>';
+  document.getElementById('sln-liste-auditeurs').innerHTML = auditeurs.map(e => ligne(e, false)).join('') || '<div style="font-size:.75rem;color:var(--text3)">Aucun auditeur</div>';
+}
+async function slnChangerRole(userId, nouveauRole) {
+  if (!_slnEstAdmin) return;
+  await sb.from('salon_participants').update({ role: nouveauRole }).eq('salon_id', _slnSalonId).eq('user_id', userId);
+  _slnChannel.send({ type: 'broadcast', event: 'role_change', payload: { to: userId, role: nouveauRole } });
+  if (_slnParticipants[userId]) _slnParticipants[userId].role = nouveauRole;
+  slnRenderPanel();
+}
+function slnAppliquerNouveauRole(nouveauRole) {
+  _slnMonRole = nouveauRole;
+  if (_slnStream) _slnStream.getAudioTracks().forEach(t => t.enabled = (nouveauRole === 'speaker' || nouveauRole === 'admin'));
+  showToast(nouveauRole === 'auditeur' ? 'L\'admin vous a mis en écoute seule.' : 'L\'admin vous a donné la parole 🎙️', 'ok');
+}
+async function slnChargerDemandes() {
+  const zone = document.getElementById('sln-liste-demandes');
+  const { data } = await sb.from('salon_invites').select('id,user_id,profiles:user_id(nom,prenom)').eq('salon_id', _slnSalonId).eq('statut', 'demande');
+  if (!data?.length) { zone.innerHTML = '<div style="font-size:.75rem;color:var(--text3)">Aucune demande en attente</div>'; return; }
+  zone.innerHTML = data.map(d => {
+    const nom = `${d.profiles?.prenom || ''} ${d.profiles?.nom || ''}`.trim() || 'Utilisateur';
+    return `
+    <div style="display:flex;align-items:center;gap:.5rem;background:var(--bg);border-radius:var(--radius-sm);padding:.4rem .6rem">
+      <span style="flex:1;font-size:.8rem;font-weight:600">${jrEsc(nom)}</span>
+      <button type="button" onclick="slnRepondreDemande('${d.id}','${d.user_id}',true)" style="border:none;background:var(--primary);color:#fff;border-radius:var(--radius-pill);padding:.3rem .7rem;font-size:.72rem;font-weight:700;cursor:pointer">Accepter</button>
+      <button type="button" onclick="slnRepondreDemande('${d.id}','${d.user_id}',false)" style="border:none;background:var(--bg2,var(--surface2));color:var(--text2);border-radius:var(--radius-pill);padding:.3rem .7rem;font-size:.72rem;font-weight:700;cursor:pointer">Refuser</button>
+    </div>`;
+  }).join('');
+}
+async function slnRepondreDemande(inviteId, userId, accepter) {
+  await sb.from('salon_invites').update({ statut: accepter ? 'accepte' : 'refuse' }).eq('id', inviteId);
+  const { data: salonInfo } = await sb.from('salons').select('titre').eq('id', _slnSalonId).single();
+  await _notifierPush(userId, 'client', accepter ? '✅ Accès au salon accepté' : '🚫 Demande refusée',
+    accepter ? `Vous pouvez maintenant rejoindre le salon "${salonInfo?.titre || ''}".` : `Votre demande d'accès au salon "${salonInfo?.titre || ''}" a été refusée.`, 'social');
+  showToast(accepter ? 'Demande acceptée' : 'Demande refusée', 'ok');
+  slnChargerDemandes();
+}
+async function slnEnvoyerCommentaire() {
+  const input = document.getElementById('sln-commentaire-input');
+  const texte = input.value.trim();
+  if (!texte || !_slnSalonId || !currentUser) return;
+  const mod = jrModerateText(texte);
+  if (mod.blocked) {
+    await jrLogStrike(mod.reason, texte);
+    showToast('Commentaire refusé : contenu non autorisé.', 'error');
+    return;
+  }
+  const { error } = await sb.from('salon_messages').insert({ salon_id: _slnSalonId, user_id: currentUser.id, texte });
+  if (error) { console.error('slnEnvoyerCommentaire', error); return showToast('Erreur envoi commentaire', 'error'); }
+  const nom = `${currentProfile?.prenom || ''} ${currentProfile?.nom || ''}`.trim() || 'Moi';
+  _slnChannel.send({ type: 'broadcast', event: 'commentaire', payload: { nom, texte } });
+  slnAfficherCommentaire(nom, texte);
+  input.value = '';
+}
+function slnAfficherCommentaire(nom, texte) {
+  const zone = document.getElementById('sln-liste-commentaires');
+  const ligne = document.createElement('div');
+  ligne.style.cssText = 'font-size:.78rem;line-height:1.3';
+  ligne.innerHTML = `<b>${jrEsc(nom)}</b> ${jrEsc(texte)}`;
+  zone.appendChild(ligne);
+  zone.scrollTop = zone.scrollHeight;
+}
+async function slnQuitterSalon() {
+  Object.keys(_slnPeers).forEach(slnFermerPeer);
+  _slnStream?.getTracks().forEach(t => t.stop());
+  _slnChannel?.unsubscribe();
+  document.getElementById('sln-video-' + currentUser.id)?.remove();
+  document.getElementById('sln-video-grid').innerHTML = '';
+  if (_slnSalonId && currentUser) await sb.from('salon_participants').update({ left_at: new Date().toISOString() }).eq('salon_id', _slnSalonId).eq('user_id', currentUser.id);
+  _slnSalonId = null; _slnChannel = null; _slnParticipants = {};
+  closeModal('modal-salon-live');
+}
   document.getElementById('aeg-vocal-participants').innerHTML = '';
 }
 
@@ -15412,6 +15751,7 @@ function _jrRerenderFeedSafe() {
 //  quelqu'un contourne le JS).
 // ══════════════════════════════════════════════════════════════
 const JR_PHONE_REGEX = /(\+?229[\s.-]?)?\b(0?\d[\s.-]?){7,9}\d\b/g;
+const JR_URL_REGEX = /\bhttps?:\/\/[^\s<>"']+/gi;
 
 const JR_BYPASS_KEYWORDS = [
   'sans passer par l\'appli', 'sans passer par l\'application', 'sans passer par l\'app',
@@ -15650,6 +15990,63 @@ function jrAttach(evt, type) {
     document.querySelector('.jr-publish-btn').disabled = false;
   }
 }
+// ── Vocal direct dans le fil (composer) — même mécanique que jrStartCommentAudio ──
+let _jrComposerAudio = { recorder: null, chunks: [], blob: null, timerInterval: null, sec: 0 };
+async function jrStartComposerAudio() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
+    _jrComposerAudio.recorder = new MediaRecorder(stream, { mimeType });
+    _jrComposerAudio.chunks = [];
+    _jrComposerAudio.blob = null;
+    _jrComposerAudio.recorder.ondataavailable = e => { if (e.data.size > 0) _jrComposerAudio.chunks.push(e.data); };
+    _jrComposerAudio.recorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      _jrComposerAudio.blob = new Blob(_jrComposerAudio.chunks, { type: mimeType });
+    };
+    _jrComposerAudio.recorder.start(200);
+    _jrComposerAudio.sec = 0;
+    const timerEl = document.getElementById('jr-composer-rec-timer');
+    if (timerEl) timerEl.textContent = '0:00';
+    _jrComposerAudio.timerInterval = setInterval(() => {
+      _jrComposerAudio.sec++;
+      const m = Math.floor(_jrComposerAudio.sec / 60), s = _jrComposerAudio.sec % 60;
+      if (timerEl) timerEl.textContent = `${m}:${String(s).padStart(2, '0')}`;
+      if (_jrComposerAudio.sec >= 120) jrConfirmComposerAudio(); // limite 2 min
+    }, 1000);
+    document.getElementById('jr-composer-rec-row').style.display = 'flex';
+  } catch (e) {
+    showToast(typeof micErrorMessage === 'function' ? micErrorMessage(e) : 'Micro indisponible', 'wa');
+  }
+}
+function jrCancelComposerAudio() {
+  if (_jrComposerAudio.timerInterval) clearInterval(_jrComposerAudio.timerInterval);
+  if (_jrComposerAudio.recorder && _jrComposerAudio.recorder.state === 'recording') {
+    _jrComposerAudio.recorder.onstop = () => { _jrComposerAudio.recorder.stream?.getTracks?.().forEach(t => t.stop()); };
+    _jrComposerAudio.recorder.stop();
+  }
+  _jrComposerAudio.blob = null;
+  document.getElementById('jr-composer-rec-row').style.display = 'none';
+}
+async function jrConfirmComposerAudio() {
+  if (_jrComposerAudio.timerInterval) clearInterval(_jrComposerAudio.timerInterval);
+  if (_jrComposerAudio.recorder && _jrComposerAudio.recorder.state === 'recording') {
+    await new Promise(resolve => {
+      const prevStop = _jrComposerAudio.recorder.onstop;
+      _jrComposerAudio.recorder.onstop = () => { prevStop(); resolve(); };
+      _jrComposerAudio.recorder.stop();
+    });
+  }
+  document.getElementById('jr-composer-rec-row').style.display = 'none';
+  if (!_jrComposerAudio.blob) return;
+  jrPendingMediaFile = _jrComposerAudio.blob;
+  jrPendingMediaType = 'audio';
+  const url = URL.createObjectURL(_jrComposerAudio.blob);
+  const prev = document.getElementById('jr-composer-preview');
+  prev.style.display = 'block';
+  prev.innerHTML = `<audio src="${url}" controls style="width:100%"></audio><button type="button" class="jr-remove-media" onclick="jrRemoveMedia()"><i class="ti ti-x"></i></button>`;
+  document.querySelector('.jr-publish-btn').disabled = false;
+}
 function jrRemoveMedia() {
   jrPendingMediaFile = null;
   jrPendingMediaType = null;
@@ -15712,10 +16109,13 @@ async function jrPublier() {
 
     let media_path = null, media_type = null, nom_fichier = null;
     if (jrPendingMediaFile) {
-      let ext = (jrPendingMediaFile.name.split('.').pop() || (jrPendingMediaType === 'image' ? 'jpg' : 'mp4'));
+      let ext = jrPendingMediaType === 'audio' ? 'webm' : (jrPendingMediaFile.name?.split('.').pop() || (jrPendingMediaType === 'image' ? 'jpg' : 'mp4'));
       const path = `${currentUser.id}/${Date.now()}.${ext}`;
 
-      if (jrPendingMediaType === 'image' && jrPendingMediaCompressed) {
+      if (jrPendingMediaType === 'audio') {
+        const { error: upErr } = await sb.storage.from('journal-media').upload(path, jrPendingMediaFile, { contentType: jrPendingMediaFile.type || 'audio/webm' });
+        if (upErr) throw upErr;
+      } else if (jrPendingMediaType === 'image' && jrPendingMediaCompressed) {
         // On uploade la version compressée (plus légère, affichage plus rapide)
         const blob = jrDataUrlToBlob(jrPendingMediaCompressed);
         const { error: upErr } = await sb.storage.from('journal-media').upload(path, blob, { contentType: 'image/jpeg' });
@@ -15870,6 +16270,8 @@ function jrRenderFeed() {
         <div class="jr-file-icon"><i class="ti ${jrFileIcon(fname)}"></i></div>
         <div class="jr-file-info"><div class="jr-file-name">${jrEsc(fname)}</div><div class="jr-file-meta">Télécharger</div></div>
       </a>`;
+    } else if (p.media?.type === 'audio') {
+      mediaHtml = `<div class="jr-post-media"><audio src="${p.media.url}" controls style="width:100%"></audio></div>`;
     }
     const initials = (p.authorName || '?').charAt(0).toUpperCase();
     const reactBtnEmoji = mine ? JR_REACTIONS[mine] : null;

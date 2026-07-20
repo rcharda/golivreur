@@ -1928,6 +1928,24 @@ input:valid {
 .jr-comment-input-row{display:flex;gap:.5rem;margin-top:.4rem;align-items:center}
 .jr-comment-input-row input{flex:1;min-width:0;border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-pill);padding:.45rem .9rem;font-family:var(--font);font-size:.8rem;outline:none}
 .jr-comment-input-row button{border:none;background:var(--primary);color:#fff;border-radius:50%;width:34px;height:34px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
+/* ── Barre d'enregistrement audio façon WhatsApp (commentaires Allô Social) ── */
+.jr-rec-bar{display:flex;align-items:center;gap:.5rem;flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-pill);padding:.35rem .7rem}
+.jr-rec-dot{width:9px;height:9px;border-radius:50%;background:var(--danger);flex:none;animation:jrRecDot 1s infinite}
+@keyframes jrRecDot{0%,100%{opacity:1}50%{opacity:.25}}
+.jr-rec-wave{display:flex;align-items:center;gap:2px;flex:1;min-width:0;height:20px;overflow:hidden}
+.jr-rec-wave span{display:block;width:3px;border-radius:2px;background:var(--primary);animation:jrRecWave 1s ease-in-out infinite}
+.jr-rec-wave span:nth-child(1){height:35%;animation-delay:0s}
+.jr-rec-wave span:nth-child(2){height:70%;animation-delay:.1s}
+.jr-rec-wave span:nth-child(3){height:100%;animation-delay:.2s}
+.jr-rec-wave span:nth-child(4){height:55%;animation-delay:.3s}
+.jr-rec-wave span:nth-child(5){height:85%;animation-delay:.4s}
+.jr-rec-wave span:nth-child(6){height:40%;animation-delay:.5s}
+.jr-rec-wave span:nth-child(7){height:75%;animation-delay:.6s}
+.jr-rec-wave span:nth-child(8){height:50%;animation-delay:.7s}
+@keyframes jrRecWave{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
+.jr-rec-timer{font-size:.75rem;color:var(--text2);font-variant-numeric:tabular-nums;flex:none}
+.jr-rec-cancel{border:none;background:none;color:var(--danger);cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center;width:26px;height:26px}
+.jr-rec-confirm{border:none;background:var(--primary);color:#fff;border-radius:50%;width:34px;height:34px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .jr-empty{text-align:center;color:var(--text3);font-size:.85rem;padding:2rem 1rem}
 .jr-mod-banner{margin:.7rem;background:var(--primary-light);border:1px solid var(--primary);color:var(--primary-dark);border-radius:var(--radius-sm);padding:.6rem .8rem;font-size:.76rem;line-height:1.4;display:flex;gap:.5rem;align-items:flex-start}
 
@@ -15890,12 +15908,18 @@ function jrRenderFeed() {
       </div>
       <div class="jr-comments" id="jr-comments-${p.id}">
         ${jrRenderCommentsTree(p.id, p.comments)}
-        <div class="jr-comment-input-row">
+        <div class="jr-comment-input-row" id="jr-comment-normal-row-${p.id}">
           <input type="text" placeholder="Écrire un commentaire…" id="jr-comment-input-${p.id}" onkeydown="if(event.key==='Enter')jrComment('${p.id}')">
-          <button type="button" title="Message vocal" onclick="jrToggleCommentAudio('${p.id}')" id="jr-comment-mic-${p.id}"><i class="ti ti-microphone"></i></button>
+          <button type="button" title="Message vocal" onclick="jrStartCommentAudio('${p.id}','${p.id}','')"><i class="ti ti-microphone"></i></button>
           <button type="button" onclick="jrComment('${p.id}')"><i class="ti ti-send"></i></button>
         </div>
-        <div id="jr-comment-audio-preview-${p.id}" style="display:none;margin-top:.3rem"></div>
+        <div class="jr-rec-bar" id="jr-comment-rec-row-${p.id}" style="display:none">
+          <div class="jr-rec-dot"></div>
+          <div class="jr-rec-wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="jr-rec-timer" id="jr-comment-rec-timer-${p.id}">0:00</div>
+          <button type="button" class="jr-rec-cancel" title="Annuler" onclick="jrCancelCommentAudio('${p.id}')"><i class="ti ti-trash"></i></button>
+          <button type="button" class="jr-rec-confirm" title="Envoyer" onclick="jrConfirmCommentAudio('${p.id}','${p.id}','')"><i class="ti ti-send"></i></button>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -16057,13 +16081,19 @@ function jrRenderOneComment(postId, c, replies) {
             <button type="button" onclick="jrToggleReply('${postId}','${c.id}')" style="background:none;border:none;padding:0;font-size:.72rem;color:var(--text2);cursor:pointer;font-weight:700">Répondre</button>
             ${dexBtn}
           </div>
-          <div id="jr-reply-row-${c.id}" style="display:none;margin:.35rem 0 0 .4rem;gap:.4rem;align-items:center">
-            <div style="display:flex;gap:.4rem;align-items:center">
+          <div id="jr-reply-row-${c.id}" style="display:none;margin:.35rem 0 0 .4rem">
+            <div style="display:flex;gap:.4rem;align-items:center" id="jr-comment-normal-row-${c.id}">
               <input type="text" placeholder="Répondre à ${jrEsc(c.authorName)}…" id="jr-reply-input-${c.id}" onkeydown="if(event.key==='Enter')jrComment('${postId}','${c.id}')" style="flex:1;min-width:0;border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-pill);padding:.4rem .8rem;font-family:var(--font);font-size:.78rem;outline:none">
-              <button type="button" title="Message vocal" onclick="jrToggleCommentAudio('${c.id}')" id="jr-comment-mic-${c.id}" style="border:none;background:var(--primary-light);color:var(--primary);border-radius:50%;width:30px;height:30px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="ti ti-microphone"></i></button>
+              <button type="button" title="Message vocal" onclick="jrStartCommentAudio('${c.id}','${postId}','${c.id}')" style="border:none;background:var(--primary-light);color:var(--primary);border-radius:50%;width:30px;height:30px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="ti ti-microphone"></i></button>
               <button type="button" onclick="jrComment('${postId}','${c.id}')" style="border:none;background:var(--primary);color:#fff;border-radius:50%;width:30px;height:30px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="ti ti-send"></i></button>
             </div>
-            <div id="jr-comment-audio-preview-${c.id}" style="display:none;margin-top:.3rem"></div>
+            <div class="jr-rec-bar" id="jr-comment-rec-row-${c.id}" style="display:none">
+              <div class="jr-rec-dot"></div>
+              <div class="jr-rec-wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+              <div class="jr-rec-timer" id="jr-comment-rec-timer-${c.id}">0:00</div>
+              <button type="button" class="jr-rec-cancel" title="Annuler" onclick="jrCancelCommentAudio('${c.id}')"><i class="ti ti-trash"></i></button>
+              <button type="button" class="jr-rec-confirm" title="Envoyer" onclick="jrConfirmCommentAudio('${c.id}','${postId}','${c.id}')"><i class="ti ti-send"></i></button>
+            </div>
           </div>
           ${repliesHtml}
         </div>
@@ -16095,17 +16125,25 @@ function jrToggleReply(postId, commentId) {
   const visible = row.style.display !== 'none';
   document.querySelectorAll('[id^="jr-reply-row-"]').forEach(el => el.style.display = 'none');
   if (!visible) {
-    row.style.display = 'flex';
-    row.style.flexDirection = 'column';
+    row.style.display = 'block';
     document.getElementById(`jr-reply-input-${commentId}`)?.focus();
+  } else {
+    jrCancelCommentAudio(commentId);
   }
 }
 
-// ── Enregistrement audio pour un commentaire ou une réponse ──────
-const _jrAudioState = {}; // clé = postId (commentaire) ou commentId (réponse)
-async function jrToggleCommentAudio(key) {
+// ── Enregistrement audio façon WhatsApp pour un commentaire/réponse ──────
+// clé = postId (commentaire principal) ou commentId (réponse)
+const _jrAudioState = {};
+function _jrShowRecBar(key, show) {
+  const normal = document.getElementById(`jr-comment-normal-row-${key}`);
+  const rec = document.getElementById(`jr-comment-rec-row-${key}`);
+  if (normal) normal.style.display = show ? 'none' : 'flex';
+  if (rec) rec.style.display = show ? 'flex' : 'none';
+}
+async function jrStartCommentAudio(key, postId, parentId) {
   const state = _jrAudioState[key] || (_jrAudioState[key] = {});
-  if (state.recorder && state.recorder.state === 'recording') { state.recorder.stop(); return; }
+  if (state.recorder && state.recorder.state === 'recording') return;
   try {
     const mediaErr = checkMediaSupport('audio');
     if (mediaErr) { showToast(mediaErr, 'er'); return; }
@@ -16113,24 +16151,51 @@ async function jrToggleCommentAudio(key) {
     const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
     state.recorder = new MediaRecorder(stream, { mimeType });
     state.chunks = [];
+    state.blob = null;
+    state.postId = postId; state.parentId = parentId || null;
     state.recorder.ondataavailable = e => { if (e.data.size > 0) state.chunks.push(e.data); };
     state.recorder.onstop = () => {
       stream.getTracks().forEach(t => t.stop());
       state.blob = new Blob(state.chunks, { type: mimeType });
-      const micBtn = document.getElementById(`jr-comment-mic-${key}`);
-      micBtn?.classList.remove('recording');
-      const preview = document.getElementById(`jr-comment-audio-preview-${key}`);
-      if (preview) {
-        preview.style.display = 'block';
-        preview.innerHTML = `<audio controls src="${URL.createObjectURL(state.blob)}" style="height:32px;max-width:220px"></audio> <button type="button" onclick="_jrAudioState['${key}'].blob=null;document.getElementById('jr-comment-audio-preview-${key}').style.display='none'" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:.75rem;margin-left:.4rem">Retirer</button>`;
-      }
     };
     state.recorder.start(200);
-    document.getElementById(`jr-comment-mic-${key}`)?.classList.add('recording');
-    showToast('🎙️ Enregistrement… touchez à nouveau pour arrêter', 'info');
+    state.sec = 0;
+    const timerEl = document.getElementById(`jr-comment-rec-timer-${key}`);
+    if (timerEl) timerEl.textContent = '0:00';
+    state.timerInterval = setInterval(() => {
+      state.sec++;
+      const m = Math.floor(state.sec / 60), s = state.sec % 60;
+      if (timerEl) timerEl.textContent = `${m}:${String(s).padStart(2, '0')}`;
+      if (state.sec >= 120) jrConfirmCommentAudio(key, postId, parentId); // limite 2 min, comme les autres vocaux de l'appli
+    }, 1000);
+    _jrShowRecBar(key, true);
   } catch (e) {
     showToast(typeof micErrorMessage === 'function' ? micErrorMessage(e) : 'Micro indisponible', 'wa');
   }
+}
+function jrCancelCommentAudio(key) {
+  const state = _jrAudioState[key];
+  if (state?.timerInterval) clearInterval(state.timerInterval);
+  if (state?.recorder && state.recorder.state === 'recording') {
+    state.recorder.onstop = () => { state.recorder.stream?.getTracks?.().forEach(t => t.stop()); };
+    state.recorder.stop();
+  }
+  if (state) state.blob = null;
+  _jrShowRecBar(key, false);
+}
+async function jrConfirmCommentAudio(key, postId, parentId) {
+  const state = _jrAudioState[key];
+  if (!state?.recorder) return;
+  if (state.timerInterval) clearInterval(state.timerInterval);
+  if (state.recorder.state === 'recording') {
+    await new Promise(resolve => {
+      const prevStop = state.recorder.onstop;
+      state.recorder.onstop = () => { prevStop(); resolve(); };
+      state.recorder.stop();
+    });
+  }
+  _jrShowRecBar(key, false);
+  await jrComment(postId, parentId || undefined);
 }
 
 async function jrComment(postId, parentId) {
@@ -16171,8 +16236,6 @@ async function jrComment(postId, parentId) {
 
     if (input) input.value = '';
     if (audioState) { audioState.blob = null; }
-    const previewEl = document.getElementById(`jr-comment-audio-preview-${audioKey}`);
-    if (previewEl) { previewEl.style.display = 'none'; previewEl.innerHTML = ''; }
 
     // Notifier : réponse → l'auteur du commentaire parent ; commentaire simple → l'auteur du post.
     // Jamais si on se répond/commente à soi-même.

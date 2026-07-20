@@ -7254,19 +7254,11 @@ async function confirmerReservationArtisan() {
       ? '✅ Mission créée ! L\'artisan dispose de 24h pour confirmer le paiement cash.'
       : '✅ Mission réservée et payée ! L\'artisan sera notifié.', 'ok');
 
-    // Notifier réellement l'artisan (push + message dans la conversation)
+    // Notifier réellement l'artisan (push + ligne en base uniquement —
+    // pas de bulle visible dans le chat, conformément au mécanisme voulu)
     try {
       const nomClient = `${currentProfile?.prenom||''} ${currentProfile?.nom||''}`.trim() || 'Un client';
       await _notifierPush(_currentReservArtisanId, 'client', '🛠️ Nouvelle réservation', `${nomClient} a réservé une prestation : "${description}" — ${fcfa(montantRaw)}.`, 'mission_artisan');
-      const { data: existing } = await sb.from('conversations').select('id')
-        .or(`and(participant_1_id.eq.${currentUser.id},participant_2_id.eq.${_currentReservArtisanId}),and(participant_1_id.eq.${_currentReservArtisanId},participant_2_id.eq.${currentUser.id})`)
-        .maybeSingle();
-      let convId = existing?.id;
-      if (!convId) {
-        const { data: newC } = await sb.from('conversations').insert({ participant_1_id: currentUser.id, participant_2_id: _currentReservArtisanId }).select('id').single();
-        convId = newC?.id;
-      }
-      if (convId) await sb.from('messages').insert({ conversation_id: convId, expediteur_id: currentUser.id, contenu: `🛠️ Nouvelle réservation : "${description}" (${montantRaw} FCFA, paiement ${modePaiement === 'cash' ? 'cash' : 'en ligne'})` });
     } catch(e) { console.warn('Notif artisan réservation échouée:', e); }
     await ouvrirOuCreerConv(_currentReservArtisanId);
 
@@ -15363,6 +15355,36 @@ let jrPendingMediaType = null;   // 'image' | 'video' | 'file'
 let jrPendingMediaCompressed = null; // dataURL image compressée (si applicable)
 let jrPostsCache = [];
 let jrRealtimeChan = null;
+let _jrRerenderTimer = null;
+// CORRECTIF : avant, CHAQUE post/like/commentaire de N'IMPORTE QUI
+// déclenchait un rechargement + reconstruction complète du fil
+// (jrLoadPosts + jrRenderFeed = tout le HTML remplacé). Sur une appli
+// avec plusieurs utilisateurs actifs, ça arrivait pendant qu'un
+// utilisateur était en train de taper ou de cliquer "Envoyer" sur un
+// commentaire -> le bouton disparaissait du DOM avant que le clic soit
+// traité, donnant l'impression que "le bouton ne répond pas". On
+// regroupe maintenant les rafraîchissements (debounce) et on restaure
+// le texte en cours de frappe + le focus après reconstruction.
+function _jrRerenderFeedSafe() {
+  if (_jrRerenderTimer) clearTimeout(_jrRerenderTimer);
+  _jrRerenderTimer = setTimeout(async () => {
+    const actif = document.activeElement;
+    const idActif = actif && actif.id && actif.id.startsWith('jr-comment-input-') ? actif.id : null;
+    const valeurActive = idActif ? actif.value : null;
+    const selStart = idActif ? actif.selectionStart : null;
+    await jrLoadPosts();
+    jrRenderFeed();
+    if (typeof jrRenderWatch === 'function') jrRenderWatch();
+    if (idActif) {
+      const el = document.getElementById(idActif);
+      if (el) {
+        el.value = valeurActive || '';
+        el.focus();
+        try { el.setSelectionRange(selStart, selStart); } catch(e) {}
+      }
+    }
+  }, 900);
+}
 
 // ══════════════════════════════════════════════════════════════
 //  MODÉRATION AUTOMATIQUE (inchangée, exécutée côté client avant
@@ -15461,14 +15483,14 @@ async function jrInit() {
 function jrSubscribeRealtime() {
   if (jrRealtimeChan) return; // déjà abonné
   jrRealtimeChan = sb.channel('journal-feed')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_posts' }, async () => {
-      await jrLoadPosts(); jrRenderFeed(); jrRenderWatch();
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_posts' }, () => {
+      _jrRerenderFeedSafe();
     })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_likes' }, async () => {
-      await jrLoadPosts(); jrRenderFeed(); jrRenderWatch();
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_likes' }, () => {
+      _jrRerenderFeedSafe();
     })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_comments' }, async () => {
-      await jrLoadPosts(); jrRenderFeed();
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_comments' }, () => {
+      _jrRerenderFeedSafe();
     })
     .subscribe();
 }
@@ -15482,7 +15504,7 @@ async function jrLoadPosts() {
       sponsorise, sponsor_label, tagged_ids, tag_all,
       profiles:auteur_id ( nom, prenom, avatar_url ),
       journal_likes ( user_id, reaction ),
-      journal_comments ( id, texte, created_at, auteur_id, profiles:auteur_id ( nom, prenom ) )
+      journal_comments ( id, texte, created_at, auteur_id, parent_comment_id, audio_path, profiles:auteur_id ( nom, prenom ) )
     `)
     .eq('statut', 'publie')
     .order('created_at', { ascending: false })
@@ -15517,7 +15539,15 @@ async function jrLoadPosts() {
     reactions: (p.journal_likes || []).map(l => ({ userId: l.user_id, type: l.reaction || 'like' })),
     comments: (p.journal_comments || [])
       .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-      .map(c => ({ authorId: c.auteur_id, authorName: `${c.profiles?.prenom || ''} ${c.profiles?.nom || ''}`.trim() || 'Utilisateur', text: c.texte, ts: new Date(c.created_at).getTime() }))
+      .map(c => ({
+        id: c.id,
+        parentId: c.parent_comment_id || null,
+        authorId: c.auteur_id,
+        authorName: `${c.profiles?.prenom || ''} ${c.profiles?.nom || ''}`.trim() || 'Utilisateur',
+        text: c.texte,
+        audioUrl: c.audio_path ? sb.storage.from('journal-media').getPublicUrl(c.audio_path).data.publicUrl : null,
+        ts: new Date(c.created_at).getTime()
+      }))
   }));
 }
 
@@ -15859,16 +15889,13 @@ function jrRenderFeed() {
         ${p.authorId !== currentUser?.id ? `<button type="button" class="jr-post-action" style="color:#F59E0B" onclick="ouvrirEnvoiDexcoin('${p.authorId}','post','${p.id}')"><i class="ti ti-coin"></i> DexCoin</button>` : ''}
       </div>
       <div class="jr-comments" id="jr-comments-${p.id}">
-        ${p.comments.map(c => `
-          <div class="jr-comment">
-            <div class="jr-ava" style="width:28px;height:28px;font-size:.7rem">${(c.authorName||'?').charAt(0).toUpperCase()}</div>
-            <div class="jr-comment-bubble"><div class="jr-comment-name">${jrEsc(c.authorName)}</div>${jrEsc(c.text)}</div>
-            ${c.authorId && c.authorId !== currentUser?.id ? `<button type="button" title="Envoyer des DexCoin" onclick="ouvrirEnvoiDexcoin('${c.authorId}','commentaire','${p.id}')" style="background:none;border:none;color:#F59E0B;cursor:pointer;font-size:.9rem;padding:2px 4px;flex-shrink:0"><i class="ti ti-coin"></i></button>` : ''}
-          </div>`).join('')}
+        ${jrRenderCommentsTree(p.id, p.comments)}
         <div class="jr-comment-input-row">
           <input type="text" placeholder="Écrire un commentaire…" id="jr-comment-input-${p.id}" onkeydown="if(event.key==='Enter')jrComment('${p.id}')">
+          <button type="button" title="Message vocal" onclick="jrToggleCommentAudio('${p.id}')" id="jr-comment-mic-${p.id}"><i class="ti ti-microphone"></i></button>
           <button type="button" onclick="jrComment('${p.id}')"><i class="ti ti-send"></i></button>
         </div>
+        <div id="jr-comment-audio-preview-${p.id}" style="display:none;margin-top:.3rem"></div>
       </div>
     </div>`;
   }).join('');
@@ -15997,33 +16024,170 @@ function jrToggleComments(postId) {
   document.getElementById(`jr-comments-${postId}`)?.classList.toggle('open');
 }
 
-async function jrComment(postId) {
-  const input = document.getElementById(`jr-comment-input-${postId}`);
-  const text = input.value.trim();
-  if (!text) return;
+// ── Sous-commentaires façon Facebook (1 niveau de réponses) ──────
+function jrRenderCommentsTree(postId, comments) {
+  const top = comments.filter(c => !c.parentId);
+  const repliesByParent = {};
+  comments.filter(c => c.parentId).forEach(c => {
+    (repliesByParent[c.parentId] = repliesByParent[c.parentId] || []).push(c);
+  });
+  return top.map(c => jrRenderOneComment(postId, c, repliesByParent[c.id] || [])).join('');
+}
+
+function jrRenderOneComment(postId, c, replies) {
+  const initials = (c.authorName || '?').charAt(0).toUpperCase();
+  const bubbleContent = c.audioUrl
+    ? `<audio controls src="${c.audioUrl}" style="max-width:220px;height:32px;margin-top:2px;display:block"></audio>`
+    : jrEsc(c.text || '');
+  const dexBtn = c.authorId && c.authorId !== currentUser?.id
+    ? `<button type="button" title="Envoyer des DexCoin" onclick="ouvrirEnvoiDexcoin('${c.authorId}','commentaire','${postId}')" style="background:none;border:none;color:#F59E0B;cursor:pointer;font-size:.85rem;padding:2px 4px;flex-shrink:0"><i class="ti ti-coin"></i></button>`
+    : '';
+  const repliesHtml = replies.length
+    ? `<div class="jr-comment-replies" style="margin-left:1.6rem;margin-top:.3rem;display:flex;flex-direction:column;gap:.4rem">
+        ${replies.map(r => jrRenderReplyComment(postId, r)).join('')}
+      </div>`
+    : '';
+  return `
+    <div class="jr-comment-block" data-cid="${c.id}" style="margin-bottom:.3rem">
+      <div class="jr-comment" style="display:flex;gap:.4rem;align-items:flex-start">
+        <div class="jr-ava" style="width:28px;height:28px;font-size:.7rem;flex-shrink:0">${initials}</div>
+        <div style="flex:1;min-width:0">
+          <div class="jr-comment-bubble"><div class="jr-comment-name">${jrEsc(c.authorName)}</div>${bubbleContent}</div>
+          <div style="display:flex;gap:.7rem;align-items:center;margin:.15rem 0 0 .4rem">
+            <button type="button" onclick="jrToggleReply('${postId}','${c.id}')" style="background:none;border:none;padding:0;font-size:.72rem;color:var(--text2);cursor:pointer;font-weight:700">Répondre</button>
+            ${dexBtn}
+          </div>
+          <div id="jr-reply-row-${c.id}" style="display:none;margin:.35rem 0 0 .4rem;gap:.4rem;align-items:center">
+            <div style="display:flex;gap:.4rem;align-items:center">
+              <input type="text" placeholder="Répondre à ${jrEsc(c.authorName)}…" id="jr-reply-input-${c.id}" onkeydown="if(event.key==='Enter')jrComment('${postId}','${c.id}')" style="flex:1;min-width:0;border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-pill);padding:.4rem .8rem;font-family:var(--font);font-size:.78rem;outline:none">
+              <button type="button" title="Message vocal" onclick="jrToggleCommentAudio('${c.id}')" id="jr-comment-mic-${c.id}" style="border:none;background:var(--primary-light);color:var(--primary);border-radius:50%;width:30px;height:30px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="ti ti-microphone"></i></button>
+              <button type="button" onclick="jrComment('${postId}','${c.id}')" style="border:none;background:var(--primary);color:#fff;border-radius:50%;width:30px;height:30px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="ti ti-send"></i></button>
+            </div>
+            <div id="jr-comment-audio-preview-${c.id}" style="display:none;margin-top:.3rem"></div>
+          </div>
+          ${repliesHtml}
+        </div>
+      </div>
+    </div>`;
+}
+
+function jrRenderReplyComment(postId, r) {
+  const initials = (r.authorName || '?').charAt(0).toUpperCase();
+  const bubbleContent = r.audioUrl
+    ? `<audio controls src="${r.audioUrl}" style="max-width:200px;height:30px;margin-top:2px;display:block"></audio>`
+    : jrEsc(r.text || '');
+  const dexBtn = r.authorId && r.authorId !== currentUser?.id
+    ? `<button type="button" title="Envoyer des DexCoin" onclick="ouvrirEnvoiDexcoin('${r.authorId}','commentaire','${postId}')" style="background:none;border:none;color:#F59E0B;cursor:pointer;font-size:.8rem;padding:2px 4px;flex-shrink:0"><i class="ti ti-coin"></i></button>`
+    : '';
+  return `
+    <div class="jr-comment" style="display:flex;gap:.35rem;align-items:flex-start">
+      <div class="jr-ava" style="width:24px;height:24px;font-size:.62rem;flex-shrink:0">${initials}</div>
+      <div style="flex:1;min-width:0">
+        <div class="jr-comment-bubble"><div class="jr-comment-name">${jrEsc(r.authorName)}</div>${bubbleContent}</div>
+        ${dexBtn}
+      </div>
+    </div>`;
+}
+
+function jrToggleReply(postId, commentId) {
+  const row = document.getElementById(`jr-reply-row-${commentId}`);
+  if (!row) return;
+  const visible = row.style.display !== 'none';
+  document.querySelectorAll('[id^="jr-reply-row-"]').forEach(el => el.style.display = 'none');
+  if (!visible) {
+    row.style.display = 'flex';
+    row.style.flexDirection = 'column';
+    document.getElementById(`jr-reply-input-${commentId}`)?.focus();
+  }
+}
+
+// ── Enregistrement audio pour un commentaire ou une réponse ──────
+const _jrAudioState = {}; // clé = postId (commentaire) ou commentId (réponse)
+async function jrToggleCommentAudio(key) {
+  const state = _jrAudioState[key] || (_jrAudioState[key] = {});
+  if (state.recorder && state.recorder.state === 'recording') { state.recorder.stop(); return; }
+  try {
+    const mediaErr = checkMediaSupport('audio');
+    if (mediaErr) { showToast(mediaErr, 'er'); return; }
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
+    state.recorder = new MediaRecorder(stream, { mimeType });
+    state.chunks = [];
+    state.recorder.ondataavailable = e => { if (e.data.size > 0) state.chunks.push(e.data); };
+    state.recorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      state.blob = new Blob(state.chunks, { type: mimeType });
+      const micBtn = document.getElementById(`jr-comment-mic-${key}`);
+      micBtn?.classList.remove('recording');
+      const preview = document.getElementById(`jr-comment-audio-preview-${key}`);
+      if (preview) {
+        preview.style.display = 'block';
+        preview.innerHTML = `<audio controls src="${URL.createObjectURL(state.blob)}" style="height:32px;max-width:220px"></audio> <button type="button" onclick="_jrAudioState['${key}'].blob=null;document.getElementById('jr-comment-audio-preview-${key}').style.display='none'" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:.75rem;margin-left:.4rem">Retirer</button>`;
+      }
+    };
+    state.recorder.start(200);
+    document.getElementById(`jr-comment-mic-${key}`)?.classList.add('recording');
+    showToast('🎙️ Enregistrement… touchez à nouveau pour arrêter', 'info');
+  } catch (e) {
+    showToast(typeof micErrorMessage === 'function' ? micErrorMessage(e) : 'Micro indisponible', 'wa');
+  }
+}
+
+async function jrComment(postId, parentId) {
+  const inputId = parentId ? `jr-reply-input-${parentId}` : `jr-comment-input-${postId}`;
+  const audioKey = parentId || postId;
+  const input = document.getElementById(inputId);
+  const text = input ? input.value.trim() : '';
+  const audioState = _jrAudioState[audioKey];
+  const audioBlob = audioState?.blob || null;
+  if (!text && !audioBlob) return;
   if (!currentUser) { showToast('Connectez-vous pour commenter.', 'error'); return; }
 
-  // ── Modération appliquée aussi aux commentaires ──
-  const mod = jrModerateText(text);
-  if (mod.blocked) {
-    await jrLogStrike(mod.reason, text);
-    jrShowModBanner(mod.reason);
-    showToast('Commentaire refusé : contenu non autorisé.', 'error');
-    return;
+  // ── Modération appliquée aussi aux commentaires (texte uniquement) ──
+  if (text) {
+    const mod = jrModerateText(text);
+    if (mod.blocked) {
+      await jrLogStrike(mod.reason, text);
+      jrShowModBanner(mod.reason);
+      showToast('Commentaire refusé : contenu non autorisé.', 'error');
+      return;
+    }
   }
 
   try {
+    let audio_path = null;
+    if (audioBlob) {
+      const path = `${currentUser.id}/comment_${Date.now()}.webm`;
+      const { error: upErr } = await sb.storage.from('journal-media').upload(path, audioBlob, { contentType: audioBlob.type || 'audio/webm' });
+      if (upErr) throw upErr;
+      audio_path = path;
+    }
+
     const { error } = await sb.from('journal_comments').insert({
-      post_id: postId, auteur_id: currentUser.id, texte: text
+      post_id: postId, auteur_id: currentUser.id, texte: text || null,
+      parent_comment_id: parentId || null, audio_path
     });
     if (error) throw error;
-    input.value = '';
-    // Notifier l'auteur du post — jamais si on commente sa propre publication.
+
+    if (input) input.value = '';
+    if (audioState) { audioState.blob = null; }
+    const previewEl = document.getElementById(`jr-comment-audio-preview-${audioKey}`);
+    if (previewEl) { previewEl.style.display = 'none'; previewEl.innerHTML = ''; }
+
+    // Notifier : réponse → l'auteur du commentaire parent ; commentaire simple → l'auteur du post.
+    // Jamais si on se répond/commente à soi-même.
     const post = jrPostsCache.find(x => x.id === postId);
-    if (post?.authorId && post.authorId !== currentUser.id) {
-      const nomCommentateur = `${currentProfile?.prenom || ''} ${currentProfile?.nom || ''}`.trim() || 'Quelqu\'un';
-      await _notifierPush(post.authorId, 'client', '💬 Nouveau commentaire', `${nomCommentateur} a commenté votre publication : "${text.substring(0, 80)}"`, 'social');
+    const nomAuteur = `${currentProfile?.prenom || ''} ${currentProfile?.nom || ''}`.trim() || 'Quelqu\'un';
+    const aperçu = text ? `"${text.substring(0, 80)}"` : '🎙️ un message vocal';
+    if (parentId) {
+      const parentComment = post?.comments?.find(c => c.id === parentId);
+      if (parentComment?.authorId && parentComment.authorId !== currentUser.id) {
+        await _notifierPush(parentComment.authorId, 'client', '💬 Nouvelle réponse', `${nomAuteur} a répondu à votre commentaire : ${aperçu}`, 'social');
+      }
+    } else if (post?.authorId && post.authorId !== currentUser.id) {
+      await _notifierPush(post.authorId, 'client', '💬 Nouveau commentaire', `${nomAuteur} a commenté votre publication : ${aperçu}`, 'social');
     }
+
     await jrLoadPosts();
     jrRenderFeed();
     document.getElementById(`jr-comments-${postId}`)?.classList.add('open');

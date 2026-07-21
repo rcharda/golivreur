@@ -868,6 +868,48 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 .tv-player-badge .dot{width:6px;height:6px;border-radius:50%;background:#EF4444;animation:tvblink 1.2s infinite}
 @keyframes tvblink{0%,100%{opacity:1}50%{opacity:.3}}
 .tv-now-playing{padding:.6rem .9rem;background:#111117;color:#fff;flex-shrink:0}
+
+/* ══════════════════════════════════
+   SALON LIVE — style TikTok Live / Facebook Live
+══════════════════════════════════ */
+#modal-salon-live.sln-live-full{position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;inset:0;width:100vw!important;height:100vh!important;height:100dvh!important;max-width:100vw;max-height:100dvh;z-index:9999;background:#000;padding:0;margin:0;overflow:hidden;box-sizing:border-box}
+#modal-salon-live.sln-live-full.open{display:flex;align-items:stretch;justify-content:stretch}
+#modal-salon-live.sln-live-full .sln-stage{position:relative;width:100%;height:100%;max-width:100%;max-height:100%;margin:0;border-radius:0;overflow:hidden;background:#000;display:flex;flex-direction:column;box-sizing:border-box}
+/* Sécurité anti-débordement : quel que soit l'appareil (encoche, barre de statut,
+   barre de gestes/nav Android, indicateur batterie), le contenu du salon live
+   reste strictement dans la zone sûre — jamais derrière ces barres système. */
+#modal-salon-live.sln-live-full .sln-topbar{padding-top:calc(.7rem + env(safe-area-inset-top,0px) + var(--status-safe-top,0px))!important}
+#modal-salon-live.sln-live-full .sln-bottom-zone{padding-bottom:calc(.85rem + env(safe-area-inset-bottom,0px))!important}
+.sln-bg-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#0A0A0F}
+.sln-stage-gradient-top{position:absolute;top:0;left:0;right:0;height:140px;background:linear-gradient(180deg,rgba(0,0,0,.65),transparent);pointer-events:none;z-index:2}
+.sln-stage-gradient-bottom{position:absolute;bottom:0;left:0;right:0;height:260px;background:linear-gradient(0deg,rgba(0,0,0,.75),transparent);pointer-events:none;z-index:2}
+.sln-topbar{position:relative;z-index:5;display:flex;align-items:center;gap:.5rem;padding:calc(.7rem + env(safe-area-inset-top)) .8rem 0}
+.sln-live-badge{background:linear-gradient(135deg,#FF3B30,#B00020);color:#fff;font-size:.68rem;font-weight:800;padding:3px 9px;border-radius:var(--radius-pill);display:flex;align-items:center;gap:5px;letter-spacing:.4px}
+.sln-live-badge .dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:tvblink 1.2s infinite}
+.sln-topbar-info{flex:1;min-width:0;color:#fff}
+.sln-topbar-titre{font-weight:800;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sln-topbar-sub{font-size:.68rem;opacity:.8;display:flex;gap:.5rem;margin-top:1px}
+.sln-viewers-pill{background:rgba(0,0,0,.5);backdrop-filter:blur(6px);color:#fff;font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:var(--radius-pill);display:flex;align-items:center;gap:4px}
+.sln-close-btn{background:rgba(0,0,0,.5);border:none;color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.sln-video-grid-tk{position:absolute;top:calc(64px + env(safe-area-inset-top));right:10px;z-index:4;display:flex;flex-direction:column;gap:6px;max-height:60%;overflow-y:auto}
+.sln-video-grid-tk video{width:78px;height:104px;object-fit:cover;border-radius:10px;background:#000;border:1.5px solid rgba(255,255,255,.25)}
+.sln-side-rail{position:absolute;right:8px;bottom:calc(130px + env(safe-area-inset-bottom));z-index:5;display:flex;flex-direction:column;align-items:center;gap:1.05rem}
+.sln-rail-btn{background:rgba(0,0,0,.45);backdrop-filter:blur(6px);border:none;color:#fff;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.15rem;cursor:pointer}
+.sln-rail-btn.cadeau{background:linear-gradient(135deg,#F59E0B,#FF4C29)}
+.sln-rail-lbl{color:#fff;font-size:.6rem;font-weight:700;margin-top:2px;text-align:center}
+.sln-bottom-zone{position:relative;z-index:5;margin-top:auto;padding:0 .8rem calc(.85rem + env(safe-area-inset-bottom))}
+.sln-comments-float{max-height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;margin-bottom:.6rem;mask-image:linear-gradient(0deg,#000 85%,transparent);-webkit-mask-image:linear-gradient(0deg,#000 85%,transparent)}
+.sln-comment-line{color:#fff;font-size:.78rem;line-height:1.3;background:rgba(0,0,0,.32);display:inline-block;padding:4px 10px;border-radius:var(--radius-pill);max-width:88%}
+.sln-input-row{display:flex;gap:.5rem;align-items:center}
+.sln-input-row input{flex:1;min-width:0;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:#fff;border-radius:var(--radius-pill);padding:.55rem 1rem;font-family:var(--font);font-size:.82rem;outline:none}
+.sln-input-row input::placeholder{color:rgba(255,255,255,.6)}
+.sln-input-row button{border:none;background:var(--primary);color:#fff;border-radius:50%;width:38px;height:38px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.sln-panel-drawer{position:fixed;inset:0;z-index:10000;display:none;align-items:flex-end;background:rgba(0,0,0,.5)}
+.sln-panel-drawer.open{display:flex}
+.sln-panel-sheet{background:var(--surface,#fff);width:100%;max-height:78vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:1rem 1.1rem 1.4rem}
+@keyframes slnGiftPop{0%{transform:translateY(0) scale(.4);opacity:0}15%{transform:translateY(-10px) scale(1.15);opacity:1}80%{transform:translateY(-90px) scale(1);opacity:1}100%{transform:translateY(-130px) scale(.8);opacity:0}}
+.sln-gift-fly{position:absolute;z-index:6;font-size:1.8rem;pointer-events:none;animation:slnGiftPop 1.6s ease-out forwards}
+.sln-home-live-banniere{position:absolute;top:calc(64px + env(safe-area-inset-top));left:10px;right:10px;z-index:20;background:rgba(13,13,15,.85);backdrop-filter:blur(8px);color:#fff;border-radius:var(--radius-pill);padding:.5rem .7rem .5rem .55rem;display:flex;align-items:center;gap:.5rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .tv-now-playing .name{font-weight:700;font-size:.88rem;font-family:var(--font-display)}
 .tv-now-playing .grp{font-size:.7rem;color:rgba(255,255,255,.45);margin-top:1px}
 .tv-cats{display:flex;gap:.4rem;overflow-x:auto;padding:.55rem .75rem;background:#111117;flex-shrink:0;scrollbar-width:none}
@@ -2354,6 +2396,11 @@ input:valid {
     <div class="pc-map-area">
       <div id="pc-map"></div>
 
+      <!-- Bouton SOS urgence — toujours accessible depuis l'accueil -->
+      <button onclick="ouvrirUrgences()" title="Urgence" style="position:absolute;top:14px;right:14px;z-index:50;width:48px;height:48px;border-radius:50%;background:#DC2626;color:#fff;border:none;box-shadow:0 4px 14px rgba(220,38,38,.45);display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer">
+        <i class="ti ti-phone-call"></i>
+      </button>
+
       <!-- Course en cours banner -->
       <div class="course-banner" id="course-banner">
         <div class="pulse"></div>
@@ -2385,9 +2432,11 @@ input:valid {
           <div class="wa-header-name" id="pc-chat-name">Conversation</div>
           <div class="wa-header-status" id="pc-chat-sub">hors ligne</div>
         </div>
+        <button onclick="videoCallContact()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.05rem;padding:0 4px" title="Appel vidéo"><i class="ti ti-video"></i></button>
         <button onclick="callContact()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.05rem;padding:0 4px" title="Appeler"><i class="ti ti-phone"></i></button>
         <button onclick="ouvrirTransfertArgent()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.05rem;padding:0 4px" title="Envoyer argent"><i class="ti ti-transfer"></i></button>
         <button onclick="ouvrirEnvoiDexcoin(currentConvOtherId,'message')" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.05rem;padding:0 4px" title="Envoyer des DexCoin"><i class="ti ti-coin"></i></button>
+        <button onclick="ouvrirUrgences()" style="background:none;border:none;color:#fca5a5;cursor:pointer;font-size:1.05rem;padding:0 4px" title="Urgence"><i class="ti ti-phone-call"></i></button>
         <button onclick="ouvrirSignalement()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.05rem;padding:0 4px" title="Signaler / Bloquer"><i class="ti ti-dots-vertical"></i></button>
       </div>
       <!-- Messages -->
@@ -2452,6 +2501,18 @@ input:valid {
   <div class="mob-page active" id="mob-map-page">
     <div class="map-wrap" style="flex:1;position:relative;min-height:0;overflow:hidden">
       <div id="mob-map" style="width:100%;height:100%;display:block"></div>
+
+      <!-- Bouton SOS urgence — toujours accessible depuis l'accueil -->
+      <button onclick="ouvrirUrgences()" title="Urgence" style="position:absolute;top:14px;right:14px;z-index:50;width:48px;height:48px;border-radius:50%;background:#DC2626;color:#fff;border:none;box-shadow:0 4px 14px rgba(220,38,38,.45);display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer">
+        <i class="ti ti-phone-call"></i>
+      </button>
+
+      <!-- Bannière "En direct" — visible sur la page d'accueil quand un salon live/vidéo tourne -->
+      <div id="mob-live-banniere" class="sln-home-live-banniere" style="display:none" onclick="slnRejoindreDepuisBanniere()">
+        <span class="sln-live-badge" style="font-size:.62rem"><span class="dot"></span> DIRECT</span>
+        <span id="mob-live-banniere-texte" style="flex:1;min-width:0;font-size:.76rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</span>
+        <i class="ti ti-chevron-right"></i>
+      </div>
 
       <!-- Bouton retour flottant (style Gozem) -->
       <button class="goz-float-back" onclick="switchMobPage('profil')" title="Retour"><i class="ti ti-arrow-left"></i></button>
@@ -2553,6 +2614,7 @@ input:valid {
   <div class="mob-page" id="mob-messages-page">
     <div class="mob-topbar">
       <div class="mob-page-title">Messages</div>
+      <button class="icon-btn" onclick="ouvrirUtilisateursBloques()" title="Utilisateurs bloqués"><i class="ti ti-ban"></i></button>
       <button class="icon-btn" onclick="openNouvelleConv()" title="Zemigo Amis — utilisateurs en ligne" style="margin-left:auto;position:relative"><i class="ti ti-users"></i><span id="mob-amis-nav-badge" style="display:none;position:absolute;top:2px;right:2px;width:9px;height:9px;border-radius:50%;background:var(--danger,#DC2626)"></span></button>
       <button class="icon-btn" onclick="openNouvelleConv()" title="Nouvelle conversation"><i class="ti ti-edit"></i></button>
       <button class="icon-btn" onclick="openMenuCreation()" title="Créer un groupe ou une page"><i class="ti ti-square-rounded-plus"></i></button>
@@ -2572,9 +2634,11 @@ input:valid {
         <div class="wa-header-name" id="mob-chat-title">Conversation</div>
         <div class="wa-header-status" id="mob-chat-status">hors ligne</div>
       </div>
+      <button onclick="videoCallContact()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem;padding:0 4px" title="Appel vidéo"><i class="ti ti-video"></i></button>
       <button onclick="callContact()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem;padding:0 4px"><i class="ti ti-phone"></i></button>
       <button onclick="ouvrirTransfertArgent()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem;padding:0 4px"><i class="ti ti-transfer"></i></button>
       <button onclick="ouvrirEnvoiDexcoin(currentConvOtherId,'message')" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem;padding:0 4px" title="Envoyer des DexCoin"><i class="ti ti-coin"></i></button>
+      <button onclick="ouvrirUrgences()" style="background:none;border:none;color:#fca5a5;cursor:pointer;font-size:1.1rem;padding:0 4px" title="Urgence"><i class="ti ti-phone-call"></i></button>
       <button onclick="ouvrirSignalement()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem;padding:0 4px" title="Signaler / Bloquer"><i class="ti ti-dots-vertical"></i></button>
     </div>
     <!-- Zone messages -->
@@ -4011,14 +4075,14 @@ input:valid {
 </div>
 <!-- Modal Salons vocaux (public/privé) -->
 <div class="modal-overlay" id="modal-salons" onclick="closeModal('modal-salons')">
-  <div class="modal-content" onclick="event.stopPropagation()" style="max-width:480px">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:480px;margin:auto">
     <div class="modal-handle" onclick="closeModal('modal-salons')"><div class="modal-handle-pill"></div></div>
-    <div id="sln-vue-liste">
+    <div id="sln-vue-liste" style="padding:0 1.25rem 1.5rem">
       <div style="font-family:var(--font-display);font-weight:800;font-size:1.1rem;margin-bottom:.6rem">🎙️ Salons vocaux</div>
       <button type="button" onclick="slnOuvrirCreation()" style="width:100%;padding:.7rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-pill);font-family:var(--font);font-weight:800;cursor:pointer;margin-bottom:.8rem"><i class="ti ti-plus"></i> Créer un salon</button>
       <div id="sln-liste-salons"></div>
     </div>
-    <div id="sln-vue-creation" style="display:none">
+    <div id="sln-vue-creation" style="display:none;padding:0 1.25rem 1.5rem">
       <div style="font-family:var(--font-display);font-weight:800;font-size:1.05rem;margin-bottom:.6rem">Nouveau salon</div>
       <input type="text" id="sln-titre" placeholder="Titre du salon" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.85rem;margin-bottom:.6rem">
       <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
@@ -4037,15 +4101,62 @@ input:valid {
   </div>
 </div>
 
-<!-- Modal Salon en direct (panel live) -->
-<div class="modal-overlay" id="modal-salon-live" onclick="event.stopPropagation()">
-  <div class="modal-content" style="max-width:480px">
-    <div id="sln-live-titre" style="font-family:var(--font-display);font-weight:800;font-size:1.05rem;margin-bottom:.3rem">—</div>
-    <div style="display:flex;gap:.8rem;font-size:.75rem;color:var(--text2);margin-bottom:.8rem">
-      <span>🎙️ <b id="sln-nb-speakers">0</b> à la parole</span>
-      <span>👂 <b id="sln-nb-auditeurs">0</b> auditeur(s)</span>
+<!-- Modal Salon en direct (panel live) — style TikTok Live / Facebook Live -->
+<div class="modal-overlay sln-live-full" id="modal-salon-live" onclick="event.stopPropagation()">
+  <div class="sln-stage" onclick="event.stopPropagation()">
+    <video id="sln-bg-video-principal" class="sln-bg-video" autoplay playsinline muted style="display:none"></video>
+    <div class="sln-stage-gradient-top"></div>
+    <div class="sln-stage-gradient-bottom"></div>
+
+    <div class="sln-topbar">
+      <div class="sln-live-badge"><span class="dot"></span> DIRECT</div>
+      <div class="sln-topbar-info">
+        <div class="sln-topbar-titre" id="sln-live-titre">—</div>
+        <div class="sln-topbar-sub">
+          <span><i class="ti ti-clock"></i> <span id="sln-live-duree">00:00</span></span>
+          <span>🎙️ <b id="sln-nb-speakers">0</b> · 👂 <b id="sln-nb-auditeurs">0</b></span>
+        </div>
+      </div>
+      <div class="sln-viewers-pill"><i class="ti ti-eye"></i> <span id="sln-live-viewers">0</span></div>
+      <button type="button" onclick="ouvrirUrgences()" title="Urgence" style="background:rgba(220,38,38,.85);border:none;color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><i class="ti ti-phone-call"></i></button>
+      <button type="button" class="sln-close-btn" onclick="slnQuitterSalon()"><i class="ti ti-x"></i></button>
     </div>
-    <div id="sln-video-grid" style="display:none;grid-template-columns:repeat(2,1fr);gap:.4rem;margin-bottom:.8rem"></div>
+
+    <div id="sln-video-grid" class="sln-video-grid-tk" style="display:none"></div>
+
+    <div class="sln-side-rail">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <button type="button" class="sln-rail-btn" onclick="slnOuvrirInviter()"><i class="ti ti-user-plus"></i></button>
+        <span class="sln-rail-lbl">Inviter</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <button type="button" class="sln-rail-btn cadeau" onclick="slnOuvrirCadeau()"><i class="ti ti-gift"></i></button>
+        <span class="sln-rail-lbl">Cadeau</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <button type="button" class="sln-rail-btn" onclick="ouvrirAchatDexcoin()"><i class="ti ti-coin"></i></button>
+        <span class="sln-rail-lbl">Recharger</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <button type="button" class="sln-rail-btn" onclick="slnOuvrirParticipants()"><i class="ti ti-users"></i></button>
+        <span class="sln-rail-lbl">Public</span>
+      </div>
+    </div>
+
+    <div class="sln-bottom-zone">
+      <div class="sln-comments-float" id="sln-liste-commentaires"></div>
+      <div class="sln-input-row">
+        <input type="text" id="sln-commentaire-input" placeholder="Écrire un commentaire…" onkeydown="if(event.key==='Enter')slnEnvoyerCommentaire()">
+        <button type="button" onclick="slnEnvoyerCommentaire()"><i class="ti ti-send"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tiroir "Public du salon" (orateurs / auditeurs / demandes) -->
+<div class="sln-panel-drawer" id="sln-panel-participants" onclick="closeSlnDrawer(event,'sln-panel-participants')">
+  <div class="sln-panel-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle" onclick="closeSlnDrawer(null,'sln-panel-participants')"><div class="modal-handle-pill"></div></div>
     <div id="sln-demandes-wrap" style="display:none;margin-bottom:.8rem">
       <div style="font-size:.78rem;font-weight:700;color:var(--text2);margin-bottom:.4rem">Demandes d'accès</div>
       <div id="sln-liste-demandes" style="display:flex;flex-direction:column;gap:.4rem"></div>
@@ -4053,17 +4164,34 @@ input:valid {
     <div style="font-size:.78rem;font-weight:700;color:var(--text2);margin-bottom:.4rem">À la parole</div>
     <div id="sln-liste-speakers" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem"></div>
     <div style="font-size:.78rem;font-weight:700;color:var(--text2);margin-bottom:.4rem">Auditeurs</div>
-    <div id="sln-liste-auditeurs" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem;max-height:180px;overflow-y:auto"></div>
-    <div style="font-size:.78rem;font-weight:700;color:var(--text2);margin-bottom:.4rem">Commentaires</div>
-    <div id="sln-liste-commentaires" style="display:flex;flex-direction:column;gap:.3rem;max-height:160px;overflow-y:auto;margin-bottom:.5rem;padding-right:.2rem"></div>
-    <div style="display:flex;gap:.5rem;margin-bottom:.8rem">
-      <input type="text" id="sln-commentaire-input" placeholder="Écrire un commentaire…" onkeydown="if(event.key==='Enter')slnEnvoyerCommentaire()" style="flex:1;min-width:0;border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-pill);padding:.45rem .9rem;font-family:var(--font);font-size:.8rem;outline:none">
-      <button type="button" onclick="slnEnvoyerCommentaire()" style="border:none;background:var(--primary);color:#fff;border-radius:50%;width:34px;height:34px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="ti ti-send"></i></button>
-    </div>
-    <button type="button" onclick="slnQuitterSalon()" style="width:100%;padding:.7rem;background:var(--danger);color:#fff;border:none;border-radius:var(--radius-pill);font-family:var(--font);font-weight:800;cursor:pointer"><i class="ti ti-phone-off"></i> Quitter le salon</button>
+    <div id="sln-liste-auditeurs" style="display:flex;flex-direction:column;gap:.4rem;max-height:220px;overflow-y:auto"></div>
   </div>
 </div>
 
+<!-- Tiroir "Inviter des amis" -->
+<div class="sln-panel-drawer" id="sln-panel-inviter" onclick="closeSlnDrawer(event,'sln-panel-inviter')">
+  <div class="sln-panel-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle" onclick="closeSlnDrawer(null,'sln-panel-inviter')"><div class="modal-handle-pill"></div></div>
+    <div style="font-family:var(--font-display);font-weight:800;font-size:1rem;margin-bottom:.7rem"><i class="ti ti-user-plus"></i> Inviter des amis au direct</div>
+    <div style="font-size:.75rem;color:var(--text2);margin-bottom:.7rem">Ils reçoivent une notification même si l'app est fermée, avec un accès direct au salon.</div>
+    <div id="sln-inviter-recherche-wrap" style="margin-bottom:.6rem">
+      <input type="text" id="sln-inviter-recherche-input" placeholder="Rechercher un utilisateur…" oninput="slnRechercherInviter(this.value)" style="width:100%;padding:.55rem .8rem;border:1.5px solid var(--border2);border-radius:var(--radius-pill);font-family:var(--font);font-size:.82rem;outline:none">
+    </div>
+    <div id="sln-liste-inviter-amis" style="display:flex;flex-direction:column;gap:.4rem;max-height:50vh;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- Tiroir "Envoyer un cadeau" -->
+<div class="sln-panel-drawer" id="sln-panel-cadeau" onclick="closeSlnDrawer(event,'sln-panel-cadeau')">
+  <div class="sln-panel-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle" onclick="closeSlnDrawer(null,'sln-panel-cadeau')"><div class="modal-handle-pill"></div></div>
+    <div style="font-family:var(--font-display);font-weight:800;font-size:1rem;margin-bottom:.7rem"><i class="ti ti-gift"></i> Envoyer un cadeau DexCoin</div>
+    <div style="font-size:.75rem;color:var(--text2);margin-bottom:.7rem">Choisissez à qui l'offrir — ça sera crédité directement dans son solde DexCoin.</div>
+    <div id="sln-liste-cadeau-cibles" style="display:flex;flex-direction:column;gap:.4rem"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-abonnement" onclick="closeModal('modal-abonnement')">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-handle" onclick="closeModal('modal-abonnement')"><div class="modal-handle-pill"></div></div>
     <div style="padding:0 1.25rem 1.5rem">
@@ -4366,7 +4494,49 @@ input:valid {
         <button onclick="envoyerSignalement('arnaque')" style="text-align:left;padding:.7rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg);font-family:var(--font);font-size:.85rem;cursor:pointer">💸 Arnaque / faux compte</button>
         <button onclick="envoyerSignalement('autre')" style="text-align:left;padding:.7rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg);font-family:var(--font);font-size:.85rem;cursor:pointer">Autre</button>
       </div>
-      <button onclick="closeModal('modal-signalement');bloquerUtilisateurActuel()" style="width:100%;margin-top:1rem;padding:.75rem;background:#FEE2E2;color:var(--danger);border:none;border-radius:var(--radius-sm);font-family:var(--font);font-weight:700;font-size:.88rem;cursor:pointer"><i class="ti ti-ban"></i> Bloquer aussi cet utilisateur</button>
+      <button id="btn-signalement-bloquer" onclick="closeModal('modal-signalement');bloquerUtilisateurActuel()" style="width:100%;margin-top:1rem;padding:.75rem;background:#FEE2E2;color:var(--danger);border:none;border-radius:var(--radius-sm);font-family:var(--font);font-weight:700;font-size:.88rem;cursor:pointer"><i class="ti ti-ban"></i> Bloquer aussi cet utilisateur</button>
+      <button id="btn-signalement-debloquer" onclick="closeModal('modal-signalement');debloquerUtilisateur(currentConvOtherId)" style="display:none;width:100%;margin-top:1rem;padding:.75rem;background:#DBEAFE;color:#2563EB;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-weight:700;font-size:.88rem;cursor:pointer"><i class="ti ti-circle-check"></i> Débloquer cet utilisateur</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL : Numéros d'urgence — appel direct vers le téléphone ═══════ -->
+<div class="modal-overlay" id="modal-urgences" onclick="closeModal('modal-urgences')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle" onclick="closeModal('modal-urgences')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem">
+      <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;margin-bottom:.25rem;color:var(--danger)">🚨 Numéros d'urgence</div>
+      <div style="font-size:.82rem;color:var(--text2);margin-bottom:1rem">En cas de danger, d'accident ou de harcèlement, appelez directement — l'appel part sur votre téléphone, l'app n'a pas besoin d'être ouverte.</div>
+      <div style="display:flex;flex-direction:column;gap:.6rem">
+        <a href="tel:118" style="display:flex;align-items:center;gap:.75rem;padding:.8rem .9rem;border-radius:var(--radius-sm);background:#FEE2E2;text-decoration:none;color:var(--text)">
+          <div style="width:42px;height:42px;border-radius:50%;background:#DC2626;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0"><i class="ti ti-flame"></i></div>
+          <div style="flex:1">
+            <div style="font-weight:800;font-size:.9rem">Sapeurs-pompiers</div>
+            <div style="font-size:.72rem;color:var(--text2)">Incendies, accidents de la route, urgences médicales graves</div>
+          </div>
+          <div style="font-weight:800;font-size:1.05rem;color:var(--danger)">118</div>
+        </a>
+        <a href="tel:166" style="display:flex;align-items:center;gap:.75rem;padding:.8rem .9rem;border-radius:var(--radius-sm);background:#DBEAFE;text-decoration:none;color:var(--text)">
+          <div style="width:42px;height:42px;border-radius:50%;background:#2563EB;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0"><i class="ti ti-shield"></i></div>
+          <div style="flex:1">
+            <div style="font-weight:800;font-size:.9rem">Police républicaine</div>
+            <div style="font-size:.72rem;color:var(--text2)">Sécurité, agressions, vols, harcèlement</div>
+          </div>
+          <div style="font-weight:800;font-size:1.05rem;color:#2563EB">166</div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL : Utilisateurs bloqués (permet enfin de DÉBLOQUER) ═══════ -->
+<div class="modal-overlay" id="modal-utilisateurs-bloques" onclick="closeModal('modal-utilisateurs-bloques')">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:80vh">
+    <div class="modal-handle" onclick="closeModal('modal-utilisateurs-bloques')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem;overflow-y:auto;max-height:72vh">
+      <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;margin-bottom:.25rem">🚫 Utilisateurs bloqués</div>
+      <div style="font-size:.82rem;color:var(--text2);margin-bottom:1rem">Débloquez un utilisateur pour reprendre les échanges avec lui.</div>
+      <div id="ub-liste"><div class="empty-state" style="padding:1rem"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i></div></div>
     </div>
   </div>
 </div>
@@ -4505,8 +4675,26 @@ input:valid {
 #modal-appel .call-action span {
   font-size: .68rem; font-weight: 600; color: rgba(255,255,255,.7);
 }
+#rtc-remote-video {
+  display: none; position: fixed; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; background: #000; z-index: 0;
+}
+#rtc-local-video {
+  display: none; position: fixed; width: 96px; height: 128px; border-radius: 12px;
+  object-fit: cover; background: #000; border: 1.5px solid rgba(255,255,255,.35);
+  top: calc(18px + env(safe-area-inset-top)); right: 14px; z-index: 2; box-shadow: 0 4px 14px rgba(0,0,0,.4);
+}
+#modal-appel.appel-video-actif { background: #000; }
+#modal-appel.appel-video-actif #rtc-remote-video,
+#modal-appel.appel-video-actif #rtc-local-video { display: block; }
+#modal-appel.appel-video-actif .modal-sheet {
+  background: transparent; position: relative; z-index: 1; max-height: 100vh !important;
+  height: 100%; justify-content: flex-end; display: flex; padding-bottom: env(safe-area-inset-bottom);
+}
 </style>
 <div class="modal-overlay" id="modal-appel" onclick="">
+  <video id="rtc-remote-video" autoplay playsinline></video>
+  <video id="rtc-local-video" autoplay playsinline muted></video>
   <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:72vh;border-radius:28px 28px 0 0">
     <div style="padding:2.2rem 1.5rem 2rem;display:flex;flex-direction:column;align-items:center;gap:1rem">
 
@@ -4529,6 +4717,10 @@ input:valid {
         <button id="call-btn-speaker" class="call-action" onclick="toggleSpeaker()" style="display:none">
           <div style="background:rgba(255,255,255,.18)"><i class="ti ti-volume"></i></div>
           <span>HP</span>
+        </button>
+        <button id="call-btn-cam" class="call-action" onclick="toggleCamera()" style="display:none">
+          <div style="background:rgba(255,255,255,.18)"><i class="ti ti-video"></i></div>
+          <span>Caméra</span>
         </button>
       </div>
 
@@ -5053,6 +5245,8 @@ async function initApp() {
   loadNotifications();
   checkZemiCreditVisibility();
   subscribeRealtime();
+  slnVerifierLiveActif();
+  slnAbonnerLiveRealtime();
   startRTCListener();
   initAPKBridge();
   autoLocateClientOnConnect();
@@ -9090,9 +9284,52 @@ async function bloquerUtilisateurActuel() {
   showToast('🚫 Utilisateur bloqué', 'ok');
   closePCChat && closePCChat(); switchMobPage && switchMobPage('messages');
 }
-function ouvrirSignalement() {
+function ouvrirUrgences() {
+  trackEvent && trackEvent('client_ouvre_urgences');
+  openModal('modal-urgences');
+}
+async function ouvrirUtilisateursBloques() {
+  openModal('modal-utilisateurs-bloques');
+  await chargerBlocages();
+  const zone = document.getElementById('ub-liste');
+  if (!zone) return;
+  if (!blockedByMeIds.size) {
+    zone.innerHTML = '<div class="empty-state" style="padding:1rem"><i class="ti ti-mood-smile"></i><p>Aucun utilisateur bloqué</p></div>';
+    return;
+  }
+  zone.innerHTML = '<div class="empty-state" style="padding:1rem"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i></div>';
+  const ids = Array.from(blockedByMeIds);
+  const { data, error } = await sb.from('profiles').select('id,nom,prenom,avatar_url').in('id', ids);
+  if (error || !data) { zone.innerHTML = '<div class="empty-state" style="padding:1rem"><p>Erreur de chargement</p></div>'; return; }
+  zone.innerHTML = data.map(u => {
+    const nom = ((u.prenom||'')+' '+(u.nom||'')).trim() || 'Utilisateur';
+    return `<div style="display:flex;align-items:center;gap:.6rem;padding:.6rem 0;border-bottom:1px solid var(--border)">
+      <div style="width:38px;height:38px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:.8rem;overflow:hidden;flex-shrink:0">${u.avatar_url ? `<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover">` : (nom[0]||'?').toUpperCase()}</div>
+      <div style="flex:1;font-weight:600;font-size:.85rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${nom}</div>
+      <button onclick="debloquerUtilisateur('${u.id}')" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:.4rem .8rem;font-size:.75rem;font-weight:700;cursor:pointer;flex-shrink:0">Débloquer</button>
+    </div>`;
+  }).join('');
+}
+async function debloquerUtilisateur(userId) {
+  if (!userId || !currentUser?.id) return;
+  const { error } = await sb.from('blocages').delete().eq('bloqueur_id', currentUser.id).eq('bloque_id', userId);
+  if (error) return showToast('Erreur lors du déblocage');
+  blockedByMeIds.delete(userId);
+  showToast('✅ Utilisateur débloqué', 'ok');
+  ouvrirUtilisateursBloques();
+}
+async function ouvrirSignalement() {
   if (!currentConvOtherId) return showToast('Ouvrez une conversation d\'abord', 'wa');
   openModal('modal-signalement');
+  // Adapte le bouton du bas : si cet utilisateur est déjà bloqué, on propose
+  // "Débloquer" au lieu de "Bloquer" — avant ce correctif, il n'existait
+  // aucun moyen de débloquer depuis le menu ⋮ d'une conversation bloquée.
+  if (!blockedByMeIds.size && !blockedMeIds.size) await chargerBlocages();
+  const estBloque = blockedByMeIds.has(currentConvOtherId);
+  const btnBloquer = document.getElementById('btn-signalement-bloquer');
+  const btnDebloquer = document.getElementById('btn-signalement-debloquer');
+  if (btnBloquer) btnBloquer.style.display = estBloque ? 'none' : 'block';
+  if (btnDebloquer) btnDebloquer.style.display = estBloque ? 'block' : 'none';
 }
 async function envoyerSignalement(motif) {
   if (!currentConvOtherId) return;
@@ -11920,7 +12157,18 @@ async function callContact() {
   if (!(await clientPeutEcrireA(currentConvOtherId))) {
     return showToast('📞 Appel disponible uniquement pendant une commande en cours avec cet agent de service', 'wa');
   }
-  initierAppelWebRTC_conv(currentConvOtherId);
+  initierAppelWebRTC_conv(currentConvOtherId, 'audio');
+}
+
+// videoCallContact() — même flux que callContact() mais lance un appel VIDÉO,
+// avec la même caméra/flux que dans un salon live vidéo.
+async function videoCallContact() {
+  if (!currentConvOtherId) return showToast('Ouvrez une conversation d\'abord', 'wa');
+  if (await estBloqueMutuel(currentConvOtherId)) return showToast('🚫 Utilisateur bloqué', 'wa');
+  if (!(await clientPeutEcrireA(currentConvOtherId))) {
+    return showToast('📹 Appel vidéo disponible uniquement pendant une commande en cours avec cet agent de service', 'wa');
+  }
+  initierAppelWebRTC_conv(currentConvOtherId, 'video');
 }
 
 // ── Afficher le code de livraison dans son modal ───────
@@ -11969,6 +12217,8 @@ let _rtcMuted = false, _rtcSpeaker = false;
 let _rtcPendingIce = [];      // ICE reçus avant que la description distante ne soit posée
 let _rtcRemoteSet = false;    // remoteDescription déjà posée ?
 let _rtcRingTimeout = null;   // timeout de sonnerie sans réponse
+let _rtcCallMode = 'audio';   // 'audio' | 'video' — mode de l'appel en cours
+let _rtcCamOff = false;       // caméra locale coupée par l'utilisateur ?
 
 // ── Capture micro sécurisée (anti doublon / anti-race) ─
 // Corrige le bug "audio à sens unique" : avant, la pré-capture pendant la
@@ -11983,12 +12233,19 @@ let _rtcTracksAddedTo = null; // peer sur lequel les pistes ont déjà été ajo
 async function _ensureLocalStream(peer) {
   if (_rtcLocalStream && _rtcTracksAddedTo === peer) return _rtcLocalStream;
   if (!_rtcCapturePromise) {
+    const wantVideo = _rtcCallMode === 'video';
     _rtcCapturePromise = (async () => {
-      const mediaErr = checkMediaSupport('audio');
+      const mediaErr = checkMediaSupport(wantVideo ? 'video' : 'audio');
       if (mediaErr) throw new Error(mediaErr);
-      return await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        video: wantVideo ? { width: 480, height: 640, facingMode: 'user' } : false
       });
+      if (wantVideo) {
+        const localVideo = document.getElementById('rtc-local-video');
+        if (localVideo) localVideo.srcObject = stream;
+      }
+      return stream;
     })();
     // CORRECTIF "audio à sens unique" (démarrage à froid) : si cette tentative
     // échoue (micro pas encore prêt côté WebView Android au réveil par push),
@@ -12142,6 +12399,16 @@ function _createPeer(iceServers) {
     if (_rtcPeer !== peer) return;
     console.log('[RTC-CLIENT] ontrack reçu, kind=', e.track.kind, 'streams=', e.streams.length);
     _rtcRemoteStream = e.streams[0];
+    if (e.track.kind === 'video') {
+      const remoteVideo = document.getElementById('rtc-remote-video');
+      if (remoteVideo) {
+        remoteVideo.srcObject = e.streams[0];
+        remoteVideo.style.display = '';
+        document.getElementById('modal-appel')?.classList.add('appel-video-actif');
+        const avatar = document.querySelector('#modal-appel .call-avatar');
+        if (avatar) avatar.style.display = 'none';
+      }
+    }
     const audio = document.getElementById('rtc-remote-audio');
     if (audio) {
       audio.srcObject = _rtcRemoteStream;
@@ -12258,12 +12525,12 @@ async function initierAppelWebRTC(roleAppelant) {
 }
 
 // ── Initier un appel depuis une conversation ───────────
-async function initierAppelWebRTC_conv(targetId) {
+async function initierAppelWebRTC_conv(targetId, mode = 'audio') {
   if (!targetId) return showToast('Destinataire introuvable', 'wa');
   // Charger le nom depuis Supabase
   const { data: p } = await sb.from('profiles').select('prenom,nom').eq('id', targetId).single();
   const nomContact = p ? ((p.prenom||'') + ' ' + (p.nom||'')).trim() : 'Contact';
-  await _lancerAppel(targetId, nomContact, null);
+  await _lancerAppel(targetId, nomContact, null, mode);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -12275,36 +12542,62 @@ async function initierAppelWebRTC_conv(targetId) {
 //  commande officiel s'ouvre.
 // ══════════════════════════════════════════════════════════════
 let _rtcSpeechRec = null;
+let _rtcSpeechStartTimer = null;   // délai avant premier démarrage (laisse le flux RTC se stabiliser)
+let _rtcSpeechRestartTimer = null; // délai avant relance (évite le va-et-vient rapide sur le micro)
+// CORRECTIF bruit/écho pendant l'appel : la reconnaissance vocale (Web Speech API)
+// ouvre SA PROPRE capture micro, en plus de celle de WebRTC. Deux captures micro
+// simultanées sur le même appareil (surtout en WebView Android, haut-parleur actif
+// par défaut) font perdre sa référence à l'annulateur d'écho de WebRTC : la voix
+// distante rejouée par le haut-parleur ré-entre alors dans le micro sans être
+// filtrée, d'où le bruit et le "j'entends ma propre voix revenir". La relance
+// immédiate (onend → start()) dans le code précédent aggravait encore ça en
+// coupant/rouvrant le micro en boucle. Ici : on laisse le flux RTC se stabiliser
+// avant de démarrer la surveillance, et on espace les relances.
 function _startCallSpeechWatch() {
-  try {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return; // API non supportée : pas de surveillance vocale, silencieux
-    if (_rtcSpeechRec) return; // déjà actif
-    _rtcSpeechRec = new SR();
-    _rtcSpeechRec.lang = 'fr-FR';
-    _rtcSpeechRec.continuous = true;
-    _rtcSpeechRec.interimResults = true;
-    _rtcSpeechRec.onresult = (ev) => {
-      for (let i = ev.resultIndex; i < ev.results.length; i++) {
-        const transcript = ev.results[i][0]?.transcript || '';
-        if (!transcript) continue;
-        let mod;
-        try { mod = jrModerateText(transcript); } catch(e) { continue; }
-        if (mod.blocked) {
-          showToast('🚫 Appel coupé : tentative de contournement détectée.', 'er');
-          raccrocherAppel(true);
-          try { jrLogStrike(mod.reason, '[appel vocal] ' + transcript); } catch(e) {}
-          ouvrirPanneauCommandeOfficiel('mob');
-          return;
+  clearTimeout(_rtcSpeechStartTimer);
+  _rtcSpeechStartTimer = setTimeout(() => {
+    if (!_rtcPeer) return; // appel déjà raccroché pendant le délai
+    try {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) return; // API non supportée : pas de surveillance vocale, silencieux
+      if (_rtcSpeechRec) return; // déjà actif
+      _rtcSpeechRec = new SR();
+      _rtcSpeechRec.lang = 'fr-FR';
+      _rtcSpeechRec.continuous = true;
+      _rtcSpeechRec.interimResults = true;
+      _rtcSpeechRec.onresult = (ev) => {
+        for (let i = ev.resultIndex; i < ev.results.length; i++) {
+          const transcript = ev.results[i][0]?.transcript || '';
+          if (!transcript) continue;
+          let mod;
+          try { mod = jrModerateText(transcript); } catch(e) { continue; }
+          if (mod.blocked) {
+            showToast('🚫 Appel coupé : tentative de contournement détectée.', 'er');
+            raccrocherAppel(true);
+            try { jrLogStrike(mod.reason, '[appel vocal] ' + transcript); } catch(e) {}
+            ouvrirPanneauCommandeOfficiel('mob');
+            return;
+          }
         }
-      }
-    };
-    _rtcSpeechRec.onerror = () => { /* silencieux : ex. pas de réseau, permission — on ne bloque rien */ };
-    _rtcSpeechRec.onend = () => { if (_rtcSpeechRec && _rtcPeer) { try { _rtcSpeechRec.start(); } catch(e){} } }; // relance auto tant que l'appel est actif
-    _rtcSpeechRec.start();
-  } catch(e) { console.warn('[AntiContournement] surveillance appel indisponible', e); }
+      };
+      _rtcSpeechRec.onerror = () => { /* silencieux : ex. pas de réseau, permission — on ne bloque rien */ };
+      _rtcSpeechRec.onend = () => {
+        // Relance auto tant que l'appel est actif, mais avec un court délai
+        // (au lieu d'un restart instantané) pour ne pas rouvrir/refermer le
+        // micro en boucle rapide, source de crépitements et de fuite d'écho.
+        clearTimeout(_rtcSpeechRestartTimer);
+        if (!_rtcSpeechRec || !_rtcPeer) return;
+        _rtcSpeechRestartTimer = setTimeout(() => {
+          if (_rtcSpeechRec && _rtcPeer) { try { _rtcSpeechRec.start(); } catch(e){} }
+        }, 400);
+      };
+      _rtcSpeechRec.start();
+    } catch(e) { console.warn('[AntiContournement] surveillance appel indisponible', e); }
+  }, 1200);
 }
 function _stopCallSpeechWatch() {
+  clearTimeout(_rtcSpeechStartTimer); _rtcSpeechStartTimer = null;
+  clearTimeout(_rtcSpeechRestartTimer); _rtcSpeechRestartTimer = null;
   if (_rtcSpeechRec) {
     const rec = _rtcSpeechRec;
     _rtcSpeechRec = null; // couper la relance auto AVANT stop()
@@ -12313,10 +12606,11 @@ function _stopCallSpeechWatch() {
 }
 
 // ── Cœur : lancer l'appel WebRTC ──────────────────────
-async function _lancerAppel(targetId, nomContact, courseId) {
+async function _lancerAppel(targetId, nomContact, courseId, mode = 'audio') {
   trackEvent('client_action_appel_lance');
   if (_rtcPeer) return showToast('Appel déjà en cours', 'wa');
   _rtcRole = 'caller'; _rtcTargetId = targetId;
+  _rtcCallMode = mode === 'video' ? 'video' : 'audio';
   _rtcAnswered = false;
   _rtcRemoteSet = false; _rtcPendingIce = [];
   _rtcCapturePromise = null; _rtcTracksAddedTo = null; _rtcLocalStream = null;
@@ -12367,6 +12661,7 @@ async function _lancerAppel(targetId, nomContact, courseId) {
       if (_rtcPeer !== peer) return; // appel annulé pendant l'attente
 
       const offerPayload = { sdp: peer.localDescription, from: currentUser.id, to: targetId, courseId, callerName: currentProfile?.prenom || 'Contact',
+                              mode: _rtcCallMode,
                               offerId: currentUser.id + '-' + Date.now() + '-' + Math.random().toString(36).slice(2) };
 
       // Envoyer offer via canal dédié (partagé caller/callee)
@@ -12410,15 +12705,24 @@ async function _lancerAppel(targetId, nomContact, courseId) {
       // broadcast Realtime ci-dessus peut ne jamais être livré (WebSocket
       // coupé par Android en arrière-plan). N'échoue pas bruyamment si la
       // cible n'a pas encore de fcm_token enregistré.
+      // CORRECTIF appel client → client : le push n'était envoyé qu'à
+      // notify-incoming-call (qui cherche le fcm_token dans la table
+      // "livreurs"). Quand la cible est un AUTRE CLIENT (appel depuis une
+      // conversation, pas depuis une course), targetId n'existe pas dans
+      // "livreurs" → aucun token trouvé → aucun push → le téléphone ne
+      // sonne jamais si l'app est fermée (alors que le canal Realtime, lui,
+      // fonctionne app ouverte, d'où le "ça marche seulement app ouverte").
+      // On détecte donc le type de cible et on appelle la bonne fonction.
       try {
-        await fetch(SUPABASE_URL + '/functions/v1/notify-incoming-call', {
+        const { data: cibleLivreur } = await sb.from('livreurs').select('id').eq('id', targetId).maybeSingle();
+        const endpoint = cibleLivreur ? 'notify-incoming-call' : 'notify-incoming-call-client';
+        const body = cibleLivreur
+          ? { livreurId: targetId, callerName: offerPayload.callerName, callerId: currentUser.id }
+          : { clientId: targetId, callerName: offerPayload.callerName, callerId: currentUser.id };
+        await fetch(SUPABASE_URL + '/functions/v1/' + endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
-          body: JSON.stringify({
-            livreurId: targetId,
-            callerName: offerPayload.callerName,
-            callerId: currentUser.id
-          })
+          body: JSON.stringify(body)
         });
       } catch(e) { console.warn('[FCM] échec envoi push appel entrant:', e); }
 
@@ -12535,6 +12839,13 @@ function raccrocherAppel(sendSignal = true) {
   if (_rtcCallChannel) { sb.removeChannel(_rtcCallChannel); _rtcCallChannel = null; }
   _rtcRemoteStream = null;
   if (navigator.vibrate) navigator.vibrate(0);
+  const remoteVideo = document.getElementById('rtc-remote-video');
+  const localVideo = document.getElementById('rtc-local-video');
+  if (remoteVideo) { remoteVideo.srcObject = null; remoteVideo.style.display = 'none'; }
+  if (localVideo) { localVideo.srcObject = null; localVideo.style.display = 'none'; }
+  document.getElementById('modal-appel')?.classList.remove('appel-video-actif');
+  document.querySelector('#modal-appel .call-avatar')?.style.setProperty('display', '');
+  _rtcCallMode = 'audio';
   document.getElementById('modal-appel')?.classList.remove('open');
 }
 
@@ -12564,6 +12875,20 @@ function toggleSpeaker() {
   }
 }
 
+// ── Toggle caméra (appel vidéo) ─────────────────────────
+function toggleCamera() {
+  _rtcCamOff = !_rtcCamOff;
+  _rtcLocalStream?.getVideoTracks().forEach(t => t.enabled = !_rtcCamOff);
+  const btn = document.getElementById('call-btn-cam');
+  if (btn) {
+    btn.querySelector('div').style.background = _rtcCamOff ? '#DC2626' : 'rgba(255,255,255,.18)';
+    btn.querySelector('span').textContent = _rtcCamOff ? 'Caméra off' : 'Caméra';
+    btn.querySelector('i').className = _rtcCamOff ? 'ti ti-video-off' : 'ti ti-video';
+  }
+  const localVideo = document.getElementById('rtc-local-video');
+  if (localVideo) localVideo.style.opacity = _rtcCamOff ? '0' : '1';
+}
+
 // ── UI du modal d'appel ────────────────────────────────
 function _showCallModal(role, nomContact) {
   const el = document.getElementById('call-contact-name');
@@ -12572,6 +12897,7 @@ function _showCallModal(role, nomContact) {
   const rBtn = document.getElementById('call-btn-repondre');
   const muteBtn = document.getElementById('call-btn-mute');
   const spkBtn = document.getElementById('call-btn-speaker');
+  const camBtn = document.getElementById('call-btn-cam');
   if (el) el.textContent = nomContact;
   if (st) st.textContent = role === 'caller' ? '📡 Appel en cours…' : '📞 Appel entrant';
   if (timer) timer.textContent = '';
@@ -12579,9 +12905,25 @@ function _showCallModal(role, nomContact) {
   if (muteBtn) { muteBtn.style.display = role === 'caller' ? 'none' : 'flex'; }
   if (spkBtn) { spkBtn.style.display = 'flex'; spkBtn.querySelector('div').style.background = '#2563EB'; spkBtn.querySelector('span').textContent = 'HP ON'; }
   _rtcSpeaker = true;
-  // Reset mute state
+  // Reset mute/caméra state
   _rtcMuted = false;
+  _rtcCamOff = false;
   _rtcLocalStream?.getAudioTracks().forEach(t => t.enabled = true);
+  const modalEl = document.getElementById('modal-appel');
+  const remoteVideo = document.getElementById('rtc-remote-video');
+  const localVideo = document.getElementById('rtc-local-video');
+  if (_rtcCallMode === 'video') {
+    modalEl?.classList.add('appel-video-actif');
+    if (camBtn) { camBtn.style.display = role === 'caller' ? 'none' : 'flex'; camBtn.querySelector('div').style.background = 'rgba(255,255,255,.18)'; camBtn.querySelector('span').textContent = 'Caméra'; camBtn.querySelector('i').className = 'ti ti-video'; }
+    if (localVideo) { localVideo.style.display = 'block'; localVideo.style.opacity = '1'; }
+  } else {
+    modalEl?.classList.remove('appel-video-actif');
+    if (camBtn) camBtn.style.display = 'none';
+    if (remoteVideo) { remoteVideo.style.display = 'none'; remoteVideo.srcObject = null; }
+    if (localVideo) { localVideo.style.display = 'none'; localVideo.srcObject = null; }
+    const avatar = document.querySelector('#modal-appel .call-avatar');
+    if (avatar) avatar.style.display = '';
+  }
   openModal('modal-appel');
 }
 
@@ -12589,11 +12931,13 @@ function _updateCallUI(state) {
   const st = document.getElementById('call-status-txt');
   const rBtn = document.getElementById('call-btn-repondre');
   const muteBtn = document.getElementById('call-btn-mute');
+  const camBtn = document.getElementById('call-btn-cam');
   if (state === 'ringing') return; // ontrack prématuré avant clic — on ne touche pas à l'UI
   if (state === 'connected') {
     if (st) st.textContent = '🟢 En communication';
     if (rBtn) rBtn.style.display = 'none';
     if (muteBtn) muteBtn.style.display = 'flex';
+    if (camBtn && _rtcCallMode === 'video') camBtn.style.display = 'flex';
   }
 }
 
@@ -12640,6 +12984,7 @@ function startRTCListener() {
       // évite qu'un résidu d'un appel précédent mal refermé ne pollue l'UI
       // (c'est ce qui pouvait faire rester affiché "📡 Appel en cours…").
       _rtcRole = 'callee'; _rtcTargetId = payload.from;
+      _rtcCallMode = payload.mode === 'video' ? 'video' : 'audio';
       _rtcAnswered = false;
       _rtcRemoteSet = false; _rtcPendingIce = [];
       _rtcCapturePromise = null; _rtcTracksAddedTo = null; _rtcLocalStream = null;
@@ -14257,35 +14602,58 @@ function aegVocalRenderParticipants(liste) {
   const wrap = document.getElementById('aeg-vocal-participants');
   wrap.innerHTML = liste.map(p => `<div style="background:var(--bg);border-radius:var(--radius-pill);padding:.3rem .7rem;font-size:.72rem;font-weight:600">🎙️ ${escHtmlClient(p.nom || 'Membre')}</div>`).join('');
 }
-function aegVocalCreerPeer(peerId, initiateur) {
-  const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-  _aegVocalStream.getTracks().forEach(t => pc.addTrack(t, _aegVocalStream));
-  pc.onicecandidate = (e) => { if (e.candidate) _aegVocalChannel.send({ type: 'broadcast', event: 'signal', payload: { to: peerId, from: currentUser.id, kind: 'ice', data: e.candidate } }); };
-  pc.ontrack = (e) => {
-    let audioEl = document.getElementById('aeg-audio-' + peerId);
-    if (!audioEl) { audioEl = document.createElement('audio'); audioEl.id = 'aeg-audio-' + peerId; audioEl.autoplay = true; document.body.appendChild(audioEl); }
-    audioEl.srcObject = e.streams[0];
-  };
-  _aegVocalPeers[peerId] = pc;
-  if (initiateur) {
-    pc.createOffer().then(offer => pc.setLocalDescription(offer)).then(() => {
+let _aegVocalCreating = {}; // peerId -> promesse de création en cours (anti-double-création)
+async function aegVocalCreerPeer(peerId, initiateur) {
+  if (_aegVocalCreating[peerId]) return _aegVocalCreating[peerId];
+  const promesse = (async () => {
+    const iceServers = await _getIceServers();
+    const pc = new RTCPeerConnection({ iceServers, iceCandidatePoolSize: 4 });
+    pc._remoteSet = false; pc._pendingIce = [];
+    _aegVocalStream.getTracks().forEach(t => pc.addTrack(t, _aegVocalStream));
+    // Force sendrecv pour garantir l'audio dans les deux sens (et plusieurs sens en mesh)
+    pc.getTransceivers().forEach(tr => { if (tr.sender?.track) tr.direction = 'sendrecv'; });
+    pc.onicecandidate = (e) => { if (e.candidate && _aegVocalChannel) _aegVocalChannel.send({ type: 'broadcast', event: 'signal', payload: { to: peerId, from: currentUser.id, kind: 'ice', data: e.candidate } }); };
+    pc.ontrack = (e) => {
+      let audioEl = document.getElementById('aeg-audio-' + peerId);
+      if (!audioEl) { audioEl = document.createElement('audio'); audioEl.id = 'aeg-audio-' + peerId; audioEl.autoplay = true; audioEl.playsInline = true; document.body.appendChild(audioEl); }
+      audioEl.srcObject = e.streams[0];
+      audioEl.play().catch(() => {}); // débloque l'autoplay mobile si besoin
+    };
+    pc.onconnectionstatechange = () => {
+      const state = pc.connectionState;
+      if (state === 'failed') { try { pc.restartIce(); } catch (e) {} setTimeout(() => { if (_aegVocalPeers[peerId] === pc && (pc.connectionState === 'failed' || pc.connectionState === 'closed')) aegVocalFermerPeer(peerId); }, 5000); }
+      else if (state === 'closed') { if (_aegVocalPeers[peerId] === pc) aegVocalFermerPeer(peerId); }
+    };
+    _aegVocalPeers[peerId] = pc;
+    if (initiateur) {
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
       _aegVocalChannel.send({ type: 'broadcast', event: 'signal', payload: { to: peerId, from: currentUser.id, kind: 'offer', data: pc.localDescription } });
-    });
-  }
-  return pc;
+    }
+    return pc;
+  })();
+  _aegVocalCreating[peerId] = promesse;
+  try { return await promesse; } finally { delete _aegVocalCreating[peerId]; }
+}
+async function _aegFlushPendingIce(pc) {
+  if (!pc._remoteSet) return;
+  const queue = pc._pendingIce; pc._pendingIce = [];
+  for (const cand of queue) { try { await pc.addIceCandidate(new RTCIceCandidate(cand)); } catch (e) {} }
 }
 async function aegVocalHandleSignal(payload) {
-  let pc = _aegVocalPeers[payload.from];
-  if (!pc) pc = aegVocalCreerPeer(payload.from, false);
+  let pc = _aegVocalPeers[payload.from] || await aegVocalCreerPeer(payload.from, false);
   if (payload.kind === 'offer') {
     await pc.setRemoteDescription(new RTCSessionDescription(payload.data));
+    pc._remoteSet = true; await _aegFlushPendingIce(pc);
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
     _aegVocalChannel.send({ type: 'broadcast', event: 'signal', payload: { to: payload.from, from: currentUser.id, kind: 'answer', data: pc.localDescription } });
   } else if (payload.kind === 'answer') {
     await pc.setRemoteDescription(new RTCSessionDescription(payload.data));
+    pc._remoteSet = true; await _aegFlushPendingIce(pc);
   } else if (payload.kind === 'ice') {
-    try { await pc.addIceCandidate(payload.data); } catch (e) {}
+    if (pc._remoteSet) { try { await pc.addIceCandidate(new RTCIceCandidate(payload.data)); } catch (e) {} }
+    else pc._pendingIce.push(payload.data);
   }
 }
 function aegVocalFermerPeer(peerId) {
@@ -14311,6 +14679,159 @@ let _slnSalonId = null, _slnChannel = null, _slnPeers = {}, _slnStream = null, _
 let _slnMonRole = 'auditeur', _slnEstAdmin = false, _slnCreationType = 'public';
 let _slnParticipants = {}; // userId -> { nom, role }
 let _slnCreationMode = 'audio';
+let _slnDebutTS = null, _slnDureeInterval = null, _slnAdminId = null;
+
+// ── Diffuse une notification à TOUS les utilisateurs de la plateforme (par
+// petits lots pour ne pas saturer). Utilisé pour "Quelqu'un est en direct"
+// et "Le live est terminé". Passe par le même canal que les autres notifs
+// (_notifierPush -> côté client, tout passe par le canal "message" pour
+// réveiller l'app fermée).
+async function _notifierTousLesUtilisateurs(titre, corps, type, excludeId, meta) {
+  try {
+    const { data: profils } = await sb.from('profiles').select('id').neq('id', excludeId || '00000000-0000-0000-0000-000000000000');
+    const ids = (profils || []).map(p => p.id);
+    const TAILLE_LOT = 25;
+    for (let i = 0; i < ids.length; i += TAILLE_LOT) {
+      const lot = ids.slice(i, i + TAILLE_LOT);
+      await Promise.all(lot.map(id => _notifierPush(id, 'client', titre, corps, type, meta)));
+    }
+  } catch (e) { console.warn('Diffusion notification plateforme échouée :', e); }
+}
+function slnFormatDuree(secondes) {
+  const m = Math.floor(secondes / 60), s = secondes % 60;
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+function slnDemarrerTimer(debutTS) {
+  _slnDebutTS = debutTS || Date.now();
+  clearInterval(_slnDureeInterval);
+  _slnDureeInterval = setInterval(() => {
+    const el = document.getElementById('sln-live-duree');
+    if (el) el.textContent = slnFormatDuree(Math.max(0, Math.floor((Date.now() - _slnDebutTS) / 1000)));
+  }, 1000);
+}
+function slnArreterTimer() { clearInterval(_slnDureeInterval); _slnDureeInterval = null; _slnDebutTS = null; }
+let _slnBanniereSalonId = null;
+// Cherche s'il y a (au moins) un salon live en ce moment et affiche/masque la
+// bannière flottante sur la page d'accueil / carte.
+async function slnVerifierLiveActif() {
+  try {
+    const { data } = await sb.from('salons').select('id,titre,mode,createur_id,profiles:createur_id(nom,prenom)')
+      .eq('statut', 'live').order('created_at', { ascending: false }).limit(1);
+    const banniere = document.getElementById('mob-live-banniere');
+    if (!banniere) return;
+    const salon = data?.[0];
+    if (!salon) { banniere.style.display = 'none'; _slnBanniereSalonId = null; return; }
+    _slnBanniereSalonId = salon.id;
+    const nomHote = `${salon.profiles?.prenom || ''} ${salon.profiles?.nom || ''}`.trim() || 'Quelqu\'un';
+    document.getElementById('mob-live-banniere-texte').textContent =
+      (salon.mode === 'video' ? '🎥 ' : '🎙️ ') + nomHote + ' — ' + salon.titre;
+    banniere.style.display = 'flex';
+  } catch (e) { console.warn('slnVerifierLiveActif échoué :', e); }
+}
+function slnRejoindreDepuisBanniere() {
+  if (_slnBanniereSalonId) slnDemanderRejoindre(_slnBanniereSalonId);
+}
+// Se tient au courant en temps réel des débuts/fins de live pour que la
+// bannière d'accueil apparaisse/disparaisse sans avoir à recharger la page.
+function slnAbonnerLiveRealtime() {
+  sb.channel('salons-live-global')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'salons' }, () => slnVerifierLiveActif())
+    .subscribe();
+}
+// ── Point d'entrée pour le tap sur une notification (même app fermée) ──
+// Le code natif (Kotlin/Swift) doit appeler window.ouvrirDepuisNotification(type, meta)
+// une fois le WebView chargé et l'utilisateur connecté, avec le "type" et le "meta"
+// exactement tels qu'envoyés par _notifierPush/_notifierTousLesUtilisateurs. Ça amène
+// directement l'utilisateur sur la bonne cible (le salon en direct) au lieu de le
+// laisser sur l'écran d'accueil générique.
+window.ouvrirDepuisNotification = function(type, meta) {
+  const salonId = meta?.salon_id;
+  if (!salonId) return;
+  if (type === 'salon_live_debut' || type === 'salon_invitation') {
+    const tenter = () => { if (currentUser) slnDemanderRejoindre(salonId); else setTimeout(tenter, 500); };
+    tenter();
+  }
+};
+async function slnOuvrirInviter() {
+  document.getElementById('sln-panel-inviter').classList.add('open');
+  const champRecherche = document.getElementById('sln-inviter-recherche-input');
+  if (champRecherche) champRecherche.value = '';
+  // Le champ de recherche est toujours visible, et la liste de tous les
+  // utilisateurs s'affiche immédiatement (temps réel), sans avoir à taper.
+  await slnChargerTousUtilisateurs('');
+}
+let _slnRechercheInviterTimeout = null;
+function slnRechercherInviter(valeur) {
+  clearTimeout(_slnRechercheInviterTimeout);
+  _slnRechercheInviterTimeout = setTimeout(() => slnChargerTousUtilisateurs(valeur.trim()), 300);
+}
+async function slnChargerTousUtilisateurs(recherche) {
+  const zone = document.getElementById('sln-liste-inviter-amis');
+  zone.innerHTML = '<div style="font-size:.8rem;color:var(--text3)">Chargement…</div>';
+  let requete = sb.from('profiles').select('id,nom,prenom').neq('id', currentUser.id).limit(60);
+  if (recherche) requete = requete.or(`nom.ilike.%${recherche}%,prenom.ilike.%${recherche}%`);
+  const { data: tous } = await requete;
+  slnRenderListeInviter(tous || [], 'Aucun utilisateur trouvé.');
+}
+function slnRenderListeInviter(liste, messageVide) {
+  const zone = document.getElementById('sln-liste-inviter-amis');
+  if (!liste.length) { zone.innerHTML = `<div style="font-size:.8rem;color:var(--text3)">${messageVide}</div>`; return; }
+  zone.innerHTML = liste.map(a => {
+    const nom = `${a.prenom || ''} ${a.nom || ''}`.trim() || 'Utilisateur';
+    const dejaLa = !!_slnParticipants[a.id];
+    return `
+    <div style="display:flex;align-items:center;gap:.6rem;background:var(--bg);border-radius:var(--radius-sm);padding:.5rem .7rem">
+      <span style="flex:1;font-size:.85rem;font-weight:600">${jrEsc(nom)}</span>
+      ${dejaLa
+        ? `<span style="font-size:.72rem;color:var(--text3);font-weight:700">Déjà présent(e)</span>`
+        : `<button type="button" id="sln-inv-btn-${a.id}" onclick="slnInviterAmi('${a.id}','${jrEsc(nom).replace(/'/g,"\\'")}')" style="border:none;background:var(--primary);color:#fff;border-radius:var(--radius-pill);padding:.4rem .8rem;font-size:.75rem;font-weight:700;cursor:pointer"><i class="ti ti-send"></i> Inviter</button>`}
+    </div>`;
+  }).join('');
+}
+async function slnInviterAmi(userId, nom) {
+  if (!_slnSalonId) return;
+  const btn = document.getElementById('sln-inv-btn-' + userId);
+  if (btn) { btn.disabled = true; btn.textContent = 'Envoyée ✓'; }
+  // Autorise directement l'accès (utile pour les salons privés) sans passer par le flux "demande".
+  await sb.from('salon_invites').upsert({ salon_id: _slnSalonId, user_id: userId, statut: 'accepte' });
+  const { data: salonInfo } = await sb.from('salons').select('titre,mode').eq('id', _slnSalonId).single();
+  const nomHote = `${currentProfile?.prenom || ''} ${currentProfile?.nom || ''}`.trim() || 'Quelqu\'un';
+  await _notifierPush(userId, 'client',
+    salonInfo?.mode === 'video' ? '🎥 Vous êtes invité(e) à un live vidéo' : '🎙️ Vous êtes invité(e) à un salon vocal',
+    `${nomHote} vous invite à rejoindre "${salonInfo?.titre || ''}" en direct maintenant.`,
+    'salon_invitation', { salon_id: _slnSalonId });
+  showToast(`Invitation envoyée à ${nom}`, 'ok');
+}
+function slnOuvrirParticipants() { document.getElementById('sln-panel-participants').classList.add('open'); }
+function closeSlnDrawer(e, id) { if (e && e.target !== e.currentTarget) return; document.getElementById(id).classList.remove('open'); }
+function slnOuvrirCadeau() {
+  const zone = document.getElementById('sln-liste-cadeau-cibles');
+  const cibles = Object.entries(_slnParticipants).filter(([id]) => id !== currentUser.id);
+  if (!cibles.length) { zone.innerHTML = '<div style="font-size:.8rem;color:var(--text3)">Personne d\'autre dans le salon pour l\'instant.</div>'; }
+  else {
+    zone.innerHTML = cibles.map(([id, p]) => `
+      <div style="display:flex;align-items:center;gap:.6rem;background:var(--bg);border-radius:var(--radius-sm);padding:.5rem .7rem">
+        <span style="flex:1;font-size:.85rem;font-weight:600">${p.role === 'admin' ? '⭐ ' : ''}${jrEsc(p.nom || 'Membre')}</span>
+        <button type="button" onclick="closeSlnDrawer(null,'sln-panel-cadeau');slnEnvoyerCadeauA('${id}')" style="border:none;background:linear-gradient(135deg,#F59E0B,#FF4C29);color:#fff;border-radius:var(--radius-pill);padding:.4rem .8rem;font-size:.75rem;font-weight:700;cursor:pointer"><i class="ti ti-gift"></i> Offrir</button>
+      </div>`).join('');
+  }
+  document.getElementById('sln-panel-cadeau').classList.add('open');
+}
+function slnEnvoyerCadeauA(userId) {
+  // Réutilise le flux DexCoin existant (crédite directement le solde du destinataire).
+  ouvrirEnvoiDexcoin(userId, 'salon_live', _slnSalonId);
+}
+function slnAnimerCadeauVole() {
+  const stage = document.querySelector('#modal-salon-live .sln-stage');
+  if (!stage) return;
+  const emoji = document.createElement('div');
+  emoji.className = 'sln-gift-fly';
+  emoji.textContent = '🎁';
+  emoji.style.left = (40 + Math.random() * 20) + '%';
+  emoji.style.bottom = '110px';
+  stage.appendChild(emoji);
+  setTimeout(() => emoji.remove(), 1700);
+}
 
 function slnChoisirMode(mode) {
   _slnCreationMode = mode;
@@ -14351,11 +14872,19 @@ async function slnCreerSalon() {
   if (!currentUser) return showToast('Connectez-vous pour créer un salon', 'error');
   const ecouteSeule = document.getElementById('sln-ecoute-seule').checked;
   const { data, error } = await sb.from('salons').insert({
-    titre, type: _slnCreationType, mode: _slnCreationMode, createur_id: currentUser.id, ecoute_seule_defaut: ecouteSeule
+    titre, type: _slnCreationType, mode: _slnCreationMode, createur_id: currentUser.id, ecoute_seule_defaut: ecouteSeule, statut: 'live'
   }).select('id').single();
-  if (error) { console.error(error); return showToast('Erreur création salon', 'error'); }
+  if (error) { console.error(error); return showToast('Erreur création salon : ' + (error.message || ''), 'error'); }
   closeModal('modal-salons');
   await slnRejoindre(data.id, 'admin');
+  // Notifie tous les utilisateurs de la plateforme qu'un direct vient de démarrer
+  // (passe par le même canal "message" que les autres push pour réveiller l'app fermée).
+  const nomHote = `${currentProfile?.prenom || ''} ${currentProfile?.nom || ''}`.trim() || 'Quelqu\'un';
+  _notifierTousLesUtilisateurs(
+    _slnCreationMode === 'video' ? '🔴 Live vidéo en cours' : '🔴 Salon vocal en direct',
+    `${nomHote} a démarré "${titre}" — rejoignez le direct maintenant !`,
+    'salon_live_debut', currentUser.id, { salon_id: data.id }
+  );
 }
 async function slnDemanderRejoindre(salonId) {
   const { data: salon } = await sb.from('salons').select('id,type,createur_id,ecoute_seule_defaut').eq('id', salonId).single();
@@ -14379,7 +14908,7 @@ async function slnRejoindre(salonId, role) {
   const { data: salonModeInfo } = await sb.from('salons').select('mode').eq('id', salonId).single();
   _slnMode = salonModeInfo?.mode || 'audio';
   const grilleVideo = document.getElementById('sln-video-grid');
-  grilleVideo.style.display = _slnMode === 'video' ? 'grid' : 'none';
+  grilleVideo.style.display = _slnMode === 'video' ? 'flex' : 'none';
   try {
     const capterVideo = _slnMode === 'video' && (role === 'admin' || role === 'speaker');
     _slnStream = await navigator.mediaDevices.getUserMedia({
@@ -14396,9 +14925,13 @@ async function slnRejoindre(salonId, role) {
 
   await sb.from('salon_participants').upsert({ salon_id: salonId, user_id: currentUser.id, role, left_at: null });
 
-  const { data: salonInfo } = await sb.from('salons').select('titre,type').eq('id', salonId).single();
+  const { data: salonInfo } = await sb.from('salons').select('titre,type,created_at').eq('id', salonId).single();
   document.getElementById('sln-live-titre').textContent = salonInfo?.titre || 'Salon';
   openModal('modal-salon-live');
+  // Durée du live basée sur l'heure réelle de création du salon (et non l'heure
+  // à laquelle CE participant a rejoint), pour que tout le monde voie le même chrono.
+  _slnDebutTS = salonInfo?.created_at ? new Date(salonInfo.created_at).getTime() : Date.now();
+  slnDemarrerTimer(_slnDebutTS);
   if (role === 'admin' && salonInfo?.type === 'prive') {
     document.getElementById('sln-demandes-wrap').style.display = '';
     slnChargerDemandes();
@@ -14431,8 +14964,22 @@ async function slnRejoindre(salonId, role) {
     _slnParticipants = {};
     liste.forEach(p => { _slnParticipants[p.id] = { nom: p.nom, role: p.role }; });
     slnRenderPanel();
+    const viewersEl = document.getElementById('sln-live-viewers');
+    if (viewersEl) viewersEl.textContent = liste.length;
+    const adminEntry = Object.entries(_slnParticipants).find(([, p]) => p.role === 'admin');
+    const adminEtaitLa = !!_slnAdminId;
+    _slnAdminId = adminEntry ? adminEntry[0] : null;
+    slnMajVideoPrincipale();
+    if (adminEtaitLa && !_slnAdminId && !_slnEstAdmin) {
+      showToast('L\'hôte a terminé le direct.', 'wa');
+      slnQuitterSalon();
+      return;
+    }
     const ids = liste.map(p => p.id).filter(id => id !== currentUser.id);
-    ids.forEach(id => { if (!_slnPeers[id]) slnCreerPeer(id, true); });
+    // Évite la collision d'offres (glare) : un seul des deux pairs doit être
+    // initiateur pour une paire donnée. On tranche de façon déterministe en
+    // comparant les ID (le plus petit ID envoie l'offre, l'autre attend).
+    ids.forEach(id => { if (!_slnPeers[id]) slnCreerPeer(id, currentUser.id < id); });
     Object.keys(_slnPeers).forEach(id => { if (!ids.includes(id)) slnFermerPeer(id); });
   });
 
@@ -14443,41 +14990,113 @@ async function slnRejoindre(salonId, role) {
     }
   });
 }
-function slnCreerPeer(peerId, initiateur) {
-  const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-  _slnStream.getTracks().forEach(t => pc.addTrack(t, _slnStream));
-  pc.onicecandidate = (e) => { if (e.candidate) _slnChannel.send({ type: 'broadcast', event: 'signal', payload: { to: peerId, from: currentUser.id, kind: 'ice', data: e.candidate } }); };
-  pc.ontrack = (e) => {
-    if (e.track.kind === 'video') {
-      let videoEl = document.getElementById('sln-video-' + peerId);
-      if (!videoEl) { videoEl = document.createElement('video'); videoEl.id = 'sln-video-' + peerId; videoEl.autoplay = true; videoEl.playsInline = true; videoEl.style.cssText = 'width:100%;border-radius:8px;background:#000'; document.getElementById('sln-video-grid').appendChild(videoEl); }
-      videoEl.srcObject = e.streams[0];
-    } else {
-      let audioEl = document.getElementById('sln-audio-' + peerId);
-      if (!audioEl) { audioEl = document.createElement('audio'); audioEl.id = 'sln-audio-' + peerId; audioEl.autoplay = true; document.body.appendChild(audioEl); }
-      audioEl.srcObject = e.streams[0];
-    }
-  };
-  _slnPeers[peerId] = pc;
-  if (initiateur) {
-    pc.createOffer().then(offer => pc.setLocalDescription(offer)).then(() => {
-      _slnChannel.send({ type: 'broadcast', event: 'signal', payload: { to: peerId, from: currentUser.id, kind: 'offer', data: pc.localDescription } });
-    });
+function slnMajVideoPrincipale() {
+  if (_slnMode !== 'video') return;
+  const bg = document.getElementById('sln-bg-video-principal');
+  if (!bg || !_slnAdminId) return;
+  const stream = _slnAdminId === currentUser.id
+    ? _slnStream
+    : (document.getElementById('sln-video-' + _slnAdminId)?.srcObject || null);
+  if (stream && stream.getVideoTracks().length) {
+    bg.srcObject = stream;
+    bg.style.display = '';
+    bg.muted = true; // l'audio passe déjà par la piste audio du peer / <audio>, on évite le doublon
+  } else {
+    bg.style.display = 'none';
   }
-  return pc;
+}
+let _slnCreating = {}; // peerId -> promesse de création en cours (anti-double-création / anti-race)
+async function slnCreerPeer(peerId, initiateur) {
+  if (_slnCreating[peerId]) return _slnCreating[peerId];
+  const promesse = (async () => {
+    const iceServers = await _getIceServers();
+    const pc = new RTCPeerConnection({ iceServers, iceCandidatePoolSize: 4 });
+    pc._pretePourRenegocier = false; // évite qu'un renegotiationneeded auto-déclenché par le addTrack initial ci-dessous ne crée une offre en double (glare)
+    pc._remoteSet = false; pc._pendingIce = [];
+    _slnStream.getTracks().forEach(t => pc.addTrack(t, _slnStream));
+    // CORRECTIF bidirectionnel : force sendrecv sur toutes les pistes (audio ET vidéo)
+    // dès l'ajout, sinon un côté peut se retrouver en sendonly/recvonly et le
+    // son/la vidéo ne passent que dans un seul sens (bug "audio à sens unique").
+    pc.getTransceivers().forEach(tr => { if (tr.sender?.track) tr.direction = 'sendrecv'; });
+    pc.onicecandidate = (e) => { if (e.candidate && _slnChannel) _slnChannel.send({ type: 'broadcast', event: 'signal', payload: { to: peerId, from: currentUser.id, kind: 'ice', data: e.candidate } }); };
+    pc.onnegotiationneeded = async () => {
+      if (!pc._pretePourRenegocier) return; // ignore le déclenchement initial, déjà géré via l'offre explicite plus bas
+      try {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        _slnChannel.send({ type: 'broadcast', event: 'signal', payload: { to: peerId, from: currentUser.id, kind: 'offer', data: pc.localDescription } });
+      } catch (e) { console.warn('Renégociation échouée :', e); }
+    };
+    pc.ontrack = (e) => {
+      // IMPORTANT : ontrack se déclenche une fois PAR PISTE (audio et vidéo séparément).
+      // Un auditeur (pas de caméra) ou un salon en mode "audio" ne déclenchera JAMAIS
+      // l'événement avec kind === 'video' : il ne faut donc pas conditionner la création
+      // de l'élément <audio> à la réception d'une piste vidéo, sinon aucun son n'est
+      // jamais joué dans ces cas (c'était le bug).
+      let audioEl = document.getElementById('sln-audio-' + peerId);
+      if (!audioEl) { audioEl = document.createElement('audio'); audioEl.id = 'sln-audio-' + peerId; audioEl.autoplay = true; audioEl.playsInline = true; document.body.appendChild(audioEl); }
+      audioEl.srcObject = e.streams[0];
+      audioEl.play().catch(() => {}); // débloque l'autoplay bloqué par le navigateur mobile
+
+      if (e.track.kind === 'video') {
+        let videoEl = document.getElementById('sln-video-' + peerId);
+        if (!videoEl) { videoEl = document.createElement('video'); videoEl.id = 'sln-video-' + peerId; videoEl.autoplay = true; videoEl.playsInline = true; videoEl.muted = true; videoEl.style.cssText = 'width:100%;border-radius:8px;background:#000'; document.getElementById('sln-video-grid').appendChild(videoEl); }
+        videoEl.srcObject = e.streams[0];
+        videoEl.play().catch(() => {});
+        slnMajVideoPrincipale();
+      }
+    };
+    // Reconnexion automatique (perte réseau temporaire, TURN saturé, etc.) — sans
+    // ça, un salon à plusieurs personnes perdait silencieusement un participant
+    // dès qu'une connexion ICE échouait momentanément.
+    pc.onconnectionstatechange = () => {
+      const state = pc.connectionState;
+      if (state === 'failed') {
+        try { pc.restartIce(); } catch (e) {}
+        setTimeout(() => { if (_slnPeers[peerId] === pc && (pc.connectionState === 'failed' || pc.connectionState === 'closed')) slnFermerPeer(peerId); }, 5000);
+      } else if (state === 'closed') {
+        if (_slnPeers[peerId] === pc) slnFermerPeer(peerId);
+      }
+    };
+    _slnPeers[peerId] = pc;
+    if (initiateur) {
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      _slnChannel.send({ type: 'broadcast', event: 'signal', payload: { to: peerId, from: currentUser.id, kind: 'offer', data: pc.localDescription } });
+    }
+    return pc;
+  })();
+  _slnCreating[peerId] = promesse;
+  try { return await promesse; } finally { delete _slnCreating[peerId]; }
+}
+async function _slnFlushPendingIce(pc) {
+  if (!pc._remoteSet) return;
+  const queue = pc._pendingIce; pc._pendingIce = [];
+  for (const cand of queue) { try { await pc.addIceCandidate(new RTCIceCandidate(cand)); } catch (e) { console.warn('ICE flush salon échoué:', e); } }
 }
 async function slnHandleSignal(payload) {
-  let pc = _slnPeers[payload.from];
-  if (!pc) pc = slnCreerPeer(payload.from, false);
-  if (payload.kind === 'offer') {
-    await pc.setRemoteDescription(new RTCSessionDescription(payload.data));
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    _slnChannel.send({ type: 'broadcast', event: 'signal', payload: { to: payload.from, from: currentUser.id, kind: 'answer', data: pc.localDescription } });
-  } else if (payload.kind === 'answer') {
-    await pc.setRemoteDescription(new RTCSessionDescription(payload.data));
-  } else if (payload.kind === 'ice') {
-    try { await pc.addIceCandidate(payload.data); } catch (e) {}
+  let pc = _slnPeers[payload.from] || await slnCreerPeer(payload.from, false);
+  try {
+    if (payload.kind === 'offer') {
+      await pc.setRemoteDescription(new RTCSessionDescription(payload.data));
+      pc._remoteSet = true; await _slnFlushPendingIce(pc);
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      _slnChannel.send({ type: 'broadcast', event: 'signal', payload: { to: payload.from, from: currentUser.id, kind: 'answer', data: pc.localDescription } });
+      pc._pretePourRenegocier = true;
+    } else if (payload.kind === 'answer') {
+      await pc.setRemoteDescription(new RTCSessionDescription(payload.data));
+      pc._remoteSet = true; await _slnFlushPendingIce(pc);
+      pc._pretePourRenegocier = true;
+    } else if (payload.kind === 'ice') {
+      // CORRECTIF anti-perte : si la remoteDescription n'est pas encore posée, on
+      // met le candidat en file au lieu de l'ignorer (sinon connexion à sens unique
+      // ou qui échoue selon l'ordre d'arrivée des messages Realtime).
+      if (pc._remoteSet) { try { await pc.addIceCandidate(new RTCIceCandidate(payload.data)); } catch (e) {} }
+      else pc._pendingIce.push(payload.data);
+    }
+  } catch (e) {
+    console.warn('slnHandleSignal (' + payload.kind + ') échoué :', e);
   }
 }
 function slnFermerPeer(peerId) {
@@ -14508,11 +15127,36 @@ async function slnChangerRole(userId, nouveauRole) {
   _slnChannel.send({ type: 'broadcast', event: 'role_change', payload: { to: userId, role: nouveauRole } });
   if (_slnParticipants[userId]) _slnParticipants[userId].role = nouveauRole;
   slnRenderPanel();
+  if (nouveauRole === 'speaker' || nouveauRole === 'admin') {
+    const { data: salonInfo } = await sb.from('salons').select('titre').eq('id', _slnSalonId).single();
+    await _notifierPush(userId, 'client', '🎙️ Vous êtes invité(e) à parler',
+      `L'admin vous a invité(e) à prendre la parole dans le salon "${salonInfo?.titre || ''}".`, 'salon_invite');
+  }
 }
 function slnAppliquerNouveauRole(nouveauRole) {
   _slnMonRole = nouveauRole;
   if (_slnStream) _slnStream.getAudioTracks().forEach(t => t.enabled = (nouveauRole === 'speaker' || nouveauRole === 'admin'));
+  if (nouveauRole === 'speaker' || nouveauRole === 'admin') slnAjouterVideoLocale();
   showToast(nouveauRole === 'auditeur' ? 'L\'admin vous a mis en écoute seule.' : 'L\'admin vous a donné la parole 🎙️', 'ok');
+}
+// Capture la caméra et l'envoie à toutes les connexions déjà ouvertes (renégociation
+// automatique via onnegotiationneeded). Utile quand un auditeur est promu speaker/admin
+// en cours de salon vidéo : à l'entrée il n'avait capturé que le micro.
+async function slnAjouterVideoLocale() {
+  if (_slnMode !== 'video') return;
+  if (_slnStream && _slnStream.getVideoTracks().length > 0) return; // déjà en vidéo
+  try {
+    const camStream = await navigator.mediaDevices.getUserMedia({ video: { width: 480, height: 480, facingMode: 'user' } });
+    const videoTrack = camStream.getVideoTracks()[0];
+    if (!_slnStream) _slnStream = camStream; else _slnStream.addTrack(videoTrack);
+    Object.values(_slnPeers).forEach(pc => pc.addTrack(videoTrack, _slnStream));
+    const grilleVideo = document.getElementById('sln-video-grid');
+    grilleVideo.style.display = 'flex';
+    let monVideo = document.getElementById('sln-video-' + currentUser.id);
+    if (!monVideo) { monVideo = document.createElement('video'); monVideo.id = 'sln-video-' + currentUser.id; monVideo.autoplay = true; monVideo.muted = true; monVideo.playsInline = true; monVideo.style.cssText = 'width:100%;border-radius:8px;background:#000'; grilleVideo.appendChild(monVideo); }
+    monVideo.srcObject = _slnStream;
+  } catch (e) { showToast('Caméra indisponible : ' + e.message, 'err'); }
+  slnMajVideoPrincipale();
 }
 async function slnChargerDemandes() {
   const zone = document.getElementById('sln-liste-demandes');
@@ -14556,7 +15200,7 @@ async function slnEnvoyerCommentaire() {
 function slnAfficherCommentaire(nom, texte) {
   const zone = document.getElementById('sln-liste-commentaires');
   const ligne = document.createElement('div');
-  ligne.style.cssText = 'font-size:.78rem;line-height:1.3';
+  ligne.className = 'sln-comment-line';
   ligne.innerHTML = `<b>${jrEsc(nom)}</b> ${jrEsc(texte)}`;
   zone.appendChild(ligne);
   zone.scrollTop = zone.scrollHeight;
@@ -14564,11 +15208,31 @@ function slnAfficherCommentaire(nom, texte) {
 async function slnQuitterSalon() {
   Object.keys(_slnPeers).forEach(slnFermerPeer);
   _slnStream?.getTracks().forEach(t => t.stop());
+  slnArreterTimer();
+  document.getElementById('sln-panel-participants')?.classList.remove('open');
+  document.getElementById('sln-panel-inviter')?.classList.remove('open');
+  document.getElementById('sln-panel-cadeau')?.classList.remove('open');
+  const bg = document.getElementById('sln-bg-video-principal');
+  if (bg) { bg.srcObject = null; bg.style.display = 'none'; }
+
+  const estAdminQuiTermine = _slnEstAdmin;
+  const salonIdCourant = _slnSalonId;
+
   _slnChannel?.unsubscribe();
   document.getElementById('sln-video-' + currentUser.id)?.remove();
   document.getElementById('sln-video-grid').innerHTML = '';
   if (_slnSalonId && currentUser) await sb.from('salon_participants').update({ left_at: new Date().toISOString() }).eq('salon_id', _slnSalonId).eq('user_id', currentUser.id);
-  _slnSalonId = null; _slnChannel = null; _slnParticipants = {};
+
+  if (estAdminQuiTermine && salonIdCourant) {
+    // L'admin quitte : le direct se termine pour tout le monde.
+    const { data: salonInfo } = await sb.from('salons').select('titre').eq('id', salonIdCourant).single();
+    await sb.from('salons').update({ statut: 'termine' }).eq('id', salonIdCourant);
+    _notifierTousLesUtilisateurs('⚫ Live terminé',
+      `Le direct "${salonInfo?.titre || ''}" est maintenant terminé. Merci à tous ceux qui l'ont suivi !`,
+      'salon_live_fin', currentUser.id, { salon_id: salonIdCourant });
+  }
+
+  _slnSalonId = null; _slnChannel = null; _slnParticipants = {}; _slnAdminId = null;
   closeModal('modal-salon-live');
 }
 
@@ -14824,6 +15488,14 @@ async function confirmerEnvoiDexcoin() {
     // natif client, sans créer de bulle de chat (sauf cas ci-dessous).
     const nomExp = `${currentProfile?.prenom||''} ${currentProfile?.nom||''}`.trim() || 'Un utilisateur';
     await _notifierPush(_dexcoinDestId, 'client', '🪙 DexCoin reçus', `${nomExp} vous a envoyé ${montant} DexCoin.`, 'dexcoin');
+
+    // Si l'envoi se fait depuis un salon live : animation cadeau + annonce dans les commentaires du direct
+    if (_dexcoinContexte === 'salon_live' && _slnSalonId && _slnChannel) {
+      slnAnimerCadeauVole();
+      const texteAnnonce = `🎁 a offert ${montant} DexCoin !`;
+      _slnChannel.send({ type: 'broadcast', event: 'commentaire', payload: { nom: nomExp, texte: texteAnnonce } });
+      slnAfficherCommentaire(nomExp, texteAnnonce);
+    }
 
     // Si l'envoi se fait depuis une conversation, on poste un message visuel dans le chat
     if (_dexcoinContexte === 'message' && currentConvId && currentConvOtherId === _dexcoinDestId) {
@@ -17016,6 +17688,8 @@ async function creerPagePro(nom, description) {
     <div class="modal-handle" onclick="closeModal('modal-parametres-profil')"><div class="modal-handle-pill"></div></div>
     <div style="padding:0 1.25rem 1.5rem;overflow-y:auto;max-height:80vh">
       <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;margin-bottom:1rem">Mes informations</div>
+
+      <button onclick="closeModal('modal-parametres-profil');ouvrirUtilisateursBloques()" style="width:100%;text-align:left;display:flex;align-items:center;gap:.5rem;padding:.7rem .9rem;margin-bottom:1rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg);font-family:var(--font);font-size:.85rem;font-weight:700;cursor:pointer;color:var(--danger)"><i class="ti ti-ban"></i> Utilisateurs bloqués</button>
 
       <div style="font-size:.72rem;font-weight:700;color:var(--text2);margin-bottom:.3rem">INFOS PERSONNELLES</div>
       <input id="pp-set-prenom" type="text" placeholder="Prénom" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.85rem;margin-bottom:.5rem">

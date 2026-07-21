@@ -12717,8 +12717,8 @@ async function _lancerAppel(targetId, nomContact, courseId, mode = 'audio') {
         const { data: cibleLivreur } = await sb.from('livreurs').select('id').eq('id', targetId).maybeSingle();
         const endpoint = cibleLivreur ? 'notify-incoming-call' : 'notify-incoming-call-client';
         const body = cibleLivreur
-          ? { livreurId: targetId, callerName: offerPayload.callerName, callerId: currentUser.id }
-          : { clientId: targetId, callerName: offerPayload.callerName, callerId: currentUser.id };
+          ? { livreurId: targetId, callerName: offerPayload.callerName, callerId: currentUser.id, mode: _rtcCallMode }
+          : { clientId: targetId, callerName: offerPayload.callerName, callerId: currentUser.id, mode: _rtcCallMode };
         await fetch(SUPABASE_URL + '/functions/v1/' + endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
@@ -12737,7 +12737,7 @@ async function _lancerAppel(targetId, nomContact, courseId, mode = 'audio') {
           titre: '📞 Appel entrant de ' + (currentProfile?.prenom || 'Contact'),
           corps: 'Appuyez pour répondre via Zémigo',
           type: 'appel_rtc',
-          meta: { courseId, callerId: currentUser.id }
+          meta: { courseId, callerId: currentUser.id, mode: _rtcCallMode }
         });
       } catch(e) { console.warn('Notification appel (backup) échouée:', e); }
 

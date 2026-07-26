@@ -44,7 +44,9 @@
 })();
 </script>
 <title>Zémigo — Client</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.local.js"
+  onerror="console.error('supabase.local.js introuvable dans les assets')"
+></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"/>
@@ -99,7 +101,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
    AUTH SCREEN — Bold dark immersive
 ══════════════════════════════════ */
 #auth-screen{
-  position:fixed;inset:0;
+  position:fixed;top:0;right:0;bottom:0;left:0;
   background:linear-gradient(145deg, var(--navy) 0%, var(--navy3) 60%, #1a3a5c 100%);
   z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:0;padding:1.5rem;
@@ -305,7 +307,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
   background:var(--primary-glow);display:flex;align-items:center;justify-content:center;
   color:var(--primary);font-weight:700;font-size:.85rem;position:relative;
 }
-.pc-sidebar-ava img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%}
+.pc-sidebar-ava img{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:50%}
 .pc-sidebar-info{flex:1;min-width:0}
 .pc-sidebar-name{font-weight:700;font-size:.88rem;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pc-sidebar-phone{font-size:.72rem;color:rgba(255,255,255,.55);margin-top:1px}
@@ -615,7 +617,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 }
 
 /* Mobile pages */
-.mob-page{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;max-height:calc(100dvh - var(--topbar-h) - var(--nav-h))}
+.mob-page{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;max-height:calc(100vh - var(--topbar-h) - var(--nav-h));max-height:calc(100dvh - var(--topbar-h) - var(--nav-h))}
 .mob-page.active{display:flex}
 
 /* Mobile topbar — style Gozem : blanc, logo centré, icônes sombres */
@@ -652,7 +654,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 }
 #mob-map{
   position:absolute;
-  inset:0;
+  top:0;right:0;bottom:0;left:0;
   width:100% !important;
   height:100% !important;
   z-index:1;
@@ -753,6 +755,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
   box-shadow:0 -8px 40px rgba(13,27,42,.18);z-index:9000;
   transform:translateY(100%);
   transition:transform .35s cubic-bezier(.32,1.2,.64,1);
+  max-height:92vh;
   max-height:92dvh;
   display:flex;flex-direction:column;
   overflow:hidden;
@@ -862,7 +865,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 #mob-tv-page{background:#0A0A0F}
 .tv-player-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#000;flex-shrink:0}
 .tv-player-wrap video{width:100%;height:100%;object-fit:contain;background:#000}
-.tv-player-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(255,255,255,.55);gap:.5rem;font-size:.8rem;text-align:center;padding:1rem}
+.tv-player-placeholder{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(255,255,255,.55);gap:.5rem;font-size:.8rem;text-align:center;padding:1rem}
 .tv-player-placeholder i{font-size:1.8rem;color:var(--primary)}
 .tv-player-badge{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);color:#fff;font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:var(--radius-pill);display:flex;align-items:center;gap:5px;z-index:5}
 .tv-player-badge .dot{width:6px;height:6px;border-radius:50%;background:#EF4444;animation:tvblink 1.2s infinite}
@@ -872,7 +875,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 /* ══════════════════════════════════
    SALON LIVE — style TikTok Live / Facebook Live
 ══════════════════════════════════ */
-#modal-salon-live.sln-live-full{position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;inset:0;width:100vw!important;height:100vh!important;height:100dvh!important;max-width:100vw;max-height:100dvh;z-index:9999;background:#000;padding:0;margin:0;overflow:hidden;box-sizing:border-box}
+#modal-salon-live.sln-live-full{position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;top:0;right:0;bottom:0;left:0;width:100vw!important;height:100vh!important;height:100dvh!important;max-width:100vw;max-height:100dvh;z-index:9999;background:#000;padding:0;margin:0;overflow:hidden;box-sizing:border-box}
 #modal-salon-live.sln-live-full.open{display:flex;align-items:stretch;justify-content:stretch}
 #modal-salon-live.sln-live-full .sln-stage{position:relative;width:100%;height:100%;max-width:100%;max-height:100%;margin:0;border-radius:0;overflow:hidden;background:#000;display:flex;flex-direction:column;box-sizing:border-box}
 /* Sécurité anti-débordement : quel que soit l'appareil (encoche, barre de statut,
@@ -880,7 +883,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
    reste strictement dans la zone sûre — jamais derrière ces barres système. */
 #modal-salon-live.sln-live-full .sln-topbar{padding-top:calc(.7rem + env(safe-area-inset-top,0px) + var(--status-safe-top,0px))!important}
 #modal-salon-live.sln-live-full .sln-bottom-zone{padding-bottom:calc(.85rem + env(safe-area-inset-bottom,0px))!important}
-.sln-bg-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#0A0A0F}
+.sln-bg-video{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:cover;background:#0A0A0F}
 .sln-stage-gradient-top{position:absolute;top:0;left:0;right:0;height:140px;background:linear-gradient(180deg,rgba(0,0,0,.65),transparent);pointer-events:none;z-index:2}
 .sln-stage-gradient-bottom{position:absolute;bottom:0;left:0;right:0;height:260px;background:linear-gradient(0deg,rgba(0,0,0,.75),transparent);pointer-events:none;z-index:2}
 .sln-topbar{position:relative;z-index:5;display:flex;align-items:center;gap:.5rem;padding:calc(.7rem + env(safe-area-inset-top)) .8rem 0}
@@ -904,7 +907,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 .sln-input-row input{flex:1;min-width:0;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:#fff;border-radius:var(--radius-pill);padding:.55rem 1rem;font-family:var(--font);font-size:.82rem;outline:none}
 .sln-input-row input::placeholder{color:rgba(255,255,255,.6)}
 .sln-input-row button{border:none;background:var(--primary);color:#fff;border-radius:50%;width:38px;height:38px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.sln-panel-drawer{position:fixed;inset:0;z-index:10000;display:none;align-items:flex-end;background:rgba(0,0,0,.5)}
+.sln-panel-drawer{position:fixed;top:0;right:0;bottom:0;left:0;z-index:10000;display:none;align-items:flex-end;background:rgba(0,0,0,.5)}
 .sln-panel-drawer.open{display:flex}
 .sln-panel-sheet{background:var(--surface,#fff);width:100%;max-height:78vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:1rem 1.1rem 1.4rem}
 @keyframes slnGiftPop{0%{transform:translateY(0) scale(.4);opacity:0}15%{transform:translateY(-10px) scale(1.15);opacity:1}80%{transform:translateY(-90px) scale(1);opacity:1}100%{transform:translateY(-130px) scale(.8);opacity:0}}
@@ -1222,7 +1225,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hid
 
 /* ─── MODALS ─── */
 .modal-overlay{
-  position:fixed;inset:0;
+  position:fixed;top:0;right:0;bottom:0;left:0;
   background:rgba(13,27,42,.55);
   backdrop-filter:blur(4px);
   z-index:500;display:none;align-items:flex-end;justify-content:center;
@@ -1557,7 +1560,7 @@ input:valid {
   }
   #mob-map{
     position:absolute;
-    inset:0;
+    top:0;right:0;bottom:0;left:0;
     width:100% !important;
     height:100% !important;
     z-index:1;
@@ -2014,7 +2017,7 @@ input:valid {
 .jr-watch-create-btn::after{right:-10px;background:#FF2D55}
 
 /* Modal publication rapide depuis Watch */
-.jr-quickpub-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:center;justify-content:center}
+.jr-quickpub-modal{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.75);z-index:2000;align-items:center;justify-content:center}
 .jr-quickpub-modal.open{display:flex}
 .jr-quickpub-inner{background:var(--surface);border-radius:var(--radius);padding:1rem;width:90%;max-width:360px;max-height:88vh;overflow:auto}
 .jr-quickpub-title{font-weight:800;font-size:.95rem;margin-bottom:.6rem;color:var(--text)}
@@ -2051,7 +2054,7 @@ input:valid {
 /* Sur desktop : Allô Social prend tout l'écran (comme un vrai réseau
    social) au lieu d'être coincé dans la colonne latérale de 300px */
 @media (min-width:769px){
-  #panel-journal.active{position:fixed!important;inset:0!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100vw!important;height:100vh!important;z-index:80;background:var(--surface2)}
+  #panel-journal.active{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100vw!important;height:100vh!important;z-index:80;background:var(--surface2)}
   #panel-journal #jr-pane-fil{background:var(--surface2);padding-bottom:1rem}
   #panel-journal .jr-composer,#panel-journal .jr-post{max-width:640px;margin-left:auto;margin-right:auto}
   #panel-journal .jr-composer{margin-top:1rem}
@@ -2064,7 +2067,7 @@ input:valid {
 
 /* Tiroir de commentaires du Watch, façon TikTok : glisse depuis le bas,
    au-dessus de la vidéo, avec sa propre zone de saisie ancrée en bas */
-.jr-watch-comments-backdrop{display:none;position:absolute;inset:0;background:rgba(0,0,0,.35);z-index:24}
+.jr-watch-comments-backdrop{display:none;position:absolute;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.35);z-index:24}
 .jr-watch-comments-backdrop.open{display:block}
 .jr-watch-comments-panel{position:absolute;left:0;right:0;bottom:0;max-height:62%;background:var(--surface);border-radius:16px 16px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.3);display:flex;flex-direction:column;z-index:25;transform:translateY(105%);transition:transform .25s ease;overflow:hidden}
 .jr-watch-comments-panel.open{transform:translateY(0)}
@@ -2441,7 +2444,7 @@ input:valid {
       </div>
       <!-- Messages -->
       <div style="flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column">
-        <div class="wa-bg" style="position:absolute;inset:0;pointer-events:none"></div>
+        <div class="wa-bg" style="position:absolute;top:0;right:0;bottom:0;left:0;pointer-events:none"></div>
         <div class="wa-msgs" id="pc-chat-messages"></div>
         <button class="scroll-down-btn" id="pc-scroll-down" onclick="scrollChatBottom('pc')"><i class="ti ti-chevron-down"></i></button>
       </div>
@@ -2643,7 +2646,7 @@ input:valid {
     </div>
     <!-- Zone messages -->
     <div style="flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column">
-      <div class="wa-bg" style="position:absolute;inset:0;pointer-events:none"></div>
+      <div class="wa-bg" style="position:absolute;top:0;right:0;bottom:0;left:0;pointer-events:none"></div>
       <div class="wa-msgs" id="mob-chat-messages"></div>
       <button class="scroll-down-btn" id="mob-scroll-down" onclick="scrollChatBottom('mob')"><i class="ti ti-chevron-down"></i></button>
     </div>
@@ -2701,7 +2704,7 @@ input:valid {
     <div class="mob-scroll">
       <div class="mob-profile-hero">
         <div class="mob-profile-ava">
-          <img id="mob-profile-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%">
+          <img id="mob-profile-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;right:0;bottom:0;left:0;border-radius:50%">
           <span id="mob-profile-initials" style="font-size:1.8rem;font-weight:700">?</span>
           <div class="edit-ava" onclick="openAvatarUpload()"><i class="ti ti-camera" style="font-size:.7rem"></i></div>
         </div>
@@ -2744,6 +2747,7 @@ input:valid {
       <div class="mob-menu-item" onclick="openParrainageModal()"><i class="ti ti-gift"></i> Parrainage &amp; récompenses <i class="ti ti-chevron-right chevron"></i></div>
       <div class="mob-menu-item" onclick="openModal('modal-assurance')"><i class="ti ti-shield-check"></i> Garantie livraison <i class="ti ti-chevron-right chevron"></i></div>
       <div class="mob-menu-item" onclick="openModal('modal-mon-artisan');chargerMonArtisan()"><i class="ti ti-tools"></i> Allô Artisans — Ma vitrine <i class="ti ti-chevron-right chevron"></i></div>
+      <div class="mob-menu-item" onclick="ouvrirModeDemarcheur()"><i class="ti ti-user-plus" style="color:#7C3AED"></i> Mode Démarcheur <span id="mj-demarcheur-badge" style="display:none;background:#7C3AED;color:#fff;font-size:.62rem;font-weight:700;padding:1px 7px;border-radius:20px;margin-left:4px;vertical-align:middle"></span> <i class="ti ti-chevron-right chevron"></i></div>
       <div class="mob-menu-item" onclick="openModal('modal-publicite');chargerMesCampagnesAds()"><i class="ti ti-speakerphone"></i> Faire de la publicité <i class="ti ti-chevron-right chevron"></i></div>
       <div class="mob-menu-item" onclick="switchMobPage('journal')"><i class="ti ti-news"></i> Allô Social — Réseau social <i class="ti ti-chevron-right chevron"></i></div>
       <div class="mob-menu-item" onclick="switchMobPage('dexcoin')"><i class="ti ti-coin" style="color:#F59E0B"></i> DexCoin — Cours &amp; portefeuille <i class="ti ti-chevron-right chevron"></i></div>
@@ -3291,7 +3295,7 @@ input:valid {
     <!-- CARTE TEMPS RÉEL -->
     <div style="padding:0 1.1rem;flex-shrink:0">
       <div id="suivi-map" style="width:100%;height:280px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border);position:relative">
-        <div id="suivi-map-placeholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);gap:.5rem;z-index:1">
+        <div id="suivi-map-placeholder" style="position:absolute;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);gap:.5rem;z-index:1">
           <div style="font-size:2rem">🛵</div>
           <div style="font-size:.78rem;color:var(--text2)">En attente de la position de l'agent de service…</div>
         </div>
@@ -3784,7 +3788,7 @@ input:valid {
           </div>
           <label style="position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0">
             <input type="checkbox" id="art-toggle-gps" onchange="togglePositionArtisan(this.checked)" style="opacity:0;width:0;height:0">
-            <span onclick="document.getElementById('art-toggle-gps').click()" style="position:absolute;cursor:pointer;inset:0;background:var(--border2);border-radius:26px;transition:.3s" id="art-gps-thumb"></span>
+            <span onclick="document.getElementById('art-toggle-gps').click()" style="position:absolute;cursor:pointer;top:0;right:0;bottom:0;left:0;background:var(--border2);border-radius:26px;transition:.3s" id="art-gps-thumb"></span>
           </label>
         </div>
 
@@ -4017,7 +4021,7 @@ input:valid {
     <!-- CARTE TEMPS RÉEL -->
     <div style="padding:0 1.1rem;flex-shrink:0">
       <div id="sart-map" style="width:100%;height:260px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border);position:relative">
-        <div id="sart-map-placeholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);gap:.5rem;z-index:1">
+        <div id="sart-map-placeholder" style="position:absolute;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);gap:.5rem;z-index:1">
           <div style="font-size:2rem">🔧</div>
           <div style="font-size:.78rem;color:var(--text2)">En attente de la position de l'artisan…</div>
         </div>
@@ -4240,7 +4244,7 @@ input:valid {
     <div class="modal-handle" onclick="closeModal('modal-livreur')"><div class="modal-handle-pill"></div></div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:.5rem;padding:.5rem 1.25rem 1rem;text-align:center">
       <div style="width:72px;height:72px;border-radius:50%;overflow:hidden;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:1.5rem;border:3px solid var(--border);position:relative;flex-shrink:0">
-        <img id="mlv-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%">
+        <img id="mlv-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;right:0;bottom:0;left:0;border-radius:50%">
         <span id="mlv-init">?</span>
       </div>
       <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800" id="mlv-name">-</div>
@@ -4377,7 +4381,7 @@ input:valid {
     <div style="padding:0 1.25rem">
       <div style="display:flex;flex-direction:column;align-items:center;gap:.75rem;padding:.75rem 0 1.25rem;border-bottom:1px solid var(--border);margin-bottom:1rem">
         <div style="width:72px;height:72px;border-radius:50%;overflow:hidden;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:1.5rem;border:3px solid var(--border);position:relative;cursor:pointer" onclick="openAvatarUpload()">
-          <img id="edit-ava-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%">
+          <img id="edit-ava-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;right:0;bottom:0;left:0;border-radius:50%">
           <span id="edit-ava-init">?</span>
         </div>
         <div style="font-size:.8rem;color:var(--text2)">Cliquer pour changer la photo</div>
@@ -4676,7 +4680,7 @@ input:valid {
   font-size: .68rem; font-weight: 600; color: rgba(255,255,255,.7);
 }
 #rtc-remote-video {
-  display: none; position: fixed; inset: 0; width: 100%; height: 100%;
+  display: none; position: fixed; top:0;right:0;bottom:0;left:0; width: 100%; height: 100%;
   object-fit: cover; background: #000; z-index: 0;
 }
 #rtc-local-video {
@@ -4924,7 +4928,7 @@ input:valid {
 .wa-header-name{font-weight:700;font-size:.93rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
 .wa-header-status{font-size:.68rem;opacity:.7;margin-top:2px}
 /* Lightbox */
-#wa-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9999;display:none;align-items:center;justify-content:center}
+#wa-lightbox{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.95);z-index:9999;display:none;align-items:center;justify-content:center}
 #wa-lightbox.open{display:flex}
 #wa-lightbox img{max-width:92vw;max-height:90vh;border-radius:8px;object-fit:contain}
 #wa-lb-close{position:absolute;top:14px;right:14px;color:#fff;font-size:1.4rem;background:rgba(0,0,0,.5);border:none;cursor:pointer;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%}
@@ -4944,6 +4948,20 @@ input:valid {
 //  CONFIG SUPABASE
 // ══════════════════════════════════════════════════════════════
 const SUPABASE_URL = 'https://kathcclodsceifbyygzk.supabase.co';
+// URL web publique de l'app, utilisée pour générer les liens magiques.
+// IMPORTANT : dans l'app Android (WebView), location.origin/pathname pointent
+// vers file:///android_asset/shell.html — un lien inutilisable en dehors de
+// l'app. On utilise donc toujours cette URL fixe pour les liens partagés,
+// et on ne se rabat sur location que si la page est réellement servie en http(s).
+const ZEMIGO_MAGIC_BASE_URL = 'https://zemigo.pages.dev/';
+function dmBaseUrlMagique() {
+  try {
+    if (location.protocol === 'http:' || location.protocol === 'https:') {
+      return location.origin + location.pathname;
+    }
+  } catch (e) {}
+  return ZEMIGO_MAGIC_BASE_URL;
+}
 const SUPABASE_KEY = 'sb_publishable_9m78hZ7BUe9jYykJ1w3kZw_Q_yig4J3';
 // ── Vérification localStorage (essentiel pour garder la session connectée dans l'APK) ──
 // Si WebSettings.setDomStorageEnabled(true) n'est pas activé côté Android WebView,
@@ -5194,6 +5212,15 @@ let isInitializing = false;
 })();
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Session magique : quelqu'un sans compte (client OU professionnel) a reçu
+  // un lien du type .../?magic=TOKEN ou .../?magicpro=TOKEN — on court-circuite
+  // tout l'écran de connexion normal.
+  const _qs = new URLSearchParams(location.search);
+  const _magicClient = _qs.get('magic');
+  const _magicPro = _qs.get('magicpro');
+  if (_magicClient) { await initMagicSession(_magicClient, 'client'); return; }
+  if (_magicPro) { await initMagicSession(_magicPro, 'pro'); return; }
+
   buildVehCards('mob-type-colis','mob-type-colis-cards');
   buildVehCards('mob-type-passager','mob-type-passager-cards');
   // Span caché pour stocker le téléphone du contact actif (utilisé par callContact)
@@ -5235,6 +5262,7 @@ async function initApp() {
   jrEnsurePlacement();
   await loadConfig();
   await loadProfile();
+  updateDemarcheurBadge().catch(() => {});
   initMaps();
   loadLivreurs();
   loadCategories();
@@ -8066,7 +8094,7 @@ async function updateChatHeader(otherId) {
   if (!p) return;
   const nom = ((p.prenom||'') + ' ' + (p.nom||'')).trim();
   const url = getAvatarUrl(p); const ini = getInitials(p);
-  const avaHtml = url ? `<img src="${url}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%" onerror="this.style.display='none'">${ini}` : ini;
+  const avaHtml = url ? `<img src="${url}" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;right:0;bottom:0;left:0;border-radius:50%" onerror="this.style.display='none'">${ini}` : ini;
   ['mob-chat-ava','pc-chat-ava'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = avaHtml; });
   const verified = p.badge_verifie ? ' <i class="ti ti-circle-check-filled" style="font-size:.78rem;opacity:.9"></i>' : '';
   document.getElementById('mob-chat-title').innerHTML = nom + verified;
@@ -16384,36 +16412,16 @@ let jrPendingMediaType = null;   // 'image' | 'video' | 'file'
 let jrPendingMediaCompressed = null; // dataURL image compressée (si applicable)
 let jrPostsCache = [];
 let jrRealtimeChan = null;
-let _jrRerenderTimer = null;
-// CORRECTIF : avant, CHAQUE post/like/commentaire de N'IMPORTE QUI
-// déclenchait un rechargement + reconstruction complète du fil
-// (jrLoadPosts + jrRenderFeed = tout le HTML remplacé). Sur une appli
-// avec plusieurs utilisateurs actifs, ça arrivait pendant qu'un
-// utilisateur était en train de taper ou de cliquer "Envoyer" sur un
-// commentaire -> le bouton disparaissait du DOM avant que le clic soit
-// traité, donnant l'impression que "le bouton ne répond pas". On
-// regroupe maintenant les rafraîchissements (debounce) et on restaure
-// le texte en cours de frappe + le focus après reconstruction.
-function _jrRerenderFeedSafe() {
-  if (_jrRerenderTimer) clearTimeout(_jrRerenderTimer);
-  _jrRerenderTimer = setTimeout(async () => {
-    const actif = document.activeElement;
-    const idActif = actif && actif.id && actif.id.startsWith('jr-comment-input-') ? actif.id : null;
-    const valeurActive = idActif ? actif.value : null;
-    const selStart = idActif ? actif.selectionStart : null;
-    await jrLoadPosts();
-    jrRenderFeed();
-    if (typeof jrRenderWatch === 'function') jrRenderWatch();
-    if (idActif) {
-      const el = document.getElementById(idActif);
-      if (el) {
-        el.value = valeurActive || '';
-        el.focus();
-        try { el.setSelectionRange(selStart, selStart); } catch(e) {}
-      }
-    }
-  }, 900);
-}
+// CORRECTIF EGRESS : avant, CHAQUE post/like/commentaire de N'IMPORTE
+// QUI déclenchait un rechargement + reconstruction complète du fil
+// (jrLoadPosts + jrRenderFeed/jrRenderWatch = tout le HTML remplacé,
+// donc tous les <video>/<img> recréés = retéléchargés). Sur une appli
+// avec plusieurs utilisateurs actifs, ça gonflait énormément l'egress
+// Supabase pour un simple like. On applique maintenant des mises à
+// jour ciblées : seul le post concerné (compteurs, réactions,
+// commentaires) est patché dans le DOM, sans toucher aux médias déjà
+// affichés. Voir jrPatchLikes / jrPatchComments / jrHandlePostInsert
+// / jrHandlePostUpdate / jrHandlePostDelete plus bas.
 
 // ══════════════════════════════════════════════════════════════
 //  MODÉRATION AUTOMATIQUE (inchangée, exécutée côté client avant
@@ -16513,14 +16521,22 @@ async function jrInit() {
 function jrSubscribeRealtime() {
   if (jrRealtimeChan) return; // déjà abonné
   jrRealtimeChan = sb.channel('journal-feed')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_posts' }, () => {
-      _jrRerenderFeedSafe();
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'journal_posts' }, payload => {
+      jrHandlePostInsert(payload.new.id);
     })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_likes' }, () => {
-      _jrRerenderFeedSafe();
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'journal_posts' }, payload => {
+      jrHandlePostUpdate(payload.new.id);
     })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_comments' }, () => {
-      _jrRerenderFeedSafe();
+    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'journal_posts' }, payload => {
+      jrHandlePostDelete(payload.old.id);
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_likes' }, payload => {
+      const postId = payload.new?.post_id || payload.old?.post_id;
+      if (postId) jrPatchLikes(postId);
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_comments' }, payload => {
+      const postId = payload.new?.post_id || payload.old?.post_id;
+      if (postId) jrPatchComments(postId);
     })
     .subscribe();
 }
@@ -16550,7 +16566,14 @@ async function jrLoadPosts() {
     (profilsTagges || []).forEach(u => { nomsTagges[u.id] = ((u.prenom||'')+' '+(u.nom||'')).trim() || 'Utilisateur'; });
   }
 
-  jrPostsCache = (data || []).map(p => ({
+  jrPostsCache = (data || []).map(p => jrMapPostRow(p, nomsTagges));
+}
+
+// Convertit une ligne brute journal_posts (+ jointures) en objet post utilisé
+// par le rendu. Extrait de jrLoadPosts pour être réutilisé par
+// jrFetchOnePost (mise à jour ciblée d'un seul post, sans recharger tout le fil).
+function jrMapPostRow(p, nomsTagges) {
+  return {
     id: p.id,
     authorId: p.auteur_id,
     authorName: `${p.profiles?.prenom || ''} ${p.profiles?.nom || ''}`.trim() || 'Utilisateur',
@@ -16558,7 +16581,7 @@ async function jrLoadPosts() {
     text: p.texte,
     sponsorise: !!p.sponsorise,
     sponsorLabel: p.sponsor_label || 'Sponsorisé',
-    taggedNames: (p.tagged_ids || []).map(id => nomsTagges[id]).filter(Boolean),
+    taggedNames: (p.tagged_ids || []).map(id => (nomsTagges || {})[id]).filter(Boolean),
     tagAll: !!p.tag_all,
     media: p.media_path ? {
       type: p.media_type,
@@ -16578,7 +16601,35 @@ async function jrLoadPosts() {
         audioUrl: c.audio_path ? sb.storage.from('journal-media').getPublicUrl(c.audio_path).data.publicUrl : null,
         ts: new Date(c.created_at).getTime()
       }))
-  }));
+  };
+}
+
+// Récupère un seul post (avec ses réactions/commentaires/tags) sans
+// recharger tout le fil. Utilisé pour insérer/mettre à jour un post
+// précis suite à un évènement realtime, sans retélécharger les
+// médias des autres posts déjà affichés.
+async function jrFetchOnePost(postId) {
+  const { data, error } = await sb
+    .from('journal_posts')
+    .select(`
+      id, texte, media_type, media_path, nom_fichier, created_at, auteur_id,
+      sponsorise, sponsor_label, tagged_ids, tag_all,
+      profiles:auteur_id ( nom, prenom, avatar_url ),
+      journal_likes ( user_id, reaction ),
+      journal_comments ( id, texte, created_at, auteur_id, parent_comment_id, audio_path, profiles:auteur_id ( nom, prenom ) )
+    `)
+    .eq('id', postId)
+    .eq('statut', 'publie')
+    .maybeSingle();
+
+  if (error || !data) return null;
+
+  let nomsTagges = {};
+  if ((data.tagged_ids || []).length) {
+    const { data: profilsTagges } = await sb.from('profiles').select('id,nom,prenom').in('id', data.tagged_ids);
+    (profilsTagges || []).forEach(u => { nomsTagges[u.id] = ((u.prenom||'')+' '+(u.nom||'')).trim() || 'Utilisateur'; });
+  }
+  return jrMapPostRow(data, nomsTagges);
 }
 
 function jrSwitchTab(tab) {
@@ -16785,16 +16836,16 @@ async function jrPublier() {
       const path = `${currentUser.id}/${Date.now()}.${ext}`;
 
       if (jrPendingMediaType === 'audio') {
-        const { error: upErr } = await sb.storage.from('journal-media').upload(path, jrPendingMediaFile, { contentType: jrPendingMediaFile.type || 'audio/webm' });
+        const { error: upErr } = await sb.storage.from('journal-media').upload(path, jrPendingMediaFile, { contentType: jrPendingMediaFile.type || 'audio/webm', cacheControl: '31536000' });
         if (upErr) throw upErr;
       } else if (jrPendingMediaType === 'image' && jrPendingMediaCompressed) {
         // On uploade la version compressée (plus légère, affichage plus rapide)
         const blob = jrDataUrlToBlob(jrPendingMediaCompressed);
-        const { error: upErr } = await sb.storage.from('journal-media').upload(path, blob, { contentType: 'image/jpeg' });
+        const { error: upErr } = await sb.storage.from('journal-media').upload(path, blob, { contentType: 'image/jpeg', cacheControl: '31536000' });
         if (upErr) throw upErr;
       } else {
         const { error: upErr } = await sb.storage.from('journal-media').upload(path, jrPendingMediaFile, {
-          contentType: jrPendingMediaFile.type || 'application/octet-stream', upsert: false
+          contentType: jrPendingMediaFile.type || 'application/octet-stream', upsert: false, cacheControl: '31536000'
         });
         if (upErr) throw upErr;
       }
@@ -16803,7 +16854,7 @@ async function jrPublier() {
       if (jrPendingMediaType === 'file') nom_fichier = jrPendingMediaFile.name;
     }
 
-    const { error: insErr } = await sb.from('journal_posts').insert({
+    const { data: inserted, error: insErr } = await sb.from('journal_posts').insert({
       auteur_id: currentUser.id,
       texte: text || null,
       media_path,
@@ -16812,15 +16863,15 @@ async function jrPublier() {
       statut: 'publie',
       tagged_ids: Array.from(jrTagState.jr.ids),
       tag_all: jrTagState.jr.all
-    });
+    }).select('id').single();
     if (insErr) throw insErr;
 
     textEl.value = ''; jrAutoGrow(textEl);
     jrRemoveMedia();
     _jrTagResetEtat('jr');
-    await jrLoadPosts();
-    jrRenderFeed();
-    jrRenderWatch();
+    // On insère seulement le nouveau post (pas de rechargement/reconstruction
+    // du fil entier : les médias déjà affichés ne sont pas retéléchargés).
+    if (inserted?.id) await jrHandlePostInsert(inserted.id);
     showToast('Publié !', 'success');
   } catch (e) {
     console.error('jrPublier', e);
@@ -16875,23 +16926,23 @@ async function jrQuickPubSend() {
     const ext = jrPendingMediaFile.name.split('.').pop() || 'mp4';
     const path = `${currentUser.id}/${Date.now()}.${ext}`;
     const { error: upErr } = await sb.storage.from('journal-media').upload(path, jrPendingMediaFile, {
-      contentType: jrPendingMediaFile.type || 'video/mp4'
+      contentType: jrPendingMediaFile.type || 'video/mp4', cacheControl: '31536000'
     });
     if (upErr) throw upErr;
 
-    const { error: insErr } = await sb.from('journal_posts').insert({
+    const { data: inserted, error: insErr } = await sb.from('journal_posts').insert({
       auteur_id: currentUser.id,
       texte: caption || null,
       media_path: path,
       media_type: 'video',
       statut: 'publie'
-    });
+    }).select('id').single();
     if (insErr) throw insErr;
 
     jrQuickPubCancel();
-    await jrLoadPosts();
-    jrRenderFeed();
-    jrRenderWatch();
+    // Insère seulement la nouvelle vidéo (le fil texte/images déjà
+    // affiché n'est pas reconstruit, donc pas retéléchargé).
+    if (inserted?.id) await jrHandlePostInsert(inserted.id);
     showToast('Vidéo publiée !', 'success');
   } catch (e) {
     console.error('jrQuickPubSend', e);
@@ -16929,75 +16980,197 @@ function jrRenderFeed() {
     list.innerHTML = '<div class="jr-empty"><i class="ti ti-news" style="font-size:2rem"></i><br>Aucune publication pour l\'instant.<br>Soyez le premier à partager quelque chose !</div>';
     return;
   }
-  list.innerHTML = posts.map(p => {
-    const mine = jrMyReaction(p);
-    let mediaHtml = '';
-    if (p.media?.type === 'image') {
-      mediaHtml = `<div class="jr-post-media"><img src="${p.media.url}" loading="lazy"></div>`;
-    } else if (p.media?.type === 'video') {
-      mediaHtml = `<div class="jr-post-media"><video src="${p.media.url}" data-thumb poster="${jrGetCachedThumb(p.media.url)}" preload="metadata" controls playsinline></video></div>`;
-    } else if (p.media?.type === 'file') {
-      const fname = p.media.nomFichier || 'Fichier';
-      mediaHtml = `<a class="jr-post-file" href="${p.media.url}" target="_blank" rel="noopener">
-        <div class="jr-file-icon"><i class="ti ${jrFileIcon(fname)}"></i></div>
-        <div class="jr-file-info"><div class="jr-file-name">${jrEsc(fname)}</div><div class="jr-file-meta">Télécharger</div></div>
-      </a>`;
-    } else if (p.media?.type === 'audio') {
-      mediaHtml = `<div class="jr-post-media"><audio src="${p.media.url}" controls style="width:100%"></audio></div>`;
-    }
-    const initials = (p.authorName || '?').charAt(0).toUpperCase();
-    const reactBtnEmoji = mine ? JR_REACTIONS[mine] : null;
-    const tagLigne = jrTagLigneHTML(p.taggedNames, p.tagAll);
-    return `
-    <div class="jr-post ${p.sponsorise ? 'sponsored' : ''}" data-id="${p.id}">
-      <div class="jr-post-head">
-        <div class="jr-ava">${p.authorAvatar ? `<img src="${p.authorAvatar}">` : initials}</div>
-        <div>
-          <div class="jr-post-name">${jrEsc(p.authorName)}</div>
-          ${p.sponsorise
-            ? `<div class="jr-sponsor-badge"><i class="ti ti-speakerphone" style="font-size:.7rem"></i> ${jrEsc(p.sponsorLabel)}</div>`
-            : `<div class="jr-post-meta">${jrTimeAgo(p.ts)} · <i class="ti ti-world"></i></div>`}
-        </div>
-      </div>
-      ${p.text ? `<div class="jr-post-text">${jrEsc(p.text)}</div>` : ''}
-      ${tagLigne}
-      ${mediaHtml}
-      <div class="jr-post-stats"><span>${jrReactionSummary(p)}</span><span>${p.comments.length ? p.comments.length + ' commentaire(s)' : ''}</span></div>
-      <div class="jr-post-actions">
-        <div class="jr-react-wrap">
-          <button type="button" class="jr-post-action jr-react-btn ${mine ? 'liked' : ''}"
-            onclick="jrReact('${p.id}','${mine || 'like'}')"
-            ontouchstart="jrLongPressStart('${p.id}', this)" ontouchend="jrLongPressEnd()"
-            onmousedown="jrLongPressStart('${p.id}', this)" onmouseup="jrLongPressEnd()" onmouseleave="jrLongPressEnd()">
-            ${reactBtnEmoji ? `<span>${reactBtnEmoji}</span>` : `<i class="ti ti-thumb-up"></i>`} J'aime
-          </button>
-          <div class="jr-reaction-picker" id="jr-picker-${p.id}">
-            ${Object.entries(JR_REACTIONS).map(([type, em]) => `<button type="button" onclick="event.stopPropagation();jrReact('${p.id}','${type}')">${em}</button>`).join('')}
-          </div>
-        </div>
-        <button type="button" class="jr-post-action" onclick="jrToggleComments('${p.id}')"><i class="ti ti-message-circle"></i> Commenter</button>
-        <button type="button" class="jr-post-action" onclick="jrShare('${p.id}')"><i class="ti ti-share"></i> Partager</button>
-        <button type="button" class="jr-post-action" onclick="jrSendAsMessage('${p.id}')"><i class="ti ti-send-2"></i> Message</button>
-        ${p.authorId !== currentUser?.id ? `<button type="button" class="jr-post-action" style="color:#F59E0B" onclick="ouvrirEnvoiDexcoin('${p.authorId}','post','${p.id}')"><i class="ti ti-coin"></i> DexCoin</button>` : ''}
-      </div>
-      <div class="jr-comments" id="jr-comments-${p.id}">
-        ${jrRenderCommentsTree(p.id, p.comments)}
-        <div class="jr-comment-input-row" id="jr-comment-normal-row-${p.id}">
-          <input type="text" placeholder="Écrire un commentaire…" id="jr-comment-input-${p.id}" onkeydown="if(event.key==='Enter')jrComment('${p.id}')">
-          <button type="button" title="Message vocal" onclick="jrStartCommentAudio('${p.id}','${p.id}','')"><i class="ti ti-microphone"></i></button>
-          <button type="button" onclick="jrComment('${p.id}')"><i class="ti ti-send"></i></button>
-        </div>
-        <div class="jr-rec-bar" id="jr-comment-rec-row-${p.id}" style="display:none">
-          <div class="jr-rec-dot"></div>
-          <div class="jr-rec-wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-          <div class="jr-rec-timer" id="jr-comment-rec-timer-${p.id}">0:00</div>
-          <button type="button" class="jr-rec-cancel" title="Annuler" onclick="jrCancelCommentAudio('${p.id}')"><i class="ti ti-trash"></i></button>
-          <button type="button" class="jr-rec-confirm" title="Envoyer" onclick="jrConfirmCommentAudio('${p.id}','${p.id}','')"><i class="ti ti-send"></i></button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+  list.innerHTML = posts.map(jrPostHTML).join('');
   jrApplyVideoThumbs(list);
+}
+
+// Template HTML d'un seul post. Extrait de jrRenderFeed pour pouvoir
+// insérer/remplacer UN post précis (nouvelle publication, édition)
+// sans reconstruire tout le fil ni retélécharger les médias des
+// autres posts déjà affichés.
+function jrPostHTML(p) {
+  const mine = jrMyReaction(p);
+  let mediaHtml = '';
+  if (p.media?.type === 'image') {
+    mediaHtml = `<div class="jr-post-media"><img src="${p.media.url}" loading="lazy"></div>`;
+  } else if (p.media?.type === 'video') {
+    mediaHtml = `<div class="jr-post-media"><video src="${p.media.url}" data-thumb poster="${jrGetCachedThumb(p.media.url)}" preload="metadata" controls playsinline></video></div>`;
+  } else if (p.media?.type === 'file') {
+    const fname = p.media.nomFichier || 'Fichier';
+    mediaHtml = `<a class="jr-post-file" href="${p.media.url}" target="_blank" rel="noopener">
+      <div class="jr-file-icon"><i class="ti ${jrFileIcon(fname)}"></i></div>
+      <div class="jr-file-info"><div class="jr-file-name">${jrEsc(fname)}</div><div class="jr-file-meta">Télécharger</div></div>
+    </a>`;
+  } else if (p.media?.type === 'audio') {
+    mediaHtml = `<div class="jr-post-media"><audio src="${p.media.url}" controls style="width:100%"></audio></div>`;
+  }
+  const initials = (p.authorName || '?').charAt(0).toUpperCase();
+  const reactBtnEmoji = mine ? JR_REACTIONS[mine] : null;
+  const tagLigne = jrTagLigneHTML(p.taggedNames, p.tagAll);
+  return `
+  <div class="jr-post ${p.sponsorise ? 'sponsored' : ''}" data-id="${p.id}">
+    <div class="jr-post-head">
+      <div class="jr-ava">${p.authorAvatar ? `<img src="${p.authorAvatar}">` : initials}</div>
+      <div>
+        <div class="jr-post-name">${jrEsc(p.authorName)}</div>
+        ${p.sponsorise
+          ? `<div class="jr-sponsor-badge"><i class="ti ti-speakerphone" style="font-size:.7rem"></i> ${jrEsc(p.sponsorLabel)}</div>`
+          : `<div class="jr-post-meta">${jrTimeAgo(p.ts)} · <i class="ti ti-world"></i></div>`}
+      </div>
+    </div>
+    ${p.text ? `<div class="jr-post-text">${jrEsc(p.text)}</div>` : ''}
+    ${tagLigne}
+    ${mediaHtml}
+    <div class="jr-post-stats"><span>${jrReactionSummary(p)}</span><span>${p.comments.length ? p.comments.length + ' commentaire(s)' : ''}</span></div>
+    <div class="jr-post-actions">
+      <div class="jr-react-wrap">
+        <button type="button" class="jr-post-action jr-react-btn ${mine ? 'liked' : ''}"
+          onclick="jrReact('${p.id}','${mine || 'like'}')"
+          ontouchstart="jrLongPressStart('${p.id}', this)" ontouchend="jrLongPressEnd()"
+          onmousedown="jrLongPressStart('${p.id}', this)" onmouseup="jrLongPressEnd()" onmouseleave="jrLongPressEnd()">
+          ${reactBtnEmoji ? `<span>${reactBtnEmoji}</span>` : `<i class="ti ti-thumb-up"></i>`} J'aime
+        </button>
+        <div class="jr-reaction-picker" id="jr-picker-${p.id}">
+          ${Object.entries(JR_REACTIONS).map(([type, em]) => `<button type="button" onclick="event.stopPropagation();jrReact('${p.id}','${type}')">${em}</button>`).join('')}
+        </div>
+      </div>
+      <button type="button" class="jr-post-action" onclick="jrToggleComments('${p.id}')"><i class="ti ti-message-circle"></i> Commenter</button>
+      <button type="button" class="jr-post-action" onclick="jrShare('${p.id}')"><i class="ti ti-share"></i> Partager</button>
+      <button type="button" class="jr-post-action" onclick="jrSendAsMessage('${p.id}')"><i class="ti ti-send-2"></i> Message</button>
+      ${p.authorId !== currentUser?.id ? `<button type="button" class="jr-post-action" style="color:#F59E0B" onclick="ouvrirEnvoiDexcoin('${p.authorId}','post','${p.id}')"><i class="ti ti-coin"></i> DexCoin</button>` : ''}
+    </div>
+    <div class="jr-comments" id="jr-comments-${p.id}">
+      <div id="jr-comments-tree-${p.id}">${jrRenderCommentsTree(p.id, p.comments)}</div>
+      <div class="jr-comment-input-row" id="jr-comment-normal-row-${p.id}">
+        <input type="text" placeholder="Écrire un commentaire…" id="jr-comment-input-${p.id}" onkeydown="if(event.key==='Enter')jrComment('${p.id}')">
+        <button type="button" title="Message vocal" onclick="jrStartCommentAudio('${p.id}','${p.id}','')"><i class="ti ti-microphone"></i></button>
+        <button type="button" onclick="jrComment('${p.id}')"><i class="ti ti-send"></i></button>
+      </div>
+      <div class="jr-rec-bar" id="jr-comment-rec-row-${p.id}" style="display:none">
+        <div class="jr-rec-dot"></div>
+        <div class="jr-rec-wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="jr-rec-timer" id="jr-comment-rec-timer-${p.id}">0:00</div>
+        <button type="button" class="jr-rec-cancel" title="Annuler" onclick="jrCancelCommentAudio('${p.id}')"><i class="ti ti-trash"></i></button>
+        <button type="button" class="jr-rec-confirm" title="Envoyer" onclick="jrConfirmCommentAudio('${p.id}','${p.id}','')"><i class="ti ti-send"></i></button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Mises à jour ciblées suite aux évènements realtime (voir jrSubscribeRealtime) ──
+
+async function jrHandlePostInsert(postId) {
+  if (jrPostsCache.some(x => x.id === postId)) return; // déjà présent (ex: notre propre publication)
+  const p = await jrFetchOnePost(postId);
+  if (!p) return;
+  jrPostsCache.unshift(p);
+  const list = document.getElementById('jr-feed-list');
+  if (list) {
+    if (list.querySelector('.jr-empty')) list.innerHTML = '';
+    list.insertAdjacentHTML('afterbegin', jrPostHTML(p));
+    jrApplyVideoThumbs(list);
+  }
+  // Le Watch (vidéos) n'est reconstruit que si une nouvelle vidéo arrive
+  // (évènement rare), jamais sur un simple like/commentaire.
+  if (p.media?.type === 'video') jrRenderWatch();
+}
+
+async function jrHandlePostUpdate(postId) {
+  const p = await jrFetchOnePost(postId);
+  const idx = jrPostsCache.findIndex(x => x.id === postId);
+  if (!p) {
+    // Post démodéré ou passé hors du fil public : on le retire.
+    if (idx !== -1) jrPostsCache.splice(idx, 1);
+    document.querySelector(`.jr-post[data-id="${postId}"]`)?.remove();
+    document.querySelector(`.jr-watch-item[data-id="${postId}"]`)?.remove();
+    return;
+  }
+  if (idx === -1) jrPostsCache.unshift(p); else jrPostsCache[idx] = p;
+  const el = document.querySelector(`.jr-post[data-id="${postId}"]`);
+  if (el) {
+    el.outerHTML = jrPostHTML(p);
+    const list = document.getElementById('jr-feed-list');
+    if (list) jrApplyVideoThumbs(list);
+  }
+  if (p.media?.type === 'video' || document.querySelector(`.jr-watch-item[data-id="${postId}"]`)) jrRenderWatch();
+}
+
+function jrHandlePostDelete(postId) {
+  jrPostsCache = jrPostsCache.filter(x => x.id !== postId);
+  document.querySelector(`.jr-post[data-id="${postId}"]`)?.remove();
+  document.querySelector(`.jr-watch-item[data-id="${postId}"]`)?.remove();
+}
+
+// Patch le compteur/bouton de réaction d'UN post, sans toucher au média.
+async function jrPatchLikes(postId) {
+  const p = jrPostsCache.find(x => x.id === postId);
+  if (!p) return; // post pas (encore) chargé côté client, rien à patcher
+  const { data, error } = await sb.from('journal_likes').select('user_id,reaction').eq('post_id', postId);
+  if (error) return;
+  p.reactions = (data || []).map(l => ({ userId: l.user_id, type: l.reaction || 'like' }));
+
+  const postEl = document.querySelector(`.jr-post[data-id="${postId}"]`);
+  if (postEl) {
+    const mine = jrMyReaction(p);
+    const statsSpan = postEl.querySelector('.jr-post-stats span:first-child');
+    if (statsSpan) statsSpan.outerHTML = `<span>${jrReactionSummary(p)}</span>`;
+    const btn = postEl.querySelector('.jr-react-btn');
+    if (btn) {
+      btn.classList.toggle('liked', !!mine);
+      const emoji = mine ? JR_REACTIONS[mine] : null;
+      btn.innerHTML = `${emoji ? `<span>${emoji}</span>` : `<i class="ti ti-thumb-up"></i>`} J'aime`;
+    }
+  }
+  const watchEl = document.querySelector(`.jr-watch-item[data-id="${postId}"]`);
+  if (watchEl) {
+    const mine = jrMyReaction(p);
+    const side = watchEl.querySelector('.jr-watch-side');
+    const spans = side ? side.querySelectorAll(':scope > span') : [];
+    if (spans[0]) spans[0].textContent = p.reactions.length;
+    const wbtn = side?.querySelector('.jr-react-wrap button');
+    if (wbtn) {
+      wbtn.classList.toggle('liked', !!mine);
+      wbtn.innerHTML = mine ? `<span style="font-size:1.1rem">${JR_REACTIONS[mine]}</span>` : `<i class="ti ti-heart"></i>`;
+    }
+  }
+}
+
+// Patch l'arbre de commentaires d'UN post, sans toucher au média ni
+// reconstruire le reste du fil.
+async function jrPatchComments(postId) {
+  const p = jrPostsCache.find(x => x.id === postId);
+  if (!p) return;
+  const { data, error } = await sb
+    .from('journal_comments')
+    .select('id, texte, created_at, auteur_id, parent_comment_id, audio_path, profiles:auteur_id ( nom, prenom )')
+    .eq('post_id', postId)
+    .order('created_at', { ascending: true });
+  if (error) return;
+  p.comments = (data || []).map(c => ({
+    id: c.id,
+    parentId: c.parent_comment_id || null,
+    authorId: c.auteur_id,
+    authorName: `${c.profiles?.prenom || ''} ${c.profiles?.nom || ''}`.trim() || 'Utilisateur',
+    text: c.texte,
+    audioUrl: c.audio_path ? sb.storage.from('journal-media').getPublicUrl(c.audio_path).data.publicUrl : null,
+    ts: new Date(c.created_at).getTime()
+  }));
+
+  const treeEl = document.getElementById(`jr-comments-tree-${postId}`);
+  if (treeEl) treeEl.innerHTML = jrRenderCommentsTree(postId, p.comments);
+
+  const postEl = document.querySelector(`.jr-post[data-id="${postId}"]`);
+  if (postEl) {
+    const statsSpans = postEl.querySelectorAll('.jr-post-stats span');
+    if (statsSpans[1]) statsSpans[1].textContent = p.comments.length ? p.comments.length + ' commentaire(s)' : '';
+  }
+  const watchEl = document.querySelector(`.jr-watch-item[data-id="${postId}"]`);
+  if (watchEl) {
+    const side = watchEl.querySelector('.jr-watch-side');
+    const spans = side ? side.querySelectorAll(':scope > span') : [];
+    if (spans[1]) spans[1].textContent = p.comments.length;
+  }
+  if (jrWatchCommentsPostId === postId && typeof jrRenderWatchCommentsList === 'function') jrRenderWatchCommentsList();
 }
 
 // Appui long sur "J'aime" → ouvre le sélecteur d'émoji (façon Facebook)
@@ -17089,9 +17262,10 @@ async function jrReact(postId, type) {
       }
     }
     jrClosePickers();
-    await jrLoadPosts();
-    jrRenderFeed();
-    jrRenderWatch();
+    // Patch ciblé du post concerné uniquement (pas de rechargement/
+    // reconstruction du fil ni du Watch : les vidéos/images déjà
+    // affichées ne sont pas retéléchargées pour un simple like).
+    await jrPatchLikes(postId);
   } catch (e) { console.warn('jrReact', e); }
 }
 
@@ -17297,7 +17471,7 @@ async function jrComment(postId, parentId) {
     let audio_path = null;
     if (audioBlob) {
       const path = `${currentUser.id}/comment_${Date.now()}.webm`;
-      const { error: upErr } = await sb.storage.from('journal-media').upload(path, audioBlob, { contentType: audioBlob.type || 'audio/webm' });
+      const { error: upErr } = await sb.storage.from('journal-media').upload(path, audioBlob, { contentType: audioBlob.type || 'audio/webm', cacheControl: '31536000' });
       if (upErr) throw upErr;
       audio_path = path;
     }
@@ -17325,8 +17499,10 @@ async function jrComment(postId, parentId) {
       await _notifierPush(post.authorId, 'client', '💬 Nouveau commentaire', `${nomAuteur} a commenté votre publication : ${aperçu}`, 'social');
     }
 
-    await jrLoadPosts();
-    jrRenderFeed();
+    // Patch ciblé des commentaires de ce post uniquement (pas de
+    // rechargement/reconstruction du fil entier : les médias déjà
+    // affichés ailleurs dans le fil ne sont pas retéléchargés).
+    await jrPatchComments(postId);
     document.getElementById(`jr-comments-${postId}`)?.classList.add('open');
   } catch (e) {
     console.error('jrComment', e);
@@ -17464,10 +17640,10 @@ async function jrWatchCommentSend() {
       const nomCommentateur = `${currentProfile?.prenom || ''} ${currentProfile?.nom || ''}`.trim() || 'Quelqu\'un';
       await _notifierPush(postW.authorId, 'client', '💬 Nouveau commentaire', `${nomCommentateur} a commenté votre publication : "${text.substring(0, 80)}"`, 'social');
     }
-    await jrLoadPosts();
-    jrRenderWatch();
-    jrRenderFeed();
-    jrRenderWatchCommentsList();
+    // Patch ciblé (comme jrComment) : on ne recharge/reconstruit pas
+    // tout le fil ni tout Watch, seulement les commentaires du post
+    // (jrPatchComments rafraîchit aussi ce panneau puisqu'il est ouvert).
+    await jrPatchComments(jrWatchCommentsPostId);
   } catch (e) {
     console.error('jrWatchCommentSend', e);
     showToast('Erreur lors de l\'envoi du commentaire.', 'error');
@@ -17700,8 +17876,108 @@ async function creerPagePro(nom, description) {
       <input id="pp-set-profession" type="text" placeholder="Profession / activité" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.85rem;margin-bottom:.5rem">
       <textarea id="pp-set-bio" placeholder="Présentation / bio professionnelle" style="width:100%;min-height:70px;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.85rem;margin-bottom:.5rem;resize:vertical"></textarea>
 
+      <div style="font-size:.72rem;font-weight:700;color:var(--text2);margin:.8rem 0 .3rem">MODE DÉMARCHEUR</div>
+      <div style="border:1.5px solid var(--border2);border-radius:var(--radius-sm);padding:.7rem .9rem;margin-bottom:.5rem;background:var(--bg)">
+        <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:.5rem">
+          <span style="font-size:.85rem;font-weight:600">Activer le mode Démarcheur</span>
+          <input id="pp-set-demarcheur-actif" type="checkbox" style="width:20px;height:20px;accent-color:var(--accent)" onchange="document.getElementById('pp-demarcheur-pct-zone').style.display=this.checked?'block':'none'">
+        </label>
+        <div id="pp-demarcheur-pct-zone" style="display:none">
+          <div style="font-size:.72rem;color:var(--text2);margin-bottom:.3rem">Votre commission sur chaque marché mis en relation (par défaut <span id="pp-demarcheur-pct-defaut">10</span>%, modifiable)</div>
+          <div style="display:flex;align-items:center;gap:.4rem">
+            <input id="pp-set-demarcheur-pct" type="number" min="1" max="50" step="0.5" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.9rem;font-weight:700">
+            <span style="font-weight:700;color:var(--text2)">%</span>
+          </div>
+        </div>
+      </div>
+
       <button class="btn-primary" style="width:100%;margin-top:.6rem" onclick="enregistrerParametresProfil()">Enregistrer</button>
     </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL : Mode Démarcheur (mes démarches + revenus) ═══════ -->
+<div class="modal-overlay" id="modal-demarcheur" onclick="closeModal('modal-demarcheur')">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:90vh">
+    <div class="modal-handle" onclick="closeModal('modal-demarcheur')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem;overflow-y:auto;max-height:82vh">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem">
+        <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800"><i class="ti ti-user-plus" style="color:var(--accent)"></i> Mode Démarcheur</div>
+        <button onclick="openModal('modal-nouvelle-demarche');dmPreparerFormulaire()" style="background:var(--accent);color:#fff;border:none;border-radius:var(--radius-pill);padding:.45rem 1rem;font-family:var(--font);font-size:.78rem;font-weight:700;cursor:pointer"><i class="ti ti-plus"></i> Nouvelle</button>
+      </div>
+
+      <div style="display:flex;gap:.6rem;margin-bottom:1rem">
+        <div style="flex:1;background:var(--accent-light);border-radius:var(--radius-sm);padding:.7rem;text-align:center">
+          <div style="font-size:.65rem;color:var(--text2);font-weight:700;text-transform:uppercase">Revenus en attente</div>
+          <div id="dm-revenu-attente" style="font-size:1.05rem;font-weight:800;color:var(--accent)">0 FCFA</div>
+        </div>
+        <div style="flex:1;background:var(--primary-light);border-radius:var(--radius-sm);padding:.7rem;text-align:center">
+          <div style="font-size:.65rem;color:var(--text2);font-weight:700;text-transform:uppercase">Revenus perçus</div>
+          <div id="dm-revenu-percu" style="font-size:1.05rem;font-weight:800;color:var(--primary)">0 FCFA</div>
+        </div>
+      </div>
+
+      <div style="font-size:.85rem;font-weight:700;margin-bottom:.6rem">Mes démarches</div>
+      <div id="dm-liste"><div class="empty-state" style="padding:1rem"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL : Nouvelle démarche (mettre en relation client ↔ artisan) ═══════ -->
+<div class="modal-overlay" id="modal-nouvelle-demarche" onclick="closeModal('modal-nouvelle-demarche')">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:90vh">
+    <div class="modal-handle" onclick="closeModal('modal-nouvelle-demarche')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem;overflow-y:auto;max-height:82vh">
+      <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;margin-bottom:1rem">Mettre en relation</div>
+
+      <div style="font-size:.72rem;font-weight:700;color:var(--text2);margin-bottom:.3rem">CLIENT À ORIENTER</div>
+      <input id="dm-client-tel" type="tel" placeholder="Numéro de téléphone du client" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.85rem;margin-bottom:.4rem">
+      <button onclick="dmRechercherClient()" style="width:100%;padding:.5rem;border:1.5px dashed var(--border2);border-radius:var(--radius-sm);background:var(--bg);font-family:var(--font);font-size:.78rem;font-weight:700;cursor:pointer;margin-bottom:.4rem"><i class="ti ti-search"></i> Rechercher ce client</button>
+      <div id="dm-client-result" style="font-size:.8rem;margin-bottom:.4rem"></div>
+      <div id="dm-client-sans-compte-zone" style="display:none;border:1.5px dashed var(--accent);border-radius:var(--radius-sm);padding:.6rem .7rem;margin-bottom:.8rem;background:var(--accent-light)">
+        <div style="font-size:.75rem;color:var(--text2);margin-bottom:.5rem"><i class="ti ti-info-circle"></i> Ce numéro n'a pas de compte. Vous pouvez quand même l'orienter — il recevra un lien temporaire, sans avoir besoin de s'inscrire ni d'installer l'app.</div>
+        <input id="dm-client-nom-sans-compte" type="text" placeholder="Nom du client (pour le reconnaître)" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.85rem;margin-bottom:.5rem">
+        <button onclick="dmValiderClientSansCompte()" style="width:100%;padding:.5rem;border:none;border-radius:var(--radius-sm);background:var(--accent);color:#fff;font-family:var(--font);font-size:.78rem;font-weight:700;cursor:pointer"><i class="ti ti-user-question"></i> Continuer sans compte</button>
+      </div>
+
+      <div style="font-size:.72rem;font-weight:700;color:var(--text2);margin-bottom:.3rem">PROFESSIONNEL À CONTACTER <span style="font-weight:400;color:var(--text3)">(artisan, resto, boutique, livreur, marchand…)</span></div>
+      <input id="dm-pro-tel" type="tel" placeholder="Numéro de téléphone du professionnel" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.85rem;margin-bottom:.4rem">
+      <button onclick="dmRechercherPro()" style="width:100%;padding:.5rem;border:1.5px dashed var(--border2);border-radius:var(--radius-sm);background:var(--bg);font-family:var(--font);font-size:.78rem;font-weight:700;cursor:pointer;margin-bottom:.4rem"><i class="ti ti-search"></i> Rechercher ce professionnel</button>
+      <div id="dm-pro-result" style="font-size:.8rem;margin-bottom:.4rem"></div>
+      <div id="dm-pro-sans-compte-zone" style="display:none;border:1.5px dashed var(--accent);border-radius:var(--radius-sm);padding:.6rem .7rem;margin-bottom:.8rem;background:var(--accent-light)">
+        <div style="font-size:.75rem;color:var(--text2);margin-bottom:.5rem"><i class="ti ti-info-circle"></i> Ce numéro n'a pas de compte. Il pourra quand même recevoir la demande, proposer un devis et clôturer le travail via un lien temporaire — sans s'inscrire.</div>
+        <input id="dm-pro-nom-sans-compte" type="text" placeholder="Nom du professionnel" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.85rem;margin-bottom:.5rem">
+        <button onclick="dmValiderProSansCompte()" style="width:100%;padding:.5rem;border:none;border-radius:var(--radius-sm);background:var(--accent);color:#fff;font-family:var(--font);font-size:.78rem;font-weight:700;cursor:pointer"><i class="ti ti-user-question"></i> Continuer sans compte</button>
+      </div>
+
+      <div style="font-size:.72rem;font-weight:700;color:var(--text2);margin-bottom:.3rem">BESOIN DU CLIENT</div>
+      <textarea id="dm-description" placeholder="Ex : réparation d'un écran de téléphone…" style="width:100%;min-height:70px;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.85rem;margin-bottom:.5rem;resize:vertical"></textarea>
+
+      <div style="font-size:.72rem;color:var(--text2);margin-bottom:.8rem">Votre commission sur cette démarche : <strong id="dm-pct-info">10%</strong> du montant que gagnera le professionnel.</div>
+
+      <button class="btn-primary" style="width:100%" onclick="dmCreerDemarche()">Envoyer la mise en relation</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL : Lien(s) magique(s) généré(s) (client et/ou pro sans compte) ═══════ -->
+<div class="modal-overlay" id="modal-lien-magique" onclick="closeModal('modal-lien-magique')">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:75vh">
+    <div class="modal-handle" onclick="closeModal('modal-lien-magique')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:0 1.25rem 1.5rem;overflow-y:auto;max-height:66vh">
+      <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;margin-bottom:.4rem"><i class="ti ti-link" style="color:var(--accent)"></i> Lien(s) à envoyer</div>
+      <div style="font-size:.78rem;color:var(--text2);margin-bottom:.9rem">Fonctionne sans compte ni installation d'app. Expire automatiquement une fois le marché terminé ou refusé.</div>
+      <div id="dml-liens-zone"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ ÉCRAN : Session magique (client ou pro sans compte, sans app) ═══════ -->
+<div id="magic-screen" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:10000;background:linear-gradient(145deg, var(--navy) 0%, var(--navy3) 60%, #1a3a5c 100%);flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;font-family:var(--font)">
+  <div style="width:100%;max-width:380px;background:#fff;border-radius:20px;padding:1.5rem;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div style="font-family:var(--font-display);font-weight:800;font-size:1.2rem;margin-bottom:.2rem"><span style="color:var(--primary)">Zémigo</span></div>
+    <div style="font-size:.78rem;color:var(--text2);margin-bottom:1rem">Mise en relation — pas besoin de compte</div>
+    <div id="magic-content"><div class="empty-state" style="padding:1rem"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i></div></div>
   </div>
 </div>
 
@@ -17807,16 +18083,28 @@ function ouvrirParametresProfil() {
   document.getElementById('pp-set-telephone').value = currentProfile?.telephone || '';
   document.getElementById('pp-set-profession').value = currentProfile?.profession || '';
   document.getElementById('pp-set-bio').value = currentProfile?.bio || '';
+  const pctDefaut = parseFloat(configPlateforme?.demarcheur_pct_defaut) || 10;
+  document.getElementById('pp-demarcheur-pct-defaut').textContent = pctDefaut;
+  const actif = !!currentProfile?.mode_demarcheur;
+  document.getElementById('pp-set-demarcheur-actif').checked = actif;
+  document.getElementById('pp-demarcheur-pct-zone').style.display = actif ? 'block' : 'none';
+  document.getElementById('pp-set-demarcheur-pct').value = currentProfile?.demarcheur_pct ?? pctDefaut;
   openModal('modal-parametres-profil');
 }
 
 async function enregistrerParametresProfil() {
+  const demarcheurActif = document.getElementById('pp-set-demarcheur-actif').checked;
+  let demarcheurPct = parseFloat(document.getElementById('pp-set-demarcheur-pct').value);
+  if (isNaN(demarcheurPct) || demarcheurPct < 1) demarcheurPct = parseFloat(configPlateforme?.demarcheur_pct_defaut) || 10;
+  if (demarcheurPct > 50) demarcheurPct = 50;
   const maj = {
     prenom: document.getElementById('pp-set-prenom').value.trim(),
     nom: document.getElementById('pp-set-nom').value.trim(),
     telephone: document.getElementById('pp-set-telephone').value.trim(),
     profession: document.getElementById('pp-set-profession').value.trim() || null,
-    bio: document.getElementById('pp-set-bio').value.trim() || null
+    bio: document.getElementById('pp-set-bio').value.trim() || null,
+    mode_demarcheur: demarcheurActif,
+    demarcheur_pct: demarcheurPct
   };
   const { error } = await sb.from('profiles').update(maj).eq('id', currentUser.id);
   if (error) return showToast('Erreur lors de l\'enregistrement');
@@ -17824,6 +18112,611 @@ async function enregistrerParametresProfil() {
   closeModal('modal-parametres-profil');
   showToast('Informations mises à jour ✅');
   document.getElementById('mj-nom').textContent = ((maj.prenom||'')+' '+(maj.nom||'')).trim() || 'Moi';
+  updateDemarcheurBadge();
+}
+
+// ═══════════════════════════════════════════════════════
+// ═══════ MODE DÉMARCHEUR ═══════
+// Le démarcheur met en relation DEUX personnes qui n'ont pas forcément de
+// compte sur la plateforme : le client à orienter, ET le professionnel visé
+// (artisan, resto, boutique, livreur, marchand...). Chaque côté peut soit
+// être un compte existant (recherché par téléphone, tous rôles confondus),
+// soit être "sans compte" : dans ce cas un lien magique temporaire lui est
+// généré, valable sans inscription ni installation d'app, et qui s'auto-
+// détruit dès que le marché est achevé ou refusé.
+//
+// Tables attendues (Supabase) :
+//   profiles.mode_demarcheur   boolean default false
+//   profiles.demarcheur_pct    numeric default 10
+//   configPlateforme['demarcheur_pct_defaut']  (table config_plateforme, admin)
+//   table "demarches" :
+//     id uuid pk default gen_random_uuid(),
+//     demarcheur_id uuid references profiles(id),
+//     client_id uuid references profiles(id) null,       -- null si sans compte
+//     artisan_id uuid references profiles(id) null,      -- null si sans compte
+//     client_nom text, client_telephone text,             -- si client sans compte
+//     artisan_nom text, artisan_telephone text,           -- si pro sans compte
+//     description text,
+//     statut text default 'attente_artisan',
+//       -- attente_artisan | attente_client | en_cours | refuse | acheve
+//     devis_montant numeric,
+//     demarcheur_pct numeric,           -- % figé au moment de la création
+//     commission_demarcheur numeric,    -- calculée à la finalisation
+//     commission_plateforme numeric,
+//     preuve_cash_url text,
+//     magic_token text unique,          -- lien magique côté CLIENT (si sans compte)
+//     magic_token_pro text unique,      -- lien magique côté PRO (si sans compte)
+//     magic_expires_at timestamptz,
+//     created_at timestamptz default now(),
+//     accepted_artisan_at timestamptz, accepted_client_at timestamptz, completed_at timestamptz
+//
+// RLS nécessaire (rôle anon) pour les liens magiques :
+//   create policy "magic_select" on demarches for select to anon
+//     using (magic_token is not null or magic_token_pro is not null);
+//   create policy "magic_update" on demarches for update to anon
+//     using (magic_token is not null or magic_token_pro is not null);
+// Le token agit comme une capacité secrète à usage unique (comme un mot de
+// passe) : sans le connaître, impossible de lire ou modifier la ligne.
+// ═══════════════════════════════════════════════════════
+
+let dmClientChoisi = null; // { id, nom, telephone, sansCompte }
+let dmProChoisi = null;    // { id, nom, telephone, profession, sansCompte }
+
+async function updateDemarcheurBadge() {
+  const badge = document.getElementById('mj-demarcheur-badge');
+  if (!badge) return;
+  if (currentProfile?.mode_demarcheur) {
+    const { data } = await sb.from('demarches').select('id,statut,commission_demarcheur').eq('demarcheur_id', currentUser.id);
+    const enAttente = (data||[]).filter(d => d.statut !== 'acheve' && d.statut !== 'refuse').length;
+    badge.style.display = enAttente ? 'inline-block' : 'none';
+    badge.textContent = enAttente;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+async function ouvrirModeDemarcheur() {
+  if (!currentProfile?.mode_demarcheur) {
+    showToast('Activez le Mode Démarcheur dans vos Paramètres pour commencer 👉', 'wa');
+    ouvrirParametresProfil();
+    return;
+  }
+  openModal('modal-demarcheur');
+  await dmChargerMesDemarches();
+}
+
+async function dmChargerMesDemarches() {
+  const zone = document.getElementById('dm-liste');
+  const { data, error } = await sb.from('demarches')
+    .select(`id,statut,description,devis_montant,demarcheur_pct,commission_demarcheur,created_at,
+      demarcheur_id,client_id,artisan_id,client_nom,client_telephone,artisan_nom,artisan_telephone,
+      magic_token,magic_token_pro,
+      client:client_id(nom,prenom,telephone),
+      artisan:artisan_id(nom,prenom,profession)`)
+    .or(`demarcheur_id.eq.${currentUser.id},client_id.eq.${currentUser.id},artisan_id.eq.${currentUser.id}`)
+    .order('created_at', { ascending: false });
+
+  if (error) { zone.innerHTML = '<div class="empty-state" style="padding:1rem">Erreur de chargement</div>'; return; }
+  if (!data?.length) { zone.innerHTML = '<div class="empty-state" style="padding:1rem"><i class="ti ti-route-off"></i><p>Aucune démarche pour le moment</p></div>'; return; }
+
+  const STATUT_LABEL = {
+    attente_artisan: ['🟡 En attente pro', 'var(--warning)'],
+    attente_client:  ['🟡 En attente client', 'var(--warning)'],
+    en_cours:        ['🟢 En cours', 'var(--success)'],
+    acheve:          ['✅ Achevé', 'var(--primary)'],
+    refuse:          ['🔴 Refusé', 'var(--danger)']
+  };
+
+  let revenuAttente = 0, revenuPercu = 0;
+  data.forEach(d => {
+    if (d.demarcheur_id === currentUser.id) {
+      const estimation = d.commission_demarcheur ?? (d.devis_montant ? Math.round(d.devis_montant * (d.demarcheur_pct||10)/100) : 0);
+      if (d.statut === 'acheve') revenuPercu += (d.commission_demarcheur || 0);
+      else if (d.statut !== 'refuse') revenuAttente += estimation;
+    }
+  });
+  document.getElementById('dm-revenu-attente').textContent = fcfa(revenuAttente);
+  document.getElementById('dm-revenu-percu').textContent = fcfa(revenuPercu);
+
+  zone.innerHTML = data.map(d => {
+    const [label, color] = STATUT_LABEL[d.statut] || [d.statut, 'var(--text2)'];
+    const clientSansCompte = !d.client_id;
+    const proSansCompte = !d.artisan_id;
+    const nomClient = clientSansCompte ? (d.client_nom || 'Client') : (((d.client?.prenom||'')+' '+(d.client?.nom||'')).trim() || 'Client');
+    const nomArtisan = proSansCompte ? (d.artisan_nom || 'Professionnel') : (((d.artisan?.prenom||'')+' '+(d.artisan?.nom||'')).trim() || d.artisan?.profession || 'Professionnel');
+    const monRole = d.demarcheur_id === currentUser.id ? 'demarcheur' : (d.artisan_id === currentUser.id ? 'artisan' : 'client');
+
+    let actions = '';
+    if (monRole === 'artisan' && d.statut === 'attente_artisan') {
+      actions = `<div style="display:flex;gap:.5rem;margin-top:.5rem">
+        <button onclick="dmAccepterArtisan('${d.id}')" style="flex:1;padding:.4rem;border:none;border-radius:8px;background:var(--success);color:#fff;font-family:var(--font);font-size:.72rem;font-weight:700;cursor:pointer">Accepter + devis</button>
+        <button onclick="dmRefuser('${d.id}')" style="flex:1;padding:.4rem;border:1.5px solid var(--danger);color:var(--danger);border-radius:8px;background:#fff;font-family:var(--font);font-size:.72rem;font-weight:700;cursor:pointer">Refuser</button>
+      </div>`;
+    } else if (monRole === 'client' && d.statut === 'attente_client') {
+      actions = `<div style="display:flex;gap:.5rem;margin-top:.5rem">
+        <button onclick="dmAccepterClient('${d.id}')" style="flex:1;padding:.4rem;border:none;border-radius:8px;background:var(--success);color:#fff;font-family:var(--font);font-size:.72rem;font-weight:700;cursor:pointer">Accepter le devis</button>
+        <button onclick="dmRefuser('${d.id}')" style="flex:1;padding:.4rem;border:1.5px solid var(--danger);color:var(--danger);border-radius:8px;background:#fff;font-family:var(--font);font-size:.72rem;font-weight:700;cursor:pointer">Refuser</button>
+      </div>`;
+    } else if (monRole === 'artisan' && d.statut === 'en_cours') {
+      actions = `<button onclick="dmTerminer('${d.id}')" style="width:100%;margin-top:.5rem;padding:.4rem;border:none;border-radius:8px;background:var(--primary);color:#fff;font-family:var(--font);font-size:.72rem;font-weight:700;cursor:pointer">Marquer le travail comme achevé</button>`;
+    }
+    if (monRole === 'demarcheur' && !['acheve','refuse'].includes(d.statut)) {
+      if (clientSansCompte && d.magic_token) {
+        actions += `<button onclick="dmAfficherLiens([{type:'client',token:'${d.magic_token}',nom:''}])" style="width:100%;margin-top:.5rem;padding:.4rem;border:1.5px solid var(--accent);color:var(--accent);border-radius:8px;background:var(--accent-light);font-family:var(--font);font-size:.72rem;font-weight:700;cursor:pointer"><i class="ti ti-link"></i> Renvoyer le lien au client</button>`;
+      }
+      if (proSansCompte && d.magic_token_pro) {
+        actions += `<button onclick="dmAfficherLiens([{type:'pro',token:'${d.magic_token_pro}',nom:''}])" style="width:100%;margin-top:.5rem;padding:.4rem;border:1.5px solid var(--accent);color:var(--accent);border-radius:8px;background:var(--accent-light);font-family:var(--font);font-size:.72rem;font-weight:700;cursor:pointer"><i class="ti ti-link"></i> Renvoyer le lien au professionnel</button>`;
+      }
+    }
+
+    return `<div style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:.65rem .8rem;margin-bottom:.5rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
+        <span style="font-size:.68rem;font-weight:700;color:${color}">${label}</span>
+        <span style="font-size:.65rem;color:var(--text3)">${fmtDate(d.created_at)}</span>
+      </div>
+      <div style="font-size:.82rem;font-weight:700">${escapeHtml(nomClient)}${clientSansCompte?' <span style="font-size:.6rem;font-weight:700;color:var(--accent);background:var(--accent-light);padding:1px 6px;border-radius:20px">SANS COMPTE</span>':''} <i class="ti ti-arrow-right" style="font-size:.7rem;color:var(--text3)"></i> ${escapeHtml(nomArtisan)}${proSansCompte?' <span style="font-size:.6rem;font-weight:700;color:var(--accent);background:var(--accent-light);padding:1px 6px;border-radius:20px">SANS COMPTE</span>':''}</div>
+      ${d.description ? `<div style="font-size:.75rem;color:var(--text2);margin-top:.2rem">${escapeHtml(d.description)}</div>` : ''}
+      ${d.devis_montant ? `<div style="font-size:.75rem;margin-top:.3rem">Devis : <strong>${fcfa(d.devis_montant)}</strong>${monRole==='demarcheur'?` · votre part ~ <strong style="color:var(--accent)">${fcfa(d.commission_demarcheur ?? Math.round(d.devis_montant*(d.demarcheur_pct||10)/100))}</strong>`:''}</div>` : ''}
+      ${actions}
+    </div>`;
+  }).join('');
+}
+
+async function dmPreparerFormulaire() {
+  dmClientChoisi = null; dmProChoisi = null;
+  document.getElementById('dm-client-tel').value = '';
+  document.getElementById('dm-client-result').innerHTML = '';
+  document.getElementById('dm-client-sans-compte-zone').style.display = 'none';
+  document.getElementById('dm-client-nom-sans-compte').value = '';
+  document.getElementById('dm-pro-tel').value = '';
+  document.getElementById('dm-pro-result').innerHTML = '';
+  document.getElementById('dm-pro-sans-compte-zone').style.display = 'none';
+  document.getElementById('dm-pro-nom-sans-compte').value = '';
+  document.getElementById('dm-description').value = '';
+  const pct = currentProfile?.demarcheur_pct ?? (parseFloat(configPlateforme?.demarcheur_pct_defaut) || 10);
+  document.getElementById('dm-pct-info').textContent = pct + '%';
+}
+
+// ── Recherche générique par téléphone, TOUS les rôles confondus ──
+// (client, artisan, livreur, marchand — n'importe quel profil de la plateforme)
+async function dmRechercherProfilParTel(tel) {
+  const { data } = await sb.from('profiles')
+    .select('id,nom,prenom,telephone,role,profession')
+    .eq('telephone', tel).maybeSingle();
+  return data;
+}
+
+async function dmRechercherClient() {
+  const tel = document.getElementById('dm-client-tel').value.trim();
+  if (!tel) return showToast('Entrez un numéro de téléphone', 'wa');
+  const data = await dmRechercherProfilParTel(tel);
+  const zone = document.getElementById('dm-client-result');
+  const zoneSansCompte = document.getElementById('dm-client-sans-compte-zone');
+  if (!data) {
+    dmClientChoisi = null;
+    zone.innerHTML = '<span style="color:var(--danger)">Aucun compte trouvé avec ce numéro.</span>';
+    zoneSansCompte.style.display = 'block';
+    document.getElementById('dm-client-nom-sans-compte').value = '';
+    return;
+  }
+  zoneSansCompte.style.display = 'none';
+  if (data.id === currentUser.id) { dmClientChoisi = null; zone.innerHTML = '<span style="color:var(--danger)">Vous ne pouvez pas vous orienter vous-même</span>'; return; }
+  dmClientChoisi = data;
+  zone.innerHTML = `<span style="color:var(--success)"><i class="ti ti-circle-check"></i> ${escapeHtml(((data.prenom||'')+' '+(data.nom||'')).trim())}</span>`;
+}
+
+async function dmValiderClientSansCompte() {
+  const nom = document.getElementById('dm-client-nom-sans-compte').value.trim();
+  const tel = document.getElementById('dm-client-tel').value.trim();
+  if (!nom) return showToast('Indiquez le nom du client', 'wa');
+  dmClientChoisi = { id: null, sansCompte: true, nom, telephone: tel || null };
+  document.getElementById('dm-client-result').innerHTML = `<span style="color:var(--success)"><i class="ti ti-circle-check"></i> ${escapeHtml(nom)} (sans compte) — un lien lui sera envoyé</span>`;
+  document.getElementById('dm-client-sans-compte-zone').style.display = 'none';
+}
+
+// ── Recherche du professionnel (artisan, resto, boutique, livreur, marchand…) ──
+// Recherche parmi TOUS les profils, pas seulement les artisans.
+async function dmRechercherPro() {
+  const tel = document.getElementById('dm-pro-tel').value.trim();
+  if (!tel) return showToast('Entrez un numéro de téléphone', 'wa');
+  const data = await dmRechercherProfilParTel(tel);
+  const zone = document.getElementById('dm-pro-result');
+  const zoneSansCompte = document.getElementById('dm-pro-sans-compte-zone');
+  if (!data) {
+    dmProChoisi = null;
+    zone.innerHTML = '<span style="color:var(--danger)">Aucun compte trouvé avec ce numéro.</span>';
+    zoneSansCompte.style.display = 'block';
+    document.getElementById('dm-pro-nom-sans-compte').value = '';
+    return;
+  }
+  zoneSansCompte.style.display = 'none';
+  if (data.id === currentUser.id) { dmProChoisi = null; zone.innerHTML = '<span style="color:var(--danger)">Vous ne pouvez pas vous orienter vous-même</span>'; return; }
+  dmProChoisi = data;
+  const roleLabel = { artisan:'Artisan', livreur:'Livreur', marchand:'Marchand', client:'Client' }[data.role] || data.role || '';
+  zone.innerHTML = `<span style="color:var(--success)"><i class="ti ti-circle-check"></i> ${escapeHtml(((data.prenom||'')+' '+(data.nom||'')).trim())}${roleLabel?` — ${escapeHtml(roleLabel)}`:''}${data.profession?` (${escapeHtml(data.profession)})`:''}</span>`;
+}
+
+async function dmValiderProSansCompte() {
+  const nom = document.getElementById('dm-pro-nom-sans-compte').value.trim();
+  const tel = document.getElementById('dm-pro-tel').value.trim();
+  if (!nom) return showToast('Indiquez le nom du professionnel', 'wa');
+  dmProChoisi = { id: null, sansCompte: true, nom, telephone: tel || null };
+  document.getElementById('dm-pro-result').innerHTML = `<span style="color:var(--success)"><i class="ti ti-circle-check"></i> ${escapeHtml(nom)} (sans compte) — un lien lui sera envoyé</span>`;
+  document.getElementById('dm-pro-sans-compte-zone').style.display = 'none';
+}
+
+function dmGenererToken() {
+  if (window.crypto?.randomUUID) return crypto.randomUUID().replace(/-/g, '');
+  return 'mg' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+}
+
+// ── Affichage du/des lien(s) générés, avec options de partage ──
+let _dmLiensCourants = [];
+function dmAfficherLiens(liens) {
+  _dmLiensCourants = liens;
+  const zone = document.getElementById('dml-liens-zone');
+  zone.innerHTML = liens.map((l, i) => {
+    const param = l.type === 'client' ? 'magic' : 'magicpro';
+    const url = `${dmBaseUrlMagique()}?${param}=${l.token}`;
+    return `<div style="margin-bottom:1rem">
+      <div style="font-size:.78rem;font-weight:700;margin-bottom:.3rem">${l.type==='client'?'Pour le client':'Pour le professionnel'}${l.nom?` — ${escapeHtml(l.nom)}`:''}</div>
+      <div style="word-break:break-all;font-size:.78rem;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius-sm);padding:.6rem .8rem;margin-bottom:.5rem">${url}</div>
+      <div style="display:flex;gap:.5rem">
+        <button onclick="dmlCopierLien(${i})" style="flex:1;padding:.55rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg);font-family:var(--font);font-size:.76rem;font-weight:700;cursor:pointer"><i class="ti ti-copy"></i> Copier</button>
+        <button onclick="dmlPartagerWhatsapp(${i})" style="flex:1;padding:.55rem;border:none;border-radius:var(--radius-sm);background:#25D366;color:#fff;font-family:var(--font);font-size:.76rem;font-weight:700;cursor:pointer"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
+        <button onclick="dmlPartagerSMS(${i})" style="flex:1;padding:.55rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:#fff;font-family:var(--font);font-size:.76rem;font-weight:700;cursor:pointer"><i class="ti ti-message"></i> SMS</button>
+      </div>
+    </div>`;
+  }).join('');
+  openModal('modal-lien-magique');
+}
+function _dmlUrl(i) {
+  const l = _dmLiensCourants[i];
+  const param = l.type === 'client' ? 'magic' : 'magicpro';
+  return `${dmBaseUrlMagique()}?${param}=${l.token}`;
+}
+function dmlCopierLien(i) {
+  navigator.clipboard?.writeText(_dmlUrl(i)).then(() => showToast('Lien copié ✅', 'ok')).catch(() => showToast('Copie impossible, sélectionnez le lien manuellement', 'wa'));
+}
+function dmlPartagerWhatsapp(i) {
+  window.open(`https://wa.me/?text=${encodeURIComponent('Bonjour, voici votre lien Zémigo pour suivre votre demande (pas besoin de compte) : ' + _dmlUrl(i))}`, '_blank');
+}
+function dmlPartagerSMS(i) {
+  window.open(`sms:?&body=${encodeURIComponent('Zémigo : voici votre lien pour suivre votre demande (sans compte) : ' + _dmlUrl(i))}`, '_blank');
+}
+
+async function dmCreerDemarche() {
+  if (!dmClientChoisi) return showToast('Recherchez d\'abord le client à orienter', 'wa');
+  if (!dmProChoisi) return showToast('Recherchez d\'abord le professionnel visé', 'wa');
+  const description = document.getElementById('dm-description').value.trim();
+  const pct = currentProfile?.demarcheur_pct ?? (parseFloat(configPlateforme?.demarcheur_pct_defaut) || 10);
+  const expireDans45j = new Date(Date.now() + 45 * 24 * 3600 * 1000).toISOString();
+
+  const payload = {
+    demarcheur_id: currentUser.id,
+    description: description || null,
+    statut: 'attente_artisan',
+    demarcheur_pct: pct
+  };
+
+  const liens = [];
+
+  if (dmClientChoisi.sansCompte) {
+    const token = dmGenererToken();
+    payload.client_id = null;
+    payload.client_nom = dmClientChoisi.nom;
+    payload.client_telephone = dmClientChoisi.telephone;
+    payload.magic_token = token;
+    payload.magic_expires_at = expireDans45j;
+    liens.push({ type: 'client', token, nom: dmClientChoisi.nom });
+  } else {
+    payload.client_id = dmClientChoisi.id;
+  }
+
+  if (dmProChoisi.sansCompte) {
+    const tokenPro = dmGenererToken();
+    payload.artisan_id = null;
+    payload.artisan_nom = dmProChoisi.nom;
+    payload.artisan_telephone = dmProChoisi.telephone;
+    payload.magic_token_pro = tokenPro;
+    payload.magic_expires_at = payload.magic_expires_at || expireDans45j;
+    liens.push({ type: 'pro', token: tokenPro, nom: dmProChoisi.nom });
+  } else {
+    payload.artisan_id = dmProChoisi.id;
+  }
+
+  const { error } = await sb.from('demarches').insert(payload);
+  if (error) return showToast('Erreur lors de l\'envoi', 'wa');
+
+  const nomDem = ((currentProfile?.prenom||'')+' '+(currentProfile?.nom||'')).trim() || 'Un démarcheur';
+  if (!dmProChoisi.sansCompte) {
+    await _notifierPush(dmProChoisi.id, 'client', '🤝 Nouvelle mise en relation', `${nomDem} vous propose un client : "${description || 'nouvelle demande'}". Ouvrez Mode Démarcheur pour répondre.`, 'demarche');
+  }
+
+  closeModal('modal-nouvelle-demarche');
+  if (liens.length) {
+    // Au moins une des deux parties n'a pas de compte : on transmet le(s)
+    // lien(s) au démarcheur, qui se charge de les faire suivre lui-même
+    // (aucune notification push n'est possible pour un profil inexistant).
+    dmAfficherLiens(liens);
+    showToast('Démarche créée — partagez le(s) lien(s) ✅', 'ok');
+  } else {
+    showToast('Mise en relation envoyée au professionnel ✅', 'ok');
+  }
+  openModal('modal-demarcheur');
+  await dmChargerMesDemarches();
+  updateDemarcheurBadge();
+}
+
+async function dmAccepterArtisan(id) {
+  const montantStr = prompt('Montant du devis à proposer au client (FCFA) :');
+  const montant = parseInt((montantStr||'').replace(/\D/g,''), 10);
+  if (!montant || montant <= 0) return showToast('Montant invalide', 'wa');
+  const { data: d, error } = await sb.from('demarches').update({
+    statut: 'attente_client', devis_montant: montant, accepted_artisan_at: new Date().toISOString()
+  }).eq('id', id).eq('artisan_id', currentUser.id).select('client_id,demarcheur_id').single();
+  if (error) return showToast('Erreur', 'wa');
+  const nomArt = ((currentProfile?.prenom||'')+' '+(currentProfile?.nom||'')).trim() || 'Le professionnel';
+  if (d?.client_id) await _notifierPush(d.client_id, 'client', '📄 Devis reçu', `${nomArt} vous propose un devis de ${fcfa(montant)}. Ouvrez Mode Démarcheur pour l'accepter ou le refuser.`, 'demarche');
+  if (d?.demarcheur_id) await _notifierPush(d.demarcheur_id, 'client', '📄 Devis envoyé', `${nomArt} a proposé un devis de ${fcfa(montant)} à votre client. En attente de sa réponse.`, 'demarche');
+  showToast('Devis envoyé au client', 'ok');
+  await dmChargerMesDemarches();
+}
+
+async function dmAccepterClient(id) {
+  const { data: d, error } = await sb.from('demarches').update({
+    statut: 'en_cours', accepted_client_at: new Date().toISOString()
+  }).eq('id', id).eq('client_id', currentUser.id).select('artisan_id,demarcheur_id,devis_montant').single();
+  if (error) return showToast('Erreur', 'wa');
+  const nomClient = ((currentProfile?.prenom||'')+' '+(currentProfile?.nom||'')).trim() || 'Le client';
+  if (d?.artisan_id) await _notifierPush(d.artisan_id, 'client', '✅ Devis accepté !', `${nomClient} a accepté votre devis de ${fcfa(d.devis_montant)}. Le marché est conclu.`, 'demarche');
+  if (d?.demarcheur_id) await _notifierPush(d.demarcheur_id, 'client', '✅ Marché conclu', `${nomClient} a accepté le devis de ${fcfa(d.devis_montant)}. Votre commission sera versée à la fin du travail.`, 'demarche');
+  showToast('Devis accepté, le marché est conclu ✅', 'ok');
+  await dmChargerMesDemarches();
+}
+
+async function dmRefuser(id) {
+  if (!confirm('Refuser cette démarche ?')) return;
+  const { data: d, error } = await sb.from('demarches').update({ statut: 'refuse', magic_token: null, magic_token_pro: null }).eq('id', id)
+    .select('demarcheur_id,client_id,artisan_id').single();
+  if (error) return showToast('Erreur', 'wa');
+  const nomMoi = ((currentProfile?.prenom||'')+' '+(currentProfile?.nom||'')).trim() || 'Un utilisateur';
+  const autres = [d?.demarcheur_id, d?.client_id, d?.artisan_id].filter(uid => uid && uid !== currentUser.id);
+  for (const uid of autres) {
+    await _notifierPush(uid, 'client', '🔴 Démarche refusée', `${nomMoi} a refusé la démarche.`, 'demarche');
+  }
+  showToast('Démarche refusée');
+  await dmChargerMesDemarches();
+  updateDemarcheurBadge();
+}
+
+// Le professionnel (avec compte) clôture le marché : il doit avoir de quoi
+// couvrir la commission démarcheur + plateforme sur son wallet, sinon
+// recharger ou fournir une preuve photo de paiement cash.
+async function dmTerminer(id) {
+  const { data: d, error: e1 } = await sb.from('demarches').select('*').eq('id', id).single();
+  if (e1 || !d) return showToast('Démarche introuvable', 'wa');
+  if (d.artisan_id !== currentUser.id) return showToast('Action non autorisée', 'wa');
+
+  const commPlateformePct = parseFloat(configPlateforme.commission_artisan_pct || 0.5) / 100;
+  const commissionDemarcheur = Math.round(d.devis_montant * (d.demarcheur_pct||10) / 100);
+  const commissionPlateforme = Math.round(d.devis_montant * commPlateformePct);
+  const totalAPrelever = commissionDemarcheur + commissionPlateforme;
+
+  const { data: w } = await sb.from('wallets').select('solde').eq('utilisateur_id', currentUser.id).single();
+  const solde = w?.solde || 0;
+
+  if (solde < totalAPrelever) {
+    const veutPreuve = confirm(
+      `Solde insuffisant (${fcfa(solde)}) pour couvrir la commission (${fcfa(totalAPrelever)}).\n\n` +
+      `OK = j'ai payé cash et je fournis une preuve photo\nAnnuler = je recharge mon wallet d'abord`
+    );
+    if (!veutPreuve) { openModal('modal-wallet'); return; }
+    return dmUploaderPreuveCash(id, commissionDemarcheur, commissionPlateforme);
+  }
+
+  const { error: e2 } = await sb.from('wallets').update({ solde: solde - totalAPrelever }).eq('utilisateur_id', currentUser.id);
+  if (e2) return showToast('Erreur lors du débit', 'wa');
+
+  const { data: wDem } = await sb.from('wallets').select('solde').eq('utilisateur_id', d.demarcheur_id).single();
+  await sb.from('wallets').upsert({ utilisateur_id: d.demarcheur_id, solde: (wDem?.solde||0) + commissionDemarcheur });
+
+  await sb.from('demarches').update({
+    statut: 'acheve', completed_at: new Date().toISOString(),
+    commission_demarcheur: commissionDemarcheur, commission_plateforme: commissionPlateforme,
+    magic_token: null, magic_token_pro: null // autodestruction : le marché est terminé
+  }).eq('id', id);
+
+  const nomArt = ((currentProfile?.prenom||'')+' '+(currentProfile?.nom||'')).trim() || 'Le professionnel';
+  await _notifierPush(d.demarcheur_id, 'client', '💰 Commission versée !', `${nomArt} a achevé le marché. ${fcfa(commissionDemarcheur)} ont été crédités sur votre wallet.`, 'demarche');
+
+  showToast('🎉 Marché achevé ! Commission versée au démarcheur.', 'ok');
+  updateWalletUI?.();
+  await dmChargerMesDemarches();
+}
+
+function dmUploaderPreuveCash(id, commDemarcheur, commPlateforme) {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*';
+  input.onchange = async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+    const path = `demarches/${id}-${Date.now()}-${file.name}`;
+    const { error: eUp } = await sb.storage.from('preuves-paiement').upload(path, file);
+    if (eUp) return showToast('Erreur upload de la preuve', 'wa');
+    const url = sb.storage.from('preuves-paiement').getPublicUrl(path).data.publicUrl;
+    const { data: d, error } = await sb.from('demarches').update({
+      statut: 'acheve', completed_at: new Date().toISOString(),
+      preuve_cash_url: url, commission_demarcheur: commDemarcheur, commission_plateforme: commPlateforme,
+      magic_token: null, magic_token_pro: null
+    }).eq('id', id).select('demarcheur_id').single();
+    if (error) return showToast('Erreur', 'wa');
+    const nomArt = ((currentProfile?.prenom||'')+' '+(currentProfile?.nom||'')).trim() || 'Le professionnel';
+    if (d?.demarcheur_id) await _notifierPush(d.demarcheur_id, 'client', '💰 Commission (paiement cash)', `${nomArt} a achevé le marché avec une preuve de paiement cash. Commission : ${fcfa(commDemarcheur)}.`, 'demarche');
+    showToast('Preuve envoyée, marché marqué comme achevé (paiement cash) ✅', 'ok');
+    await dmChargerMesDemarches();
+  };
+  input.click();
+}
+
+// ═══════════════════════════════════════════════════════
+// ═══════ SESSIONS MAGIQUES — sans compte, sans app ═══════
+// role = 'client' (query ?magic=) ou 'pro' (query ?magicpro=)
+// ═══════════════════════════════════════════════════════
+
+async function initMagicSession(token, role) {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('magic-screen').style.display = 'flex';
+  const zone = document.getElementById('magic-content');
+  const colonne = role === 'pro' ? 'magic_token_pro' : 'magic_token';
+
+  const { data: d, error } = await sb.from('demarches')
+    .select(`id,statut,description,devis_montant,demarcheur_pct,client_nom,artisan_nom,artisan_telephone,magic_expires_at,
+      artisan:artisan_id(prenom,nom,profession)`)
+    .eq(colonne, token).maybeSingle();
+
+  if (error || !d) {
+    zone.innerHTML = `<div style="text-align:center;padding:1rem"><i class="ti ti-link-off" style="font-size:2rem;color:var(--text3)"></i><p style="margin-top:.5rem;font-size:.85rem;color:var(--text2)">Ce lien est invalide ou a déjà été utilisé.</p></div>`;
+    return;
+  }
+  if (d.magic_expires_at && new Date(d.magic_expires_at) < new Date()) {
+    zone.innerHTML = `<div style="text-align:center;padding:1rem"><i class="ti ti-clock-off" style="font-size:2rem;color:var(--text3)"></i><p style="margin-top:.5rem;font-size:.85rem;color:var(--text2)">Ce lien a expiré.</p></div>`;
+    return;
+  }
+
+  if (role === 'client') return _renderMagicClient(d, token, zone);
+  return _renderMagicPro(d, token, zone);
+}
+
+function _renderMagicClient(d, token, zone) {
+  const nomArtisan = ((d.artisan?.prenom||'')+' '+(d.artisan?.nom||'')).trim() || d.artisan_nom || 'Un professionnel';
+  const bonjour = `<div style="font-size:.9rem;font-weight:700;margin-bottom:.6rem">Bonjour ${escapeHtml(d.client_nom||'')} 👋</div>`;
+
+  if (d.statut === 'attente_artisan') {
+    zone.innerHTML = bonjour + `<div style="font-size:.85rem;color:var(--text2)">Votre demande a été transmise à <strong>${escapeHtml(nomArtisan)}</strong>${d.artisan?.profession?` (${escapeHtml(d.artisan.profession)})`:''}. Vous recevrez un devis ici dès qu'il aura répondu. Revenez sur ce lien plus tard pour voir la suite.</div>`;
+  } else if (d.statut === 'attente_client') {
+    zone.innerHTML = bonjour + `
+      <div style="font-size:.85rem;color:var(--text2);margin-bottom:.5rem"><strong>${escapeHtml(nomArtisan)}</strong> propose un devis pour :</div>
+      <div style="font-size:.85rem;margin-bottom:.6rem">${escapeHtml(d.description||'')}</div>
+      <div style="font-size:1.3rem;font-weight:800;color:var(--primary);margin-bottom:1rem">${fcfa(d.devis_montant)}</div>
+      <div style="display:flex;gap:.6rem">
+        <button onclick="magicAccepterDevis('${token}')" style="flex:1;padding:.7rem;border:none;border-radius:var(--radius-sm);background:var(--success);color:#fff;font-family:var(--font);font-weight:700;cursor:pointer">Accepter</button>
+        <button onclick="magicRefuserDevis('${token}')" style="flex:1;padding:.7rem;border:1.5px solid var(--danger);color:var(--danger);border-radius:var(--radius-sm);background:#fff;font-family:var(--font);font-weight:700;cursor:pointer">Refuser</button>
+      </div>`;
+  } else if (d.statut === 'en_cours') {
+    zone.innerHTML = bonjour + `<div style="font-size:.85rem;color:var(--text2)"><strong>${escapeHtml(nomArtisan)}</strong> va réaliser le travail. Vous pouvez le contacter directement pour la suite.</div>`;
+  } else if (d.statut === 'acheve') {
+    zone.innerHTML = bonjour + `<div style="text-align:center;padding:.5rem"><i class="ti ti-circle-check" style="font-size:2rem;color:var(--success)"></i><p style="margin-top:.5rem;font-size:.85rem">Ce marché est terminé. Merci d'avoir utilisé Zémigo !</p></div>`;
+  } else {
+    zone.innerHTML = bonjour + `<div style="font-size:.85rem;color:var(--text2)">Cette démarche a été refusée.</div>`;
+  }
+}
+
+// ── Vue côté PROFESSIONNEL sans compte : accepter + devis, puis clôturer ──
+// Sans compte, il n'y a pas de wallet : la clôture passe donc toujours par
+// une preuve photo de paiement cash (pas d'option wallet possible).
+function _renderMagicPro(d, token, zone) {
+  const bonjour = `<div style="font-size:.9rem;font-weight:700;margin-bottom:.6rem">Bonjour ${escapeHtml(d.artisan_nom||'')} 👋</div>`;
+
+  if (d.statut === 'attente_artisan') {
+    zone.innerHTML = bonjour + `
+      <div style="font-size:.85rem;color:var(--text2);margin-bottom:.6rem">Un démarcheur vous propose un client pour :</div>
+      <div style="font-size:.85rem;margin-bottom:.8rem">${escapeHtml(d.description||'')}</div>
+      <div style="font-size:.72rem;color:var(--text2);margin-bottom:.3rem">VOTRE DEVIS (FCFA)</div>
+      <input id="magic-devis-montant" type="number" placeholder="Ex : 5000" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font);font-size:.9rem;margin-bottom:.8rem">
+      <div style="display:flex;gap:.6rem">
+        <button onclick="magicProAccepterEtDevis('${token}')" style="flex:1;padding:.7rem;border:none;border-radius:var(--radius-sm);background:var(--success);color:#fff;font-family:var(--font);font-weight:700;cursor:pointer">Envoyer le devis</button>
+        <button onclick="magicProRefuser('${token}')" style="flex:1;padding:.7rem;border:1.5px solid var(--danger);color:var(--danger);border-radius:var(--radius-sm);background:#fff;font-family:var(--font);font-weight:700;cursor:pointer">Refuser</button>
+      </div>`;
+  } else if (d.statut === 'attente_client') {
+    zone.innerHTML = bonjour + `<div style="font-size:.85rem;color:var(--text2)">Votre devis de <strong>${fcfa(d.devis_montant)}</strong> a été envoyé au client. En attente de sa réponse.</div>`;
+  } else if (d.statut === 'en_cours') {
+    zone.innerHTML = bonjour + `
+      <div style="font-size:.85rem;color:var(--text2);margin-bottom:.8rem">Le client a accepté votre devis de <strong>${fcfa(d.devis_montant)}</strong>. Une fois le travail terminé, envoyez une preuve de paiement pour clôturer.</div>
+      <button onclick="magicProTerminer('${token}')" style="width:100%;padding:.7rem;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-family:var(--font);font-weight:700;cursor:pointer"><i class="ti ti-photo"></i> Envoyer la preuve et clôturer</button>`;
+  } else if (d.statut === 'acheve') {
+    zone.innerHTML = bonjour + `<div style="text-align:center;padding:.5rem"><i class="ti ti-circle-check" style="font-size:2rem;color:var(--success)"></i><p style="margin-top:.5rem;font-size:.85rem">Marché clôturé. Merci d'avoir utilisé Zémigo !</p></div>`;
+  } else {
+    zone.innerHTML = bonjour + `<div style="font-size:.85rem;color:var(--text2)">Cette démarche a été refusée.</div>`;
+  }
+}
+
+async function magicAccepterDevis(token) {
+  const { data: d, error } = await sb.from('demarches')
+    .update({ statut: 'en_cours', accepted_client_at: new Date().toISOString() })
+    .eq('magic_token', token).eq('statut', 'attente_client')
+    .select('artisan_id,demarcheur_id,devis_montant,client_nom').single();
+  if (error || !d) return initMagicSession(token, 'client');
+  if (d.artisan_id) await _notifierPush(d.artisan_id, 'client', '✅ Devis accepté !', `${d.client_nom||'Le client'} a accepté votre devis de ${fcfa(d.devis_montant)}. Le marché est conclu.`, 'demarche');
+  if (d.demarcheur_id) await _notifierPush(d.demarcheur_id, 'client', '✅ Marché conclu', `${d.client_nom||'Le client'} a accepté le devis de ${fcfa(d.devis_montant)}.`, 'demarche');
+  await initMagicSession(token, 'client');
+}
+
+async function magicRefuserDevis(token) {
+  if (!confirm('Refuser ce devis ?')) return;
+  const { data: d, error } = await sb.from('demarches')
+    .update({ statut: 'refuse', magic_token: null, magic_token_pro: null })
+    .eq('magic_token', token).eq('statut', 'attente_client')
+    .select('artisan_id,demarcheur_id,client_nom').single();
+  if (error || !d) return;
+  const autres = [d.artisan_id, d.demarcheur_id].filter(Boolean);
+  for (const uid of autres) await _notifierPush(uid, 'client', '🔴 Devis refusé', `${d.client_nom||'Le client'} a refusé le devis.`, 'demarche');
+  await initMagicSession(token, 'client');
+}
+
+async function magicProAccepterEtDevis(token) {
+  const montant = parseInt((document.getElementById('magic-devis-montant')?.value||'').replace(/\D/g,''), 10);
+  if (!montant || montant <= 0) { showToast?.('Montant invalide'); return; }
+  const { data: d, error } = await sb.from('demarches')
+    .update({ statut: 'attente_client', devis_montant: montant, accepted_artisan_at: new Date().toISOString() })
+    .eq('magic_token_pro', token).eq('statut', 'attente_artisan')
+    .select('client_id,demarcheur_id,artisan_nom').single();
+  if (error || !d) return initMagicSession(token, 'pro');
+  if (d.client_id) await _notifierPush(d.client_id, 'client', '📄 Devis reçu', `${d.artisan_nom||'Le professionnel'} vous propose un devis de ${fcfa(montant)}.`, 'demarche');
+  if (d.demarcheur_id) await _notifierPush(d.demarcheur_id, 'client', '📄 Devis envoyé', `${d.artisan_nom||'Le professionnel'} a proposé un devis de ${fcfa(montant)}.`, 'demarche');
+  await initMagicSession(token, 'pro');
+}
+
+async function magicProRefuser(token) {
+  if (!confirm('Refuser cette démarche ?')) return;
+  const { data: d, error } = await sb.from('demarches')
+    .update({ statut: 'refuse', magic_token: null, magic_token_pro: null })
+    .eq('magic_token_pro', token).eq('statut', 'attente_artisan')
+    .select('client_id,demarcheur_id,artisan_nom').single();
+  if (error || !d) return;
+  const autres = [d.client_id, d.demarcheur_id].filter(Boolean);
+  for (const uid of autres) await _notifierPush(uid, 'client', '🔴 Démarche refusée', `${d.artisan_nom||'Le professionnel'} a refusé la démarche.`, 'demarche');
+  await initMagicSession(token, 'pro');
+}
+
+// Le professionnel sans compte n'a pas de wallet : la clôture nécessite
+// toujours une preuve photo de paiement cash (calcul de la commission fait
+// à titre indicatif/traçable, le règlement réel se fait hors plateforme).
+function magicProTerminer(token) {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*';
+  input.onchange = async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+    const { data: d0 } = await sb.from('demarches').select('*').eq('magic_token_pro', token).single();
+    if (!d0) return;
+    const commPlateformePct = parseFloat(configPlateforme.commission_artisan_pct || 0.5) / 100;
+    const commissionDemarcheur = Math.round(d0.devis_montant * (d0.demarcheur_pct||10) / 100);
+    const commissionPlateforme = Math.round(d0.devis_montant * commPlateformePct);
+    const path = `demarches/${d0.id}-${Date.now()}-${file.name}`;
+    const { error: eUp } = await sb.storage.from('preuves-paiement').upload(path, file);
+    if (eUp) { showToast?.('Erreur upload'); return; }
+    const url = sb.storage.from('preuves-paiement').getPublicUrl(path).data.publicUrl;
+    const { data: d, error } = await sb.from('demarches').update({
+      statut: 'acheve', completed_at: new Date().toISOString(),
+      preuve_cash_url: url, commission_demarcheur: commissionDemarcheur, commission_plateforme: commissionPlateforme,
+      magic_token: null, magic_token_pro: null
+    }).eq('magic_token_pro', token).select('demarcheur_id,artisan_nom').single();
+    if (error || !d) return;
+    if (d.demarcheur_id) await _notifierPush(d.demarcheur_id, 'client', '💰 Commission (paiement cash)', `${d.artisan_nom||'Le professionnel'} a clôturé le marché avec une preuve de paiement cash. Commission : ${fcfa(commissionDemarcheur)}.`, 'demarche');
+    await initMagicSession(token, 'pro');
+  };
+  input.click();
 }
 </script>
 </body>

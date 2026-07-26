@@ -4077,6 +4077,33 @@ input:valid {
     </div>
   </div>
 </div>
+
+<!-- Modal Suivi Démarche (carte 3 acteurs : artisan / client orienté / démarcheur) -->
+<div class="modal-overlay" id="modal-suivi-demarche" onclick="event.target===this&&closeModal('modal-suivi-demarche')">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:96vh;display:flex;flex-direction:column">
+    <div class="modal-handle" onclick="closeModal('modal-suivi-demarche')"><div class="modal-handle-pill"></div></div>
+    <div style="padding:.75rem 1.1rem .3rem;flex-shrink:0">
+      <div style="font-family:var(--font-display);font-size:1rem;font-weight:800">📍 Suivi en direct de la démarche</div>
+      <div style="font-size:.76rem;color:var(--text2)" id="sdm-meta">—</div>
+    </div>
+    <div style="padding:.5rem 1.1rem;flex-shrink:0">
+      <div id="sdm-map" style="width:100%;height:280px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border);position:relative">
+        <div id="sdm-map-placeholder" style="position:absolute;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);gap:.5rem;z-index:1">
+          <div style="font-size:2rem">🗺️</div>
+          <div style="font-size:.78rem;color:var(--text2)">En attente des positions…</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin:.4rem 0;font-size:.68rem;color:var(--text3)">
+        <span><span style="width:10px;height:10px;border-radius:50%;background:#16A34A;display:inline-block;vertical-align:middle;margin-right:3px"></span>Artisan</span>
+        <span><span style="width:10px;height:10px;border-radius:50%;background:#DC2626;display:inline-block;vertical-align:middle;margin-right:3px"></span>Client orienté</span>
+        <span><span style="width:10px;height:10px;border-radius:50%;background:#7C3AED;display:inline-block;vertical-align:middle;margin-right:3px"></span>Démarcheur</span>
+      </div>
+    </div>
+    <div style="padding:.4rem 1.1rem 1.2rem;flex-shrink:0">
+      <button onclick="closeModal('modal-suivi-demarche')" style="width:100%;padding:.65rem;background:var(--surface2,#F1F5F9);border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font);font-weight:600;font-size:.85rem;cursor:pointer;color:var(--text2)">Fermer</button>
+    </div>
+  </div>
+</div>
 <!-- Modal Salons vocaux (public/privé) -->
 <div class="modal-overlay" id="modal-salons" onclick="closeModal('modal-salons')">
   <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:480px;margin:auto">
@@ -10529,6 +10556,7 @@ function closeModal(id){
   if(m) m.classList.remove('open');
   // Arrêter le polling suivi artisan si on ferme ce modal
   if(id==='modal-suivi-artisan' && _sartPollInterval){ clearInterval(_sartPollInterval); _sartPollInterval=null; }
+  if(id==='modal-suivi-demarche' && _sdmPollInterval){ clearInterval(_sdmPollInterval); _sdmPollInterval=null; }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -18249,6 +18277,33 @@ async function dmChargerMesDemarches() {
       }
     }
 
+    // ── Négociation : "Débattre" à côté d'Accepter/Refuser, pour le client
+    //    (contre-offre sur le devis) et pour le démarcheur (médiateur) ──
+    if (monRole === 'client' && d.statut === 'attente_client' && d.devis_montant) {
+      actions += `<button onclick="dmDebattre('${d.id}', ${d.devis_montant})" style="width:100%;margin-top:.4rem;padding:.4rem;border:1.5px solid var(--warning,#F59E0B);color:var(--warning,#F59E0B);border-radius:8px;background:#FEF3C7;font-family:var(--font);font-size:.72rem;font-weight:700;cursor:pointer"><i class="ti ti-message-2"></i> Débattre le prix</button>`;
+    }
+    if (monRole === 'demarcheur' && ['attente_client','attente_artisan'].includes(d.statut) && d.devis_montant) {
+      actions += `<button onclick="dmDebattre('${d.id}', ${d.devis_montant})" style="width:100%;margin-top:.4rem;padding:.4rem;border:1.5px solid var(--warning,#F59E0B);color:var(--warning,#F59E0B);border-radius:8px;background:#FEF3C7;font-family:var(--font);font-size:.72rem;font-weight:700;cursor:pointer"><i class="ti ti-message-2"></i> Proposer un autre prix (médiation)</button>`;
+    }
+
+    // ── Appels + suivi carte : uniquement quand le marché est "en_cours" ──
+    if (d.statut === 'en_cours') {
+      const cibles = [];
+      if (monRole !== 'artisan' && d.artisan_id) cibles.push({ id: d.artisan_id, label: 'Appeler ' + escapeHtml(nomArtisan) });
+      if (monRole !== 'client' && d.client_id) cibles.push({ id: d.client_id, label: 'Appeler ' + escapeHtml(nomClient) });
+      if (monRole !== 'demarcheur' && d.demarcheur_id) cibles.push({ id: d.demarcheur_id, label: 'Appeler le démarcheur' });
+      if (cibles.length) {
+        actions += `<div style="display:flex;gap:.4rem;margin-top:.5rem;flex-wrap:wrap">` +
+          cibles.map(c => `<button onclick="initierAppelWebRTC_conv('${c.id}','audio')" style="flex:1;min-width:120px;padding:.4rem;border:none;border-radius:8px;background:var(--primary);color:#fff;font-family:var(--font);font-size:.7rem;font-weight:700;cursor:pointer"><i class="ti ti-phone"></i> ${c.label}</button>`).join('') +
+          `</div>`;
+      } else {
+        actions += `<button disabled title="Disponible une fois toutes les parties inscrites" style="width:100%;margin-top:.5rem;padding:.4rem;border:none;border-radius:8px;background:var(--surface2,#F1F5F9);color:var(--text3);font-family:var(--font);font-size:.7rem;font-weight:700;cursor:not-allowed"><i class="ti ti-phone-off"></i> Appel indisponible</button>`;
+      }
+      actions += `<button onclick="ouvrirSuiviDemarche('${d.id}')" style="width:100%;margin-top:.4rem;padding:.4rem;border:1.5px solid var(--primary);color:var(--primary);border-radius:8px;background:var(--primary-light);font-family:var(--font);font-size:.72rem;font-weight:700;cursor:pointer"><i class="ti ti-map-2"></i> Suivre sur la carte</button>`;
+    } else if (['attente_client','attente_artisan'].includes(d.statut)) {
+      actions += `<div style="margin-top:.4rem;font-size:.66rem;color:var(--text3)"><i class="ti ti-phone-off"></i> Appel disponible dès que le devis est accepté</div>`;
+    }
+
     return `<div style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:.65rem .8rem;margin-bottom:.5rem">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
         <span style="font-size:.68rem;font-weight:700;color:${color}">${label}</span>
@@ -18260,6 +18315,96 @@ async function dmChargerMesDemarches() {
       ${actions}
     </div>`;
   }).join('');
+}
+
+// ── Négociation du devis : contre-offre. Remet la démarche en attente de
+//    l'autre partie avec le nouveau montant, et notifie tout le monde. ──
+async function dmDebattre(id, montantActuel) {
+  const saisie = prompt(`Prix actuel : ${fcfa(montantActuel)}\nProposez votre nouveau montant (FCFA) :`, montantActuel);
+  if (saisie === null) return;
+  const montant = parseInt(String(saisie).replace(/\D/g, ''), 10);
+  if (!montant || montant <= 0) return showToast('Montant invalide', 'wa');
+
+  const { data: d0, error: e0 } = await sb.from('demarches').select('*').eq('id', id).single();
+  if (e0 || !d0) return showToast('Démarche introuvable', 'wa');
+
+  const monRole = d0.demarcheur_id === currentUser.id ? 'demarcheur' : (d0.artisan_id === currentUser.id ? 'artisan' : 'client');
+  // Le client qui débat renvoie la balle au pro ; le démarcheur qui débat
+  // (médiation) renvoie la balle au client pour validation de sa proposition.
+  const nouveauStatut = monRole === 'client' ? 'attente_artisan' : 'attente_client';
+
+  const { data: d, error } = await sb.from('demarches').update({
+    devis_montant: montant, statut: nouveauStatut
+  }).eq('id', id).select('client_id,artisan_id,demarcheur_id').single();
+  if (error) return showToast('Erreur', 'wa');
+
+  const nomMoi = ((currentProfile?.prenom||'')+' '+(currentProfile?.nom||'')).trim() || 'Un utilisateur';
+  const autres = [d.client_id, d.artisan_id, d.demarcheur_id].filter(uid => uid && uid !== currentUser.id);
+  for (const uid of autres) {
+    await _notifierPush(uid, 'client', '💬 Nouvelle proposition de prix', `${nomMoi} propose ${fcfa(montant)}.`, 'demarche');
+  }
+  showToast('Contre-proposition envoyée ✅', 'ok');
+  await dmChargerMesDemarches();
+}
+
+// ── Carte de suivi en direct : artisan + client orienté + démarcheur ──
+let sdmMap = null, _sdmMarkers = {}, _sdmPollInterval = null, _sdmDemarcheId = null;
+function initSdmMap() {
+  if (sdmMap) return;
+  const el = document.getElementById('sdm-map');
+  if (!el) return;
+  sdmMap = L.map('sdm-map').setView(COTONOU, 13);
+  _tileOsm().addTo(sdmMap);
+}
+function _sdmIcon(color, emoji) {
+  return L.divIcon({ className:'', html:`<div style="background:${color};width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);font-size:.9rem">${emoji}</div>`, iconSize:[30,30], iconAnchor:[15,15] });
+}
+function _sdmPlace(key, lat, lng, color, emoji) {
+  if (_sdmMarkers[key]) { _sdmMarkers[key].setLatLng([lat,lng]); return; }
+  initSdmMap();
+  _sdmMarkers[key] = L.marker([lat,lng], { icon: _sdmIcon(color, emoji) }).addTo(sdmMap);
+}
+async function ouvrirSuiviDemarche(id) {
+  _sdmDemarcheId = id;
+  Object.values(_sdmMarkers).forEach(m => { try { sdmMap?.removeLayer(m); } catch(e){} });
+  _sdmMarkers = {};
+  if (_sdmPollInterval) clearInterval(_sdmPollInterval);
+  const placeholder = document.getElementById('sdm-map-placeholder');
+  if (placeholder) placeholder.style.display = 'flex';
+
+  const { data: d } = await sb.from('demarches').select('*').eq('id', id).single();
+  if (!d) return showToast('Démarche introuvable', 'wa');
+  document.getElementById('sdm-meta').textContent = d.description || '—';
+  openModal('modal-suivi-demarche');
+  setTimeout(() => initSdmMap(), 100);
+
+  const poll = async () => {
+    const pts = [];
+    // Artisan : position dédiée dans `artisans`, sinon compte `profiles`
+    if (d.artisan_id) {
+      const { data: art } = await sb.from('artisans').select('latitude,longitude').eq('id', d.artisan_id).single().catch(()=>({data:null}));
+      let lat = art?.latitude, lng = art?.longitude;
+      if (!lat) { const { data: p } = await sb.from('profiles').select('latitude,longitude').eq('id', d.artisan_id).single().catch(()=>({data:null})); lat = p?.latitude; lng = p?.longitude; }
+      if (lat && lng) { _sdmPlace('artisan', lat, lng, '#16A34A', '🔧'); pts.push([lat,lng]); }
+    }
+    if (d.client_id) {
+      const { data: p } = await sb.from('profiles').select('latitude,longitude').eq('id', d.client_id).single().catch(()=>({data:null}));
+      if (p?.latitude && p?.longitude) { _sdmPlace('client', p.latitude, p.longitude, '#DC2626', '📍'); pts.push([p.latitude,p.longitude]); }
+    }
+    if (d.demarcheur_id) {
+      const { data: p } = await sb.from('profiles').select('latitude,longitude').eq('id', d.demarcheur_id).single().catch(()=>({data:null}));
+      if (p?.latitude && p?.longitude) { _sdmPlace('demarcheur', p.latitude, p.longitude, '#7C3AED', '🤝'); pts.push([p.latitude,p.longitude]); }
+    }
+    if (pts.length) {
+      const ph = document.getElementById('sdm-map-placeholder');
+      if (ph) ph.style.display = 'none';
+      initSdmMap();
+      if (pts.length > 1) sdmMap.fitBounds(pts, { padding:[40,40], maxZoom:16 });
+      else sdmMap.setView(pts[0], 15);
+    }
+  };
+  await poll();
+  _sdmPollInterval = setInterval(poll, 6000);
 }
 
 async function dmPreparerFormulaire() {
@@ -18543,7 +18688,7 @@ function dmUploaderPreuveCash(id, commDemarcheur, commPlateforme) {
     if (!file) return;
     const path = `demarches/${id}-${Date.now()}-${file.name}`;
     const { error: eUp } = await sb.storage.from('preuves-paiement').upload(path, file);
-    if (eUp) return showToast('Erreur upload de la preuve', 'wa');
+    if (eUp) { console.error('Upload preuve cash échoué :', eUp); return showToast('Erreur upload : ' + (eUp.message || 'vérifiez la connexion'), 'wa'); }
     const url = sb.storage.from('preuves-paiement').getPublicUrl(path).data.publicUrl;
     const { data: d, error } = await sb.from('demarches').update({
       statut: 'acheve', completed_at: new Date().toISOString(),
@@ -18705,7 +18850,7 @@ function magicProTerminer(token) {
     const commissionPlateforme = Math.round(d0.devis_montant * commPlateformePct);
     const path = `demarches/${d0.id}-${Date.now()}-${file.name}`;
     const { error: eUp } = await sb.storage.from('preuves-paiement').upload(path, file);
-    if (eUp) { showToast?.('Erreur upload'); return; }
+    if (eUp) { console.error('Upload preuve (magic pro) échoué :', eUp); showToast?.('Erreur upload : ' + (eUp.message || 'vérifiez la connexion')); return; }
     const url = sb.storage.from('preuves-paiement').getPublicUrl(path).data.publicUrl;
     const { data: d, error } = await sb.from('demarches').update({
       statut: 'acheve', completed_at: new Date().toISOString(),
